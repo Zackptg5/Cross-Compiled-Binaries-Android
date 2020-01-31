@@ -1,0 +1,11 @@
+# /system/etc/bash/bashrc
+#
+# This is the user file for bashrc sourced by all interactive bash shells
+# Customize however you want
+
+if [ -f "/sdcard/.bashrc" ]; then
+  source /sdcard/.bashrc
+else
+  [ -f "/sdcard/.aliases" ] && source /sdcard/.aliases
+  [ -f "/sdcard/.customrc" ] && source /sdcard/.customrc
+fi
