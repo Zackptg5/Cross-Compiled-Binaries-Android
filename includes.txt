@@ -11,11 +11,11 @@ Findutils (v4.7.0) find,frcode,locate,updatedb,xargs
 Gawk (v5.0.1) gawk
 Grep (v3.3) egrep,fgrep,grep
 Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
-Keycheck (n/a) keycheck
+Keycheck (v1.0) keycheck
 Patch (v2.7.6) patch
 Patchelf (v0.10) patchelf
 Sed (v4.7) sed
 Tar (v1.32) tar
-Xmlstarlet (n/a) xmlstarlet
+Xmlstarlet (v1.0) xmlstarlet
 Zip (v3.0) zip
-Zsh (5.7.1) zsh etc,usr
+Zsh (v5.7.1) zsh etc,usr
