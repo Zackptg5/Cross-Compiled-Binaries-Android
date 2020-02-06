@@ -1,0 +1,362 @@
+#!/system/bin/sh
+# Terminal Magisk Mod Template
+# by veez21 @ xda-developers
+
+
+# Magisk Module ID **
+ID="ccbins"
+
+# Detect root
+_name=$(basename $0)
+ls /data >/dev/null 2>&1 || { echo "$ID needs to run as root!"; echo "type 'su' then '$_name'"; exit 1; }
+
+# Magisk Mod Directory
+MOUNTPATH="/sbin/.magisk/modules"
+MODDIR="$MOUNTPATH/$ID"
+[ ! -d $MODDIR ] && { echo "Module not detected!"; exit 1; }\
+
+# Set path to your busybox if applicable
+_bb=$MODDIR/busybox
+
+# Load mod-util.sh
+. $MODDIR/mod-util.sh || exit $?
+
+# Set Log Files
+mount -o remount,rw /cache 2>/dev/null
+mount -o rw,remount /cache 2>/dev/null
+# > Logs should go in this file
+LOG=/data/local/tmp/$ID.log
+oldLOG=/data/local/tmp/$ID-old.log
+# > Verbose output goes here
+VERLOG=/data/local/tmp/$ID-verbose.log
+oldVERLOG=/data/local/tmp/$ID-verbose-old.log
+
+# Start Logging verbosely
+mv -f $VERLOG $oldVERLOG 2>/dev/null; mv -f $LOG $oldLOG 2>/dev/null
+set -x 2>$VERLOG
+
+# Main
+# > You can start your MOD here.
+# > You can add functions, variables & etc.
+# > Rather than editing the default vars above.
+quit() {
+  rm -f $MODDIR/tmp
+  exit 0
+}
+
+print_pause() {
+  echo -e "$1"
+  sleep 2
+}
+
+check_updates() {
+  echo -e "\nChecking for mod updates"
+  rm -f $MODDIR/tmp
+  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver; do
+    local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
+    [ `wget -qO - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/master/$(basename $file) 2>/dev/null | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ] && { echo -n 1 > $MODDIR/tmp; wget -qO $MODDIR/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/master/$(basename $file) 2>/dev/null; }
+  done
+}
+
+check_bin_updates() {
+  echo -e "\nChecking for binary updates"
+  rm -f $MODDIR/tmp
+  [ -s $MODDIR/.installed ] || return 0
+  while read -r line; do
+    local bin="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')" binloc="$(echo "$line" | awk '{print $3}')"
+    curver="$(grep -w $bin $MODDIR/.binaries | awk '{print substr($2, 3, length($2) - 3)}')"
+    [ $(echo "$curver $insver" | awk '{printf "%d", ($1 > $2)}') -eq 1 ] && echo "  $binloc: $bin ($insver -> $curver)" >> $MODDIR/tmp
+  done < $MODDIR/.installed
+}
+
+find_conflicts() {
+  echo -e "\nChecking for conflicting modules"
+  rm -f $MODDIR/tmp
+  local binaries="$(cat $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g")"
+  binaries="$(echo $binaries | sed "s/ / -o -name /g")"
+  for i in $locs; do
+    [ -d "$i" ] || continue
+    find $MOUNTPATH/*$i -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" \( -name $binaries \) 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system|  \1: /system|" >> $MODDIR/tmp
+  done
+}
+
+list_installed() {
+  local curlocs
+  sort -k3 $MODDIR/.installed > $MODDIR/tmp
+  for i in $locs; do
+    [ "$(grep -w $i $MODDIR/.installed)" ] && curlocs="$i $curlocs"
+  done
+  curlocs="$(echo $curlocs | tr ' ' '\n' | tac | tr '\n' ' ')"
+  for i in $curlocs; do
+    echo "$div"
+    title_div "$i"
+    echo "$div"
+    grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2
+  done
+}
+
+list_locs() {
+  rm -f $MODDIR/tmp
+  local num=0
+  echo "0: Go back to main menu"
+  for i in $locs; do
+    [ -d "$i" ] || continue
+    num=$((num+1))
+    echo "$num: $i" | tee -a $MODDIR/tmp;
+  done
+}
+
+change_loc() {
+  [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)"
+  while true; do
+    echo "$div"
+    title_div "Current install location:"
+    title_div "$insloc"
+    echo "$div"
+    title_div "Change to which location?"
+    echo "$div"
+    list_locs
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break
+      case $choice in
+        0) break 2;;
+        q) quit;;
+        *) echo "Invalid option! Try again";;
+      esac
+    done
+    insloc="$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null | awk '{print $2}')"
+    mkdir $MODDIR$insloc 2>/dev/null
+    echo $insloc > $MODDIR/.loc
+    echo -e "Install location has been changed to $insloc\n"
+    break
+  done
+}
+
+remove_binary() {
+  while true; do
+    grep -w "$insloc" $MODDIR/.installed | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Remove all binaries listed below" $MODDIR/tmp || { print_pause "No binaries are installed to $insloc!\n"; break; }
+    echo "$div"
+    title_div "Remove which binary?"
+    echo "$div"
+    cat $MODDIR/tmp
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      for i in $choice; do
+        case $i in
+          0) break 3;;
+          1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"; break 2;;
+          q) quit;;
+          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+        esac
+      done
+    done
+    for ichoice in $choice; do
+      local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
+      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
+      sed -i "\|$binary.*$insloc|d" $MODDIR/.installed
+      is_mounted $insloc/$ibinary && local unmount=true || local unmount=false
+      for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
+        $unmount && umount -l $insloc/$i
+        rm -f $MODDIR$insloc/$i
+        case $i in
+          "busybox"|"coreutils") 
+            for j in $MODDIR$insloc/*; do
+              if [ -L $j ]; then
+                $unmount && umount -l $j
+                rm -f $j
+              fi
+            done;;
+        esac
+      done
+      if [ "$extras" ] && [ -z "$(grep -w $binary $MODDIR/.installed)" ]; then
+        while read -r line; do
+          $unmount && umount -l $MODDIR/system/$line
+          rm -f $MODDIR/system/$line
+        done < $MODDIR/.$ibinary
+        rm -f $MODDIR/.$ibinary
+      fi
+      toybox find $MODDIR/system -type d -empty -delete >/dev/null 2>&1
+      echo -e "$binary has been removed!\n"
+    done
+    clear
+  done
+}
+
+install_binary() {
+  while true; do
+    if [ -s $MODDIR/.installed ]; then
+      local curbins="$(grep -w "$insloc" $MODDIR/.installed | awk '{print $1}' | sed -E 's/Busybox|Coreutils/Busybox Coreutils/')"
+      curbins="$(echo $curbins | sed 's| |\||g')"
+    fi
+    if [ -z $curbins ] || [ ! -s $MODDIR/.installed ]; then
+      cat $MODDIR/.binaries | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    else
+      grep -Ewv "$curbins" $MODDIR/.binaries | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    fi
+    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Install all binaries listed below" $MODDIR/tmp || { print_pause "All binaries are installed!\n"; break; }
+    echo "$div"
+    title_div "Install which binary?"
+    echo "$div"
+    title_div "Current install location:"
+    title_div "$insloc"
+    echo "$div"
+    cat $MODDIR/tmp
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      for i in $choice; do
+        case $i in
+          0) break 3;;
+          1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"
+             if [ "$(grep -w 'Busybox' $MODDIR/tmp)" ]; then
+              echo -e "Which box?\n1: Busybox\n2: Coreutils"
+              while true; do
+                read -r choice2?'--> '
+                echo " "
+                case $choice2 in
+                  1) choice="$(echo "$choice" | sed "s/$(grep -w 'Coreutils' $MODDIR/tmp | awk '{print substr($1, 1, length($1) - 1)}') *//")"; break;;
+                  2) choice="$(echo "$choice" | sed "s/$(grep -w 'Busybox' $MODDIR/tmp | awk '{print substr($1, 1, length($1) - 1)}') *//")"; break;;
+                  *) echo "Invalid option: $j! Try again";;
+                esac
+              done
+            fi
+             break 2;;
+          q) quit;;
+          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+        esac
+      done
+    done
+    for ichoice in $choice; do
+      echo "$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")" >> $MODDIR/.installed
+      local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
+      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
+      echo "Downloading $binary"
+      mkdir -p $MODDIR$insloc
+      for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
+        rm -f $MODDIR$insloc/$i 2>/dev/null
+        wget -O $MODDIR$insloc/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/master/$ibinary/$i-$ARCH 2>/dev/null & e_spinner
+        set_perm $MODDIR$insloc/$i 0 0 0755
+        case $i in
+          "busybox")
+            cd $MODDIR$insloc
+            for j in $($i --list); do
+              [ -e "/sbin/.magisk/mirror$insloc/$j" ] || [ -e "$j" ] || ln -sf $i $j
+            done
+            cd $dir
+            ;;
+          "coreutils")
+            cd $MODDIR$insloc
+            for j in $(./coreutils --help | sed -n "/^ \[/p"); do
+              if ([ ! -e "/sbin/.magisk/mirror$insloc/$j" ] && [ ! -e "$j" ] && [ "$j" != "[" ] && [ "$j" != "test" ]) || ([ "$j" == "cp" ] || [ "$j" == "mv" ]); then
+                ln -sf coreutils $j
+              fi
+            done
+            cd $dir;;
+        esac
+      done
+      if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
+        for i in $(echo $extras | sed "s|,| |g"); do
+          wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/master/$ibinary/$i.zip 2>/dev/null & e_spinner
+          unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d' >> $MODDIR/.$ibinary
+          unzip -qod $MODDIR/system $MODDIR/$i.zip
+          rm -f $MODDIR/$i.zip
+        done
+      fi
+      echo -e " - $binary has been installed!\n"
+    done
+    clear
+    echo -e "Reboot for changes to take effect\n"
+  done
+}
+
+backup_config() {
+  rm -rf $bakloc
+  mkdir -p $bakloc
+  cp -pf $MODDIR/.* $bakloc 2>/dev/null
+  cp -af $MODDIR/system $bakloc
+  rm -f $bakloc/system/bin/ccbins
+  echo -e "Current config backed up!\n"
+}
+
+restore_config() {
+  local newloc=/data/adb/modules_update/$MODID
+  touch $MODDIR/update
+  rm -rf $newloc
+  mkdir /data/adb/modules_update 2>/dev/null
+  cp -pf $MODDIR/* $newloc 2>/dev/null
+  cp -af $bakloc/* $newloc 2>/dev/null
+  cp -pf $bakloc/.* $newloc 2>/dev/null
+  cp -pf $MODDIR/system/bin/ccbins $newloc/system/bin/ccbins
+  echo -e "Old config restored!\nReboot to apply it!\n"
+}
+
+scriptver=1
+dir=`pwd`; bakloc=/data/local/ccbinsbackup
+locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
+[ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)" || insloc=/system/bin
+mod_head
+echo " "
+if test_connection; then
+  online=true
+  echo -e "\nFetching available binaries"
+  rm -f $MODDIR/.binaries
+  wget -qO $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/master/includes.txt 2>/dev/null & e_spinner
+  echo " - Done"
+  check_updates & e_spinner
+  [ -f $MODDIR/tmp ] && { echo -e " - Applying mod updates and restarting"; ccbins && quit; } || echo " - Ccbins is up to date"
+  check_bin_updates & e_spinner
+  [ -s $MODDIR/tmp ] && { echo -e " - The following binaries need updated:\n"; cat $MODDIR/tmp; } || echo " - Binaries are up to date"
+else
+  online=false
+  echo -e "No internet connection!\nOnline functionality disabled"
+fi
+find_conflicts & e_spinner
+[ -s $MODDIR/tmp ] && { echo -e " - The following conflicts were found:\n"; cat $MODDIR/tmp; sleep 3; } || echo " - No conflicting mods were found"
+echo " "
+
+while true; do
+  echo "$div"
+  title_div "Binary Installer"
+  echo "$div"
+  echo "Current install location:"
+  echo "$insloc"
+  echo "$div"
+  title_div "Choose option"
+  echo "$div"
+  echo "0: Change install location"
+  echo "1: List all installed binaries"
+  echo "2: List all downloadable binaries"
+  echo "3: Remove binary"
+  $online && echo "4: Install binary"
+  [ -s $MODDIR/.installed ] && echo "5: Backup current config"
+  [ -d $bakloc ] && echo -e "6: Restore last config\n7: Erase backup config"
+  echo "Type 'q' at any time to quit"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      0|1|2|3) break;;
+      4) $online && break || echo "Invalid option! Try again";;
+      5) [ -s $MODDIR/.installed ] && break || echo "Invalid option! Try again";;
+      6|7) [ -d $bakloc ] && break || echo "Invalid option! Try again";;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
+
+  case $choice in
+    0) change_loc;;
+    1) [ -s $MODDIR/.installed ] && list_installed || echo "No binaries installed!"; print_pause " ";;
+    2) cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " ";;
+    3) [ -s $MODDIR/.installed ] && remove_binary || print_pause "No binaries installed!\n";;
+    4) install_binary;;
+    5) backup_config;;
+    6) restore_config;;
+    7) rm -rf $bakloc; print_pause "Backup config erased\n";;
+  esac
+  clear
+done

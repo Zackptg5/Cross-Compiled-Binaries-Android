@@ -1,10 +1,10 @@
 # Cross Compiled Binaries for Android
-This repo contains a variety of static compiled binaries cross compiled for android with Android NDK
+This repo contains a variety of static compiled binaries cross compiled for android with Android NDK. Feel free to use them for whatever. Also contains some files for ccbins mod
 
-Currently Includes:
+## Currently includes:
 * Bash (v5.11) - note that Linaro toolchain was used for arm64
 * Bc (v1.07.1)
-* Busybox (1.31.1) - has selinux support
+* Busybox (v1.31.1) - has selinux support
 * Coreutils (v8.31) - includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12)
 * Curl (v7.67.0) - boringssl support and more - working ssl
@@ -21,8 +21,14 @@ Currently Includes:
 * Tar (v1.32)
 * Xmlstarlet
 * Zip (v3.0)
+* Zsh (v5.7.1)
 
 ## Credits
+* [Busybox](https://busybox.net/)
 * [Daniel Stenberg](https://curl.haxx.se/)
 * [GNU](https://www.gnu.org/software)
 * [james34602](https://github.com/james34602)
+* [Mikhail Grushinskiy](http://xmlstar.sourceforge.net/)
+* [NixOS](https://nixos.org/patchelf.html)
+* [Partcyborg](https://github.com/Magisk-Modules-Repo/zsh_arm64/)
+* [topjohnwu](https://github.com/topjohnwu/ndk-box-kitchen)

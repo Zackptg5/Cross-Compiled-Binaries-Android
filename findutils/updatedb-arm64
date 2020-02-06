@@ -182,8 +182,7 @@ test -z "$PRUNEREGEX" &&
   PRUNEREGEX=`echo $PRUNEPATHS|sed -e 's,^,\\\(^,' -e 's, ,$\\\)\\\|\\\(^,g' -e 's,$,$\\\),'`
 
 # The database file to build.
-mkdir -p /sdcard/gnu/tmp /sdcard/gnu/var
-: ${LOCATE_DB=/sdcard/gnu/var/locatedb}
+: ${LOCATE_DB=/system/var/locatedb}
 
 # Directory to hold intermediate files.
 if test -z "$TMPDIR"; then
@@ -192,7 +191,7 @@ if test -z "$TMPDIR"; then
   elif test -d /usr/tmp; then
     : ${TMPDIR=/usr/tmp}
   else
-    : ${TMPDIR=/sdcard/gnu/tmp}
+    : ${TMPDIR=tmp}
   fi
 fi
 export TMPDIR
