@@ -4,6 +4,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 ## Currently includes:
 * Bash (v5.11) - note that Linaro toolchain was used for arm64
 * Bc (v1.07.1)
+* Brotli (v1.0.7)
 * Busybox (v1.31.1) - has selinux support
 * Coreutils (v8.31) - includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12)
@@ -27,6 +28,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * [Busybox](https://busybox.net/)
 * [Daniel Stenberg](https://curl.haxx.se/)
 * [GNU](https://www.gnu.org/software)
+* [Google](https://github.com/google/brotli)
 * [james34602](https://github.com/james34602)
 * [Mikhail Grushinskiy](http://xmlstar.sourceforge.net/)
 * [NixOS](https://nixos.org/patchelf.html)

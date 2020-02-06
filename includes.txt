@@ -1,5 +1,6 @@
 Bash (v5.11) bash etc
 Bc (v1.07.1) bc,dc
+Brotli (v1.0.7) brotli
 Busybox (v1.31.1) busybox
 Coreutils (v8.31) coreutils
 Cpio (v2.12) cpio
