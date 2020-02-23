@@ -15,6 +15,7 @@ Keycheck (v1.0) keycheck
 Patch (v2.7.6) patch
 Patchelf (v0.10) patchelf
 Sed (v4.7) sed
+Strace (v5.5) strace
 Tar (v1.32) tar
 Xmlstarlet (v1.0) xmlstarlet
 Zip (v3.0) zip
