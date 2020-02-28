@@ -351,17 +351,19 @@ restore_config() {
 }
 
 hidden_menu() {
-  clear
-  echo "$div"
-  title_div "Welcome to the dark side"
-  echo "$div"
-  $online || { echo -e "Internet is needed for this, going back to main menu\n"; return 0; }
-  title_div "Current branch:"
-  title_div "$branch"
-  echo "$div"
-  title_div "Choose option:"
-  echo "$div"
+  wget -qO - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches 2>/dev/null | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
+  sed -i "1i0: Keep current branch, go back to main menu" $MODDIR/tmp
   while true; do
+    clear
+    echo "$div"
+    title_div "Welcome to the dark side"
+    echo "$div"
+    $online || { echo -e "Internet is needed for this, going back to main menu\n"; return 0; }
+    title_div "Current branch:"
+    title_div "$branch"
+    echo "$div"
+    title_div "Choose option:"
+    echo "$div"
     echo "0: Go back to main menu"
     echo "1: Force update"
     echo "2: Switch branch"
@@ -384,26 +386,26 @@ hidden_menu() {
          umount -l /system/bin/ccbins
          mount -o bind $MODDIR/system/bin/ccbins /system/bin/ccbins
          ccbins && quit;;
-      2) echo "Enter branch (0 will still return to main menu):"
+      2) echo "Which branch?"
+         cat $MODDIR/tmp
          while true; do
            read -r choice?'--> '
            echo " "
            case $choice in
              0) break 2;;
-             "q") quit;;
+             q) quit;;
+             *) [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break || echo "Invalid option: $choice! Try again";;
            esac
-           wget --spider https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$choice/ccbins 2>/dev/null || { echo "Branch doesn't exist! Try again"; continue; }
-           branch=$choice
-           sed -i "s/^branch=.*/branch=$branch/" $MODDIR/system/bin/ccbins
-           echo "Switched branch to $branch"
-           break
-         done;;
+         done
+         branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
+         sed -i "s/^branch=.*/branch=$branch/" $MODDIR/system/bin/ccbins
+         echo "Switched branch to $branch";;
     esac
   done
   clear
 }
 
-scriptver=4
+scriptver=5
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
