@@ -63,13 +63,14 @@ reset_mod() {
 
 check_updates() {
   echo -e "\nChecking for mod updates"
-  rm -f $MODDIR/.updated
-  wget -qO $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/changelog.txt 2>/dev/null
-  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver; do
+  rm -f $MODDIR/.updated $MODDIR/.updatedfiles
+  wget -qO $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt 2>/dev/null
+  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver post-fs-data.sh,filever service.sh,filever; do
     local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
-    if [ `wget -qO - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$(basename $file) 2>/dev/null | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
+    if [ `wget -qO - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) 2>/dev/null | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
       echo "$scriptver" > $MODDIR/.updated
-      wget -qO $MODDIR/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$(basename $file) 2>/dev/null
+      echo "$(basename $file)" >> $MODDIR/.updatedfiles
+      wget -qO $MODDIR/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) 2>/dev/null
       [ "$file" == "system/bin/ccbins" ] && { umount -l /$file; mount -o bind $MODDIR/$file /$file; }
     fi
   done
@@ -154,21 +155,33 @@ check_conflicts() {
 remove_binary() {
   [ "$1" == "-f" ] && local force=true || force=false
   for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
-    $force || umount -l $insloc/$i
+    $force || umount -f $insloc/$i 2>/dev/null
     rm -f $MODDIR$insloc/$i
     case $i in
       "busybox"|"coreutils") 
         for j in $MODDIR$insloc/*; do
           if [ -L $j ]; then
-            $force || umount -l $insloc/$(basename $j)
+            $force || umount -f $insloc/$(basename $j) 2>/dev/null
             rm -f $j
           fi
+        done
+        [ -f $MODDIR$insloc/vim ] && {
+          cd $MODDIR$insloc
+          for j in ex rview rvim view vimdiff; do
+            ln -sf vim $j
+          done
+          cd $dir
+        };;
+      "vim")
+        for j in ex rview rvim view vimdiff; do
+          $force || umount -f $insloc/$j 2>/dev/null
+          rm -f $MODDIR$insloc/$j
         done;;
     esac
   done
   if [ "$extras" ] && ([ -z "$(grep -w $binary $MODDIR/.installed)" ] || $force); then
     while read -r line; do
-      $force || umount -l /system/$line
+      $force || umount -f /system/$line 2>/dev/null
       rm -f $MODDIR/system/$line
     done < $MODDIR/.$ibinary
     rm -f $MODDIR/.$ibinary
@@ -184,19 +197,27 @@ install_binary() {
     case $i in
       "busybox")
         cd $MODDIR$insloc
-        for j in $($i --list); do
+        for j in $(./$i --list); do
           [ -e "/sbin/.magisk/mirror$insloc/$j" ] || [ -e "$j" ] || ln -sf $i $j
         done
         cd $dir
         ;;
       "coreutils")
         cd $MODDIR$insloc
-        for j in $(./coreutils --help | sed -n "/^ \[/p"); do
+        for j in $(./$i --help | sed -n "/^ \[/p"); do
           if ([ ! -e "/sbin/.magisk/mirror$insloc/$j" ] && [ ! -e "$j" ] && [ "$j" != "[" ] && [ "$j" != "test" ]) || ([ "$j" == "cp" ] || [ "$j" == "mv" ]); then
-            ln -sf coreutils $j
+            ln -sf $i $j
           fi
         done
-        cd $dir;;
+        cd $dir
+        ;;
+      "vim")
+        cd $MODDIR$insloc
+        for j in ex rview rvim view vimdiff; do
+          ln -sf $i $j
+        done
+        cd $dir
+        ;;
     esac
   done
   if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
@@ -209,9 +230,32 @@ install_binary() {
   fi
 }
 
+install_ncursesw() {
+  [ "$1" == "-u" ] && local update=true || local update=false
+  $update && echo " - Updating NCursesw (`cat $MODDIR/.ncursesver` -> `cat $MODDIR/tmp`)" || echo " - Installing NCursesw v`cat $MODDIR/tmp`"
+  mv -f $MODDIR/tmp $MODDIR/.ncursesver
+  wget -O $MODDIR/system/ncursesw.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/ncursesw-$ARCH.zip 2>/dev/null
+  unzip -qod $MODDIR/system $MODDIR/system/ncursesw.zip
+  rm -f $MODDIR/system/ncursesw.zip
+  $update && echo " - NCursesw has been updated!" || echo " - NCursesw has been installed!"
+}
+
 check_bin_updates() {
   echo -e "\nChecking for binary updates"
-  rm -f $MODDIR/tmp
+  wget -qO $MODDIR/tmp https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/version.txt 2>/dev/null
+  if [ ! -f $MODDIR/.ncursesver ]; then
+    install_ncursesw 
+  else
+    local insver="$(cat $MODDIR/.ncursesver | awk '{print substr($2, 3, length($2) - 3)}')" newver="$(cat $MODDIR/tmp | awk '{print substr($2, 3, length($2) - 3)}')"
+    # Add 0 before final number if single digit or compare won't work
+    for i in insver newver; do
+      local beg=$(echo $(eval echo \$$i) | sed -r "s/(.*)\..*/\1./")
+      local end=$(echo $(eval echo \$$i) | sed "s/.*\.//")
+      [ $(echo $end | wc -m) -eq 2 ] && local end=0$end
+      local dec$i=$beg$end
+    done
+    [ $(echo "$decnewver $decinsver" | awk '{printf "%d", ($1 > $2)}') -eq 1 ] && install_ncursesw -u
+  fi
   [ -s $MODDIR/.installed ] || return 0
   while read -r line; do
     local insloc="$(echo "$line" | awk '{print $3}')" binary="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')" binloc="$(echo "$line" | awk '{print $3}')"
@@ -350,6 +394,16 @@ restore_config() {
   sleep 2
 }
 
+force_update() {
+  echo "$scriptver" > $MODDIR/.updated
+  wget -qO $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt 2>/dev/null
+  wget -qO $MODDIR/system/bin/ccbins https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/ccbins 2>/dev/null
+  wget -qO $MODDIR/mod-util.sh https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/mod-util.sh 2>/dev/null
+  umount -l /system/bin/ccbins
+  mount -o bind $MODDIR/system/bin/ccbins /system/bin/ccbins
+  ccbins && quit
+}
+
 hidden_menu() {
   wget -qO - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches 2>/dev/null | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
   sed -i "1i0: Keep current branch, go back to main menu" $MODDIR/tmp
@@ -379,13 +433,8 @@ hidden_menu() {
     case $choice in
       0) break;;
       1) echo "Applying mod updates and restarting"
-         echo "$scriptver" > $MODDIR/.updated
-         wget -qO $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/changelog.txt 2>/dev/null
-         wget -qO $MODDIR/system/bin/ccbins https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins 2>/dev/null
-         wget -qO $MODDIR/mod-util.sh https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/mod-util.sh 2>/dev/null
-         umount -l /system/bin/ccbins
-         mount -o bind $MODDIR/system/bin/ccbins /system/bin/ccbins
-         ccbins && quit;;
+         force_update
+         ;;
       2) echo "Which branch?"
          cat $MODDIR/tmp
          while true; do
@@ -398,14 +447,15 @@ hidden_menu() {
            esac
          done
          branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
-         sed -i "s/^branch=.*/branch=$branch/" $MODDIR/system/bin/ccbins
-         echo "Switched branch to $branch";;
+         echo "Switching branch to $branch"
+         force_update
+         ;;
     esac
   done
   clear
 }
 
-scriptver=5
+scriptver=6
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
@@ -417,16 +467,19 @@ if [ -f $MODDIR/.updated ]; then
   echo "CCBins succesfully updated!"
   local oldver="$(cat $MODDIR/.updated)" newver="$scriptver"
   local oldline=$(sed -n "/^$oldver/=" $MODDIR/.changelog) newline=$(sed -n "/^$newver/=" $MODDIR/.changelog)
-  echo "Changelog: $(sed -n "/^$newver/p" $MODDIR/.changelog)"
-  sed -n "$newline,$oldline p" $MODDIR/.changelog | sed -E '/^[0-9]|^$/d'
-  echo " "
+  if [ "$oldver" != "$newver" ]; then
+    echo "Changelog: $(sed -n "/^$newver/p" $MODDIR/.changelog)"
+    sed -n "$newline,$oldline p" $MODDIR/.changelog | sed -E '/^[0-9]|^$/d'
+    echo " "
+  fi
+  [ -f $MODDIR/.updatedfiles ] && { echo "Updated mod files:"; cat $MODDIR/.updatedfiles; echo " "; }
   sleep 2
 fi
 if test_connection; then
   online=true
   echo -e "\nFetching available binaries"
   rm -f $MODDIR/.binaries
-  wget -qO $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/includes.txt 2>/dev/null & e_spinner
+  wget -qO $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt 2>/dev/null & e_spinner
   echo " - Done"
   check_updates & e_spinner
   [ -f $MODDIR/.updated ] && { echo -e " - Applying mod updates and restarting"; ccbins && quit; } || echo " - Ccbins is up to date"

@@ -1,3 +1,9 @@
+6 - 3.9.2020
+* Fix secret stuff
+* Add vim
+* Add htop
+* Add needed ncursesw files (terminfo)
+
 5 - 2.28.2020
 * Add refresh option
 * Fix clears
