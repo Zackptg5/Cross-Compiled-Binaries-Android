@@ -27,6 +27,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Xmlstarlet
 * Zip (v3.0)
 * Zsh (v5.7.1)
+* Zstd (v1.4.4)
 
 ## Credits
 * [Busybox](https://busybox.net/)
@@ -41,3 +42,4 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * [Strace](https://github.com/strace/strace)
 * [topjohnwu](https://github.com/topjohnwu/ndk-box-kitchen)
 * [Vim](https://github.com/vim/vim)
+* [Zstd](https://github.com/facebook/zstd)

@@ -1,3 +1,11 @@
+7 - 3.12.2020
+* Added zstd symlink stuff
+* Fix issues with vendor bins
+* Added oh-my-zsh to zsh install - uninstall/reinstall zsh to get the good stuff
+* Fixed updatedb - uninstall/reinstall findutils for fix
+* Futureproofed symlinks - all symlinks will be removed with this update, reinstall those binaries to get them back (busybox, coreutils, vim)
+* Misc improvements
+
 6 - 3.9.2020
 * Fix secret stuff
 * Add vim

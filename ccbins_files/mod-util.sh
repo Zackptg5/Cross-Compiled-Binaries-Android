@@ -7,7 +7,7 @@
 
 # Versions
 MODUTILVER=v2.6
-MODUTILVCODE=260
+MODUTILVCODE=261
 
 # Check A/B slot
 if [ -d /system_root ]; then
@@ -72,6 +72,7 @@ set_perm() {
   chmod $4 $1 || return 1
   (if [ -z $5 ]; then
     case $1 in
+      *"/bin/"*) chcon 'u:object_r:system_file:s0' $1;;
       *"system/vendor/app/"*) chcon 'u:object_r:vendor_app_file:s0' $1;;
       *"system/vendor/etc/"*) chcon 'u:object_r:vendor_configs_file:s0' $1;;
       *"system/vendor/overlay/"*) chcon 'u:object_r:vendor_overlay_file:s0' $1;;

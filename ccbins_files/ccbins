@@ -157,29 +157,8 @@ remove_binary() {
   for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
     $force || umount -f $insloc/$i 2>/dev/null
     rm -f $MODDIR$insloc/$i
-    case $i in
-      "busybox"|"coreutils") 
-        for j in $MODDIR$insloc/*; do
-          if [ -L $j ]; then
-            $force || umount -f $insloc/$(basename $j) 2>/dev/null
-            rm -f $j
-          fi
-        done
-        [ -f $MODDIR$insloc/vim ] && {
-          cd $MODDIR$insloc
-          for j in ex rview rvim view vimdiff; do
-            ln -sf vim $j
-          done
-          cd $dir
-        };;
-      "vim")
-        for j in ex rview rvim view vimdiff; do
-          $force || umount -f $insloc/$j 2>/dev/null
-          rm -f $MODDIR$insloc/$j
-        done;;
-    esac
   done
-  if [ "$extras" ] && ([ -z "$(grep -w $binary $MODDIR/.installed)" ] || $force); then
+  if [ -f $MODDIR/.$ibinary ]; then
     while read -r line; do
       $force || umount -f /system/$line 2>/dev/null
       rm -f $MODDIR/system/$line
@@ -193,40 +172,27 @@ install_binary() {
   for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
     check_conflicts
     $spin && { wget -O $MODDIR$insloc/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i-$ARCH 2>/dev/null & e_spinner; } || wget -O $MODDIR$insloc/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i-$ARCH 2>/dev/null
-    set_perm $MODDIR$insloc/$i 0 0 0755
-    case $i in
-      "busybox")
-        cd $MODDIR$insloc
-        for j in $(./$i --list); do
-          [ -e "/sbin/.magisk/mirror$insloc/$j" ] || [ -e "$j" ] || ln -sf $i $j
-        done
-        cd $dir
-        ;;
-      "coreutils")
-        cd $MODDIR$insloc
-        for j in $(./$i --help | sed -n "/^ \[/p"); do
-          if ([ ! -e "/sbin/.magisk/mirror$insloc/$j" ] && [ ! -e "$j" ] && [ "$j" != "[" ] && [ "$j" != "test" ]) || ([ "$j" == "cp" ] || [ "$j" == "mv" ]); then
-            ln -sf $i $j
-          fi
-        done
-        cd $dir
-        ;;
-      "vim")
-        cd $MODDIR$insloc
-        for j in ex rview rvim view vimdiff; do
-          ln -sf $i $j
-        done
-        cd $dir
-        ;;
-    esac
+    set_perm $MODDIR$insloc/$i 0 2000 0755
   done
   if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
     for i in $(echo $extras | sed "s|,| |g"); do
-      $spin && { wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null & e_spinner; } || wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null
-      unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d' >> $MODDIR/.$ibinary
-      unzip -qod $MODDIR/system $MODDIR/$i.zip
-      rm -f $MODDIR/$i.zip
+      if wget -q --spider https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null; then
+        $spin && { wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null & e_spinner; } || wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null
+        unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d' >> $MODDIR/.$ibinary
+        unzip -qod $MODDIR/system $MODDIR/$i.zip
+        rm -f $MODDIR/$i.zip
+      else
+        cd $MODDIR$insloc
+        ln -sf $ibinary $i
+        echo "$(echo $insloc | cut -d / -f3-)/$i" >> $MODDIR/.$ibinary
+        cd $dir
+      fi
     done
+  fi
+  if wget -q --spider https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/install.sh 2>/dev/null; then
+    $spin && { wget -qO $MODDIR/install.sh https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/install.sh 2>/dev/null & e_spinner; } || wget -qO $MODDIR/install.sh https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/install.sh 2>/dev/null
+    . $MODDIR/install.sh
+    rm -f $MODDIR/install.sh
   fi
 }
 
@@ -455,7 +421,9 @@ hidden_menu() {
   clear
 }
 
-scriptver=6
+find $MODDIR/system -type l -delete
+sed -i '/find $MODDIR\/system -type l -delete/,+1 d' $MODDIR/system/bin/ccbins
+scriptver=7
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
@@ -467,7 +435,7 @@ if [ -f $MODDIR/.updated ]; then
   echo "CCBins succesfully updated!"
   local oldver="$(cat $MODDIR/.updated)" newver="$scriptver"
   local oldline=$(sed -n "/^$oldver/=" $MODDIR/.changelog) newline=$(sed -n "/^$newver/=" $MODDIR/.changelog)
-  if [ "$oldver" != "$newver" ]; then
+  if [ $oldver -lt $newver ]; then
     echo "Changelog: $(sed -n "/^$newver/p" $MODDIR/.changelog)"
     sed -n "$newline,$oldline p" $MODDIR/.changelog | sed -E '/^[0-9]|^$/d'
     echo " "

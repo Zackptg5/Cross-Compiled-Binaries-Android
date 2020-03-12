@@ -18,7 +18,8 @@ Patchelf (v0.10) patchelf
 Sed (v4.7) sed
 Strace (v5.5) strace
 Tar (v1.32) tar
-Vim (v8.2.0356) vim,vimtutor usr
+Vim (v8.2.0356) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Xmlstarlet (v1.0) xmlstarlet
 Zip (v3.0) zip
 Zsh (v5.7.1) zsh etc,usr
+Zstd (v1.4.4) zstd,zstdgrep,zstdless unzstd,zstdcat,zstdmt
