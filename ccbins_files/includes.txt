@@ -2,7 +2,7 @@ Bash (v5.16) bash etc
 Bc (v1.07.1) bc,dc
 Brotli (v1.0.7) brotli
 Busybox (v1.31.1) busybox
-Coreutils (v8.31) coreutils
+Coreutils (v8.32) coreutils
 Cpio (v2.12) cpio
 Curl (v7.67.0) curl
 Diffutils (v3.7) cmp,diff3,diff,sdiff
