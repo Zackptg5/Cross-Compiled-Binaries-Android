@@ -6,16 +6,16 @@ Coreutils (v8.31) coreutils
 Cpio (v2.12) cpio
 Curl (v7.67.0) curl
 Diffutils (v3.7) cmp,diff3,diff,sdiff
-Ed (v1.15) ed,red
+Ed (v1.16) ed,red
 Findutils (v4.7.0) find,frcode,locate,updatedb,xargs
 Gawk (v5.0.1) gawk
-Grep (v3.3) egrep,fgrep,grep
+Grep (v3.4) egrep,fgrep,grep
 Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v2.2.0) htop
 Keycheck (v1.0) keycheck
 Patch (v2.7.6) patch
 Patchelf (v0.10) patchelf
-Sed (v4.7) sed
+Sed (v4.8) sed
 Strace (v5.5) strace
 Tar (v1.32) tar
 Vim (v8.2.0356) vim,vimtutor usr

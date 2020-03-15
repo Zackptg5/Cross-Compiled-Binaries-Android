@@ -10,17 +10,17 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Cpio (v2.12)
 * Curl (v7.67.0) - boringssl support and more - working ssl
 * Diffutils (v3.7)
-* Ed (v1.15)
+* Ed (v1.16)
 * Findutils (v4.7.0)
 * Gawk (Awk) (v5.0.1)
-* Grep (v3.3)
+* Grep (v3.4)
 * Gzip (v1.10)
 * Htop (v2.2.0)
 * Keycheck
-* Ncursesw (v6.1) - only terminfo files - needed for some binaries such as htop
+* Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
 * Patch (v2.7.6)
 * Patchelf (v0.10)
-* Sed (v4.7)
+* Sed (v4.8)
 * Strace (v5.5)
 * Tar (v1.32)
 * Vim (v8.2.0356)
