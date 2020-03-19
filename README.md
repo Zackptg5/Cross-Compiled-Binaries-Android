@@ -6,7 +6,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Bc (v1.07.1)
 * Brotli (v1.0.7)
 * Busybox (v1.31.1) - has selinux support and osm0sis patches
-* Coreutils (v8.32) - includes patches for advanced cp/mv (adds progress bar functionality)
+* Coreutils (v8.32) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12)
 * Curl (v7.67.0) - boringssl support and more - working ssl
 * Diffutils (v3.7)
