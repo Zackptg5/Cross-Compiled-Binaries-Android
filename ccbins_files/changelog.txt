@@ -1,3 +1,8 @@
+9 - 9.12.2020
+* Further android 11 fixes
+* Removed busybox - use osm0sis'
+* Added skittles9823's terminalmods auto-install
+
 8 - 9.9.2020
 * Updated for android 11
 

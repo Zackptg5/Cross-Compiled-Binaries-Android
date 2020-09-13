@@ -1,17 +1,16 @@
-Bash (v5.16) bash etc
+Bash (v5.18) bash etc
 Bc (v1.07.1) bc,dc
-Brotli (v1.0.7) brotli
-Busybox (v1.31.1) busybox
+Brotli (v1.0.9) brotli
 Coreutils (v8.32) coreutils
 Cpio (v2.12) cpio
-Curl (v7.67.0) curl
+Curl (v7.72.0) curl
 Diffutils (v3.7) cmp,diff3,diff,sdiff
 Ed (v1.16) ed,red
 Findutils (v4.7.0) find,frcode,locate,updatedb,xargs
-Gawk (v5.0.1) gawk
+Gawk (v5.1.0) gawk
 Grep (v3.4) egrep,fgrep,grep
 Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
-Htop (v2.2.0) htop
+Htop (v3.0.1) htop
 Keycheck (v1.0) keycheck
 Nano (v4.9) nano,nano.bin etc,usr,rnano
 Patch (v2.7.6) patch
@@ -19,8 +18,8 @@ Patchelf (v0.10) patchelf
 Sed (v4.8) sed
 Strace (v5.5) strace
 Tar (v1.32) tar
-Vim (v8.2.0356) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Vim (v8.2.1673) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Xmlstarlet (v1.0) xmlstarlet
 Zip (v3.0) zip
-Zsh (v5.7.1) zsh etc,usr
-Zstd (v1.4.4) zstd,zstdgrep,zstdless unzstd,zstdcat,zstdmt
+Zsh (v5.8.0) zsh etc,usr
+Zstd (v1.4.5) zstd,zstdgrep,zstdless unzstd,zstdcat,zstdmt

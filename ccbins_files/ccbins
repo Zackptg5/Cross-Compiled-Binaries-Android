@@ -11,7 +11,7 @@ _name=$(basename $0)
 ls /data >/dev/null 2>&1 || { echo "$ID needs to run as root!"; echo "type 'su' then '$_name'"; exit 1; }
 
 # Magisk Mod Directory
-[ "$(magisk --path 2>/dev/null)" ] && MOUNTPATH="$(magisk --path 2>/dev/null)/.magisk/modules" || MOUNTPATH="/sbin/.magisk/modules"
+[ -d "/sbin/.magisk" ] && MOUNTPATH="/sbin/.magisk/modules" || MOUNTPATH="$(find /dev -mindepth 2 -maxdepth 2 -type d -name ".magisk")/modules"
 MODDIR="$MOUNTPATH/$ID"
 [ ! -d $MODDIR ] && { echo "Module not detected!"; exit 1; }\
 
@@ -282,7 +282,7 @@ install_binary_menu() {
   clear
   while true; do
     if [ -s $MODDIR/.installed ]; then
-      local curbins="$(grep -w "$insloc" $MODDIR/.installed | awk '{print $1}' | sed -E 's/Busybox|Coreutils/Busybox Coreutils/')"
+      local curbins="$(grep -w "$insloc" $MODDIR/.installed | awk '{print $1}')"
       curbins="$(echo $curbins | sed 's| |\||g')"
     fi
     if [ -z "$curbins" ] || [ ! -s $MODDIR/.installed ]; then
@@ -305,18 +305,6 @@ install_binary_menu() {
         case $i in
           0) break 3;;
           1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"
-             if [ "$(grep -w 'Busybox' $MODDIR/tmp)" ]; then
-              echo -e "Which box?\n1: Busybox\n2: Coreutils"
-              while true; do
-                read -r choice2?'--> '
-                echo " "
-                case $choice2 in
-                  1) choice="$(echo "$choice" | sed "s/$(grep -w 'Coreutils' $MODDIR/tmp | awk '{print substr($1, 1, length($1) - 1)}') *//")"; break;;
-                  2) choice="$(echo "$choice" | sed "s/$(grep -w 'Busybox' $MODDIR/tmp | awk '{print substr($1, 1, length($1) - 1)}') *//")"; break;;
-                  *) echo "Invalid option: $j! Try again";;
-                esac
-              done
-            fi
              break 2;;
           q) quit;;
           *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
@@ -423,7 +411,7 @@ hidden_menu() {
 
 find $MODDIR/system -type l -delete
 sed -i '/find $MODDIR\/system -type l -delete/,+1 d' $MODDIR/system/bin/ccbins
-scriptver=10
+scriptver=11
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
