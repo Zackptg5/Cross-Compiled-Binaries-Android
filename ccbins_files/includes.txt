@@ -12,7 +12,7 @@ Grep (v3.4) egrep,fgrep,grep
 Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v3.0.1) htop
 Keycheck (v1.0) keycheck
-Nano (v4.9) nano,nano.bin etc,usr,rnano
+Nano (v5.2) nano,nano.bin etc,usr,rnano
 Patch (v2.7.6) patch
 Patchelf (v0.10) patchelf
 Sed (v4.8) sed

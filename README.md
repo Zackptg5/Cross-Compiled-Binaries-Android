@@ -16,7 +16,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Gzip (v1.10)
 * Htop (v3.0.1)
 * Keycheck
-* Nano (v4.9)
+* Nano (v5.2)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
 * Patch (v2.7.6)
 * Patchelf (v0.10)
