@@ -2,6 +2,7 @@
 This repo contains a variety of static compiled binaries cross compiled for android with Android NDK. Feel free to use them for whatever. Also contains some files for ccbins mod
 
 ## Currently includes:
+* Aria2 (v1.35.0)
 * Bash (v5.18)
 * Bc (v1.07.1)
 * Brotli (v1.0.9)
@@ -30,6 +31,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Zstd (v1.4.5)
 
 ## Credits
+* [Aria2](https://github.com/aria2/aria2)
 * [Daniel Stenberg](https://curl.haxx.se/)
 * [GNU](https://www.gnu.org/software)
 * [Google](https://github.com/google/brotli)

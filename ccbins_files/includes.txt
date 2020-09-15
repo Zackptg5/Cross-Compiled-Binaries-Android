@@ -1,3 +1,4 @@
+Aria2 (v1.35.0) aria2c,aria2c.bin
 Bash (v5.18) bash etc
 Bc (v1.07.1) bc,dc
 Brotli (v1.0.9) brotli

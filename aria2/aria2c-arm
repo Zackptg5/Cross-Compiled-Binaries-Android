@@ -1,0 +1,5 @@
+#!/system/bin/sh
+# aria2: wrapper to run with c-ares for name resolution
+
+dir="$(cd "$(dirname "$0")"; pwd)"
+$dir/aria2c.bin --async-dns "$@"
