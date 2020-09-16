@@ -19,6 +19,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Keycheck
 * Nano (v5.2)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
+* Openssl (v1.1.1g)
 * Patch (v2.7.6)
 * Patchelf (v0.10)
 * Sed (v4.8)
@@ -26,6 +27,7 @@ This repo contains a variety of static compiled binaries cross compiled for andr
 * Tar (v1.32)
 * Vim (v8.2.1673)
 * Xmlstarlet
+* Xxd (v1.10)
 * Zip (v3.0)
 * Zsh (v5.8.0)
 * Zstd (v1.4.5)
