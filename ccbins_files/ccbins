@@ -65,7 +65,7 @@ check_updates() {
   echo -e "\nChecking for mod updates"
   rm -f $MODDIR/.updated $MODDIR/.updatedfiles
   wget -qO $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt 2>/dev/null
-  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver post-fs-data.sh,filever service.sh,filever; do
+  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver service.sh,filever; do
     local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
     if [ `wget -qO - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) 2>/dev/null | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
       echo "$scriptver" > $MODDIR/.updated
@@ -105,6 +105,22 @@ list_installed() {
     echo "$div"
     grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2
   done
+}
+
+info() {
+  clear
+  echo "$div"
+  title_div "General Information"
+  echo "$div"
+  echo "This mod enables the installation of various binaries cross-compiled for android."
+  echo "All are static linked meaning they should work with any version of android and won't require any extra libs/files."
+  echo "There is a separate section for dynamic linked binaries and will only show up if your device is running a recent enough version of android (5.0+)"
+  echo "The dynamic linked ones either have a greater feature set than or don't have a static linked counterpart"
+  echo "$div"
+  echo "Install location matters!"
+  echo "You'll want to install binaries to the lowest priority location unless you want to overwrite any existing ones"
+  echo "Running 'echo \$PATH' will show you the priority with highest being first"
+  echo "Vendor is typically lowest and product is typically highest (if present)"
 }
 
 list_locs() {
@@ -169,15 +185,16 @@ remove_binary() {
 
 install_binary() {
   [ "$1" == "-s" ] && local spin=true || spin=false
-  for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
+  [ "$file" == "$MODDIR/.binaries" ] && local url="https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary" || local url="https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/dynamic"
+  for i in $(grep -w $binary $file | awk '{print $3}' | sed "s/,/ /g"); do
     check_conflicts
-    $spin && { wget -O $MODDIR$insloc/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i-$ARCH 2>/dev/null & e_spinner; } || wget -O $MODDIR$insloc/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i-$ARCH 2>/dev/null
+    $spin && { wget -O $MODDIR$insloc/$i $url/$i-$ARCH 2>/dev/null & e_spinner; } || wget -O $MODDIR$insloc/$i $url/$i-$ARCH 2>/dev/null
     set_perm $MODDIR$insloc/$i 0 2000 0755
   done
   if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
     for i in $(echo $extras | sed "s|,| |g"); do
-      if wget -q --spider https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null; then
-        $spin && { wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null & e_spinner; } || wget -qO $MODDIR/$i.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/$i.zip 2>/dev/null
+      if wget -q --spider $url/$i.zip 2>/dev/null; then
+        $spin && { wget -qO $MODDIR/$i.zip $url/$i.zip 2>/dev/null & e_spinner; } || wget -qO $MODDIR/$i.zip $url/$i.zip 2>/dev/null
         unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d' >> $MODDIR/.$ibinary
         unzip -qod $MODDIR/system $MODDIR/$i.zip
         rm -f $MODDIR/$i.zip
@@ -189,8 +206,8 @@ install_binary() {
       fi
     done
   fi
-  if wget -q --spider https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/install.sh 2>/dev/null; then
-    $spin && { wget -qO $MODDIR/install.sh https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/install.sh 2>/dev/null & e_spinner; } || wget -qO $MODDIR/install.sh https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/install.sh 2>/dev/null
+  if wget -q --spider $url/install.sh 2>/dev/null; then
+    $spin && { wget -qO $MODDIR/install.sh $url/install.sh 2>/dev/null & e_spinner; } || wget -qO $MODDIR/install.sh $url/install.sh 2>/dev/null
     . $MODDIR/install.sh
     rm -f $MODDIR/install.sh
   fi
@@ -279,6 +296,7 @@ remove_binary_menu() {
 }
 
 install_binary_menu() {
+[ "$1" == "-d" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
   clear
   while true; do
     if [ -s $MODDIR/.installed ]; then
@@ -286,9 +304,9 @@ install_binary_menu() {
       curbins="$(echo $curbins | sed 's| |\||g')"
     fi
     if [ -z "$curbins" ] || [ ! -s $MODDIR/.installed ]; then
-      cat $MODDIR/.binaries | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+      cat $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
     else
-      grep -Ewv "$curbins" $MODDIR/.binaries | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+      grep -Ewv "$curbins" $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
     fi
     [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Install all binaries listed below" $MODDIR/tmp || { print_pause "All binaries are installed!\n"; break; }
     echo "$div"
@@ -314,7 +332,8 @@ install_binary_menu() {
     for ichoice in $choice; do
       echo "$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")" >> $MODDIR/.installed
       local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
-      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
+      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]')
+      eval local extras="$(grep -w $binary $file | awk '{print $4}')" 
       echo "Downloading $binary"
       mkdir -p $MODDIR$insloc
       install_binary -s
@@ -409,9 +428,10 @@ hidden_menu() {
   clear
 }
 
+API=`getprop ro.build.version.sdk`
 find $MODDIR/system -type l -delete
 sed -i '/find $MODDIR\/system -type l -delete/,+1 d' $MODDIR/system/bin/ccbins
-scriptver=11
+scriptver=12
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
@@ -434,8 +454,9 @@ fi
 if test_connection; then
   online=true
   echo -e "\nFetching available binaries"
-  rm -f $MODDIR/.binaries
+  rm -f $MODDIR/.binaries $MODDIR/.binaries-dynamic
   wget -qO $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt 2>/dev/null & e_spinner
+  wget -qO $MODDIR/.binaries-dynamic https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes-dynamic.txt 2>/dev/null & e_spinner
   echo " - Done"
   check_updates & e_spinner
   [ -f $MODDIR/.updated ] && { echo -e " - Applying mod updates and restarting"; ccbins && quit; } || echo " - Ccbins is up to date"
@@ -459,22 +480,24 @@ while true; do
   title_div "Choose option"
   echo "$div"
   echo "0: Refresh CCbins (remove everything - start fresh)"
-  echo "1: Change install location"
-  echo "2: List all installed binaries"
-  echo "3: List all downloadable binaries"
-  echo "4: Remove binary"
-  $online && echo "5: Install binary"
-  [ -s $MODDIR/.installed ] && echo "6: Backup current config"
-  [ -d $bakloc ] && echo -e "7: Restore last config\n8: Erase backup config"
+  echo "1: General Information"
+  echo "2: Change install location"
+  echo "3: List all installed binaries"
+  echo "4: List all downloadable binaries"
+  echo "5: Remove binary"
+  $online && echo "6: Install binary"
+  $online && [ $API -ge 21 ] && echo "7: Install dynamic linked binary"
+  [ -s $MODDIR/.installed ] && echo "8: Backup current config"
+  [ -d $bakloc ] && echo -e "9: Restore last config\n10: Erase backup config"
   echo "Type 'q' at any time to quit"
   while true; do
     read -r choice?'--> '
     echo " "
     case $choice in
-      0|1|2|3|4|99) break;;
-      5) $online && break || echo "Invalid option! Try again";;
-      6) [ -s $MODDIR/.installed ] && break || echo "Invalid option! Try again";;
-      7|8) [ -d $bakloc ] && break || echo "Invalid option! Try again";;
+      0|1|2|3|4|5|99) break;;
+      6|7) $online && break || echo "Invalid option! Try again";;
+      8) [ -s $MODDIR/.installed ] && break || echo "Invalid option! Try again";;
+      9|10) [ -d $bakloc ] && break || echo "Invalid option! Try again";;
       q) quit;;
       *) echo "Invalid option! Try again";;
     esac
@@ -482,14 +505,16 @@ while true; do
 
   case $choice in
     0) reset_mod;;
-    1) change_loc;;
-    2) [ -s $MODDIR/.installed ] && list_installed || print_pause "No binaries installed!";;
-    3) cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " ";;
-    4) [ -s $MODDIR/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
-    5) install_binary_menu;;
-    6) backup_config;;
-    7) restore_config;;
-    8) rm -rf $bakloc; print_pause "Backup config erased\n";;
+    1) info;;
+    2) change_loc;;
+    3) [ -s $MODDIR/.installed ] && list_installed || print_pause "No binaries installed!";;
+    4) cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " ";;
+    5) [ -s $MODDIR/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
+    6) install_binary_menu;;
+    7) install_binary_menu -d;;
+    8) backup_config;;
+    9) restore_config;;
+    10) rm -rf $bakloc; print_pause "Backup config erased\n";;
     99) hidden_menu;;
   esac
 done

@@ -1,0 +1,4 @@
+Aria2 (v1.35.0) aria2c lib-$ARCH
+Curl (v7.72.0) curl lib-$ARCH
+Iw (v5.8) iw
+Sqlite3 (v3.33.0) sqlite lib-$ARCH

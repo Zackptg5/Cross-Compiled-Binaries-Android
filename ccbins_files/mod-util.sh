@@ -251,7 +251,7 @@ e_spinner() {
 # test_connection
 # tests if there's internet connection
 test_connection() {
-  (ping -q -c 1 -W 1 google.com >/dev/null 2>&1 & e_spinner "Testing internet connection") && echo " - OK" || { echo " - Error"; false; }
+  (ping -q -c 1 -W 1 github.com >/dev/null 2>&1 & e_spinner "Testing internet connection") && echo " - OK" || { echo " - Error"; false; }
 }
 
 # Log files will be uploaded to termbin.com
