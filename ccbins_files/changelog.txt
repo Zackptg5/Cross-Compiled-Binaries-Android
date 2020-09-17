@@ -1,3 +1,6 @@
+13 - 9.17.2020
+* Fixed dynamic binary auto-update
+
 12 - 9.16.2020
 * Added dynamic linked binaries
 * Use github rather than google for connection test since that's where everything's hosted anyways (and isn't blocked by the Great Firewall of China)

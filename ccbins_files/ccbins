@@ -95,6 +95,7 @@ find_conflicts() {
 list_installed() {
   local curlocs
   sort -k3 $MODDIR/.installed > $MODDIR/tmp
+  sed -i 's/dynamic/(dynamic)/g' $MODDIR/tmp
   for i in $locs; do
     [ "$(grep -w $i $MODDIR/.installed)" ] && curlocs="$i $curlocs"
   done
@@ -103,7 +104,7 @@ list_installed() {
     echo "$div"
     title_div "$i"
     echo "$div"
-    grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2
+    grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2,4
   done
 }
 
@@ -241,8 +242,9 @@ check_bin_updates() {
   fi
   [ -s $MODDIR/.installed ] || return 0
   while read -r line; do
-    local insloc="$(echo "$line" | awk '{print $3}')" binary="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')" binloc="$(echo "$line" | awk '{print $3}')"
-    local newver="$(grep -w $binary $MODDIR/.binaries | awk '{print substr($2, 3, length($2) - 3)}')" ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
+    local binloc="$(echo "$line" | awk '{print $3}')" binary="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')"
+    local insloc="$binloc" newver="$(grep -w $binary $MODDIR/.binaries | awk '{print substr($2, 3, length($2) - 3)}')" ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
+    [ "$(echo "$line" | awk '{print $4}')" == "dynamic" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
     [ "$insver" == "/a" ] && insver="0.0"
     # Add 0 before final number if single digit or compare won't work
     for i in insver newver; do
@@ -330,7 +332,7 @@ install_binary_menu() {
       done
     done
     for ichoice in $choice; do
-      echo "$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")" >> $MODDIR/.installed
+      echo "$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")$(basename "$file" | sed -e 's/.binaries-/ /' -e 's/.binaries//')" >> $MODDIR/.installed
       local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
       local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]')
       eval local extras="$(grep -w $binary $file | awk '{print $4}')" 
@@ -431,7 +433,7 @@ hidden_menu() {
 API=`getprop ro.build.version.sdk`
 find $MODDIR/system -type l -delete
 sed -i '/find $MODDIR\/system -type l -delete/,+1 d' $MODDIR/system/bin/ccbins
-scriptver=12
+scriptver=13
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
