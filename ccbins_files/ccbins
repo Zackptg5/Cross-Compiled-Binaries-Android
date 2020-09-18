@@ -242,9 +242,9 @@ check_bin_updates() {
   fi
   [ -s $MODDIR/.installed ] || return 0
   while read -r line; do
+    [ "$(echo "$line" | awk '{print $4}')" == "dynamic" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
     local binloc="$(echo "$line" | awk '{print $3}')" binary="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')"
     local insloc="$binloc" newver="$(grep -w $binary $MODDIR/.binaries | awk '{print substr($2, 3, length($2) - 3)}')" ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
-    [ "$(echo "$line" | awk '{print $4}')" == "dynamic" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
     [ "$insver" == "/a" ] && insver="0.0"
     # Add 0 before final number if single digit or compare won't work
     for i in insver newver; do
