@@ -20,6 +20,7 @@ Patchelf (v0.10) patchelf
 Sed (v4.8) sed
 Strace (v5.5) strace
 Tar (v1.32) tar
+Tcpdump (v4.9.3) tcpdump
 Vim (v8.2.1673) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd

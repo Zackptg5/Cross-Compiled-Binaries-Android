@@ -27,6 +27,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * Sqlite3 (v3.33.0) - dynamic only
 * Strace (v5.5)
 * Tar (v1.32)
+* Tcpdump (v4.9.3)
 * Vim (v8.2.1673)
 * Xmlstarlet
 * Xxd (v1.10)
@@ -47,6 +48,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * [Partcyborg](https://github.com/Magisk-Modules-Repo/zsh_arm64)
 * [Sqlite](https://sqlite.org/index.html)
 * [Strace](https://github.com/strace/strace)
+* [Tcpdump](https://www.tcpdump.org)
 * [topjohnwu](https://github.com/topjohnwu/ndk-box-kitchen)
 * [Vim](https://github.com/vim/vim)
 * [Zstd](https://github.com/facebook/zstd)
