@@ -555,7 +555,7 @@ while true; do
     2) change_loc;;
     3) binary_update_menu;;
     4) [ -s $MODDIR/.installed ] && list_installed || print_pause "No binaries installed!";;
-    5) cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " ";;
+    5) echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}'; echo " ";;
     6) [ -s $MODDIR/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
     7) install_binary_menu;;
     8) install_binary_menu -d;;
