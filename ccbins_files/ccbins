@@ -41,7 +41,6 @@ set -x 2>$VERLOG
 # > Rather than editing the default vars above.
 scriptver=15
 branch=master
-API=`getprop ro.build.version.sdk`
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
 [ $API -lt 23 ] && alias curl="$MODDIR/curl -kL" || alias curl="$MODDIR/curl -L"
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
