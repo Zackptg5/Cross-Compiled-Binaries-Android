@@ -1,3 +1,9 @@
+15 - 9.25.2020
+* Go back to using google for ping check - github wasn't working for some people. Fallback to baidu if google fails (for chinese users)
+* Use curl rather than wget - some users were having issues with busybox wget
+* Cleanup debug logs
+* Add option to disable automatic binary updates at script launch (useful for those with a slow internet connection)
+
 14 - 9.18.2020
 * Another bug fix :/
 
