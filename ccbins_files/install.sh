@@ -1,4 +1,15 @@
-filever=5
+filever=6
+download_file() {
+  rm -f $MODPATH/dlerror
+  local file="$1" url="$2"
+  curl -o "$file" "$url"
+  if [ "$file" == "$MODPATH/.checksums" ]; then
+    [ "$(head -n1 "$file")" == "checksums.txt" ] || { echo "Unable to download files!"; abort; }
+  else
+    grep -Fq "`md5sum "$file" | awk '{print $1}'`" $MODPATH/.checksums || { rm -f "$file"; touch $MODPATH/dlerror; echo "Download error for $file!"; }
+  fi
+}
+
 # Keep current mod settings
 if [ -f $NVBASE/modules/$MODID/system/bin/ccbins ]; then
   ui_print "- Using current ccbin files/settings"
@@ -10,12 +21,15 @@ fi
 
 # Get mod files
 ui_print "- Downloading and installing needed files"
+download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt
 for i in service.sh mod-util.sh "system/bin/ccbins"; do
-  curl -so $MODPATH/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ccbins_files/$(basename $i) 2>/dev/null
+  download_file $MODPATH/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ccbins_files/$(basename $i)
+  [ -f $MODDIR/dlerror ] && { echo "Unable to download files!"; abort; }
 done
 set_perm $MODPATH/system/bin/ccbins 0 0 0755
-if [ "`wget -S --spider https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux 2>&1 | grep 'HTTP/1.1 200 OK'`" ]; then
-  curl -so $MODPATH/busybox https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux 2>/dev/null
+
+if curl -I --connect-timeout 3 https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux | grep -q 'HTTP/.* 200'; then
+  curl -o $MODPATH/busybox https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux
 else
   cp -f $MODPATH/busybox-$ARCH32 $MODPATH/busybox
 fi
@@ -35,8 +49,8 @@ if [ -d $NVBASE/modules/terminalmods ]; then
 else
   ui_print "   Terminal Modifications not module detected!"
   ui_print "   Installing!"
-  if [ "`wget -S --spider https://github.com/Magisk-Modules-Repo/terminalmods/archive/master.zip 2>&1 | grep 'HTTP/1.1 200 OK'`" ]; then
-    curl -so $TMPDIR/tmp.zip https://github.com/Magisk-Modules-Repo/terminalmods/archive/master.zip
+  if curl -I --connect-timeout 3 https://github.com/Magisk-Modules-Repo/terminalmods/archive/master.zip | grep -q 'HTTP/.* 200'; then
+    curl -o $TMPDIR/tmp.zip https://github.com/Magisk-Modules-Repo/terminalmods/archive/master.zip
     unzip -qo $TMPDIR/tmp.zip terminalmods-master/customize.sh terminalmods-master/module.prop 'terminalmods-master/custom/*' 'terminalmods-master/system/*' -d $MODULEROOT
     mv -f $MODULEROOT/terminalmods-master $MODULEROOT/terminalmods
     sed -i "s|\$MODPATH|$MODULEROOT/terminalmods|g" $MODULEROOT/terminalmods/customize.sh

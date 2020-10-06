@@ -39,16 +39,29 @@ set -x 2>$VERLOG
 # > You can start your MOD here.
 # > You can add functions, variables & etc.
 # > Rather than editing the default vars above.
-scriptver=15
+scriptver=16
 branch=master
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
-[ $API -lt 23 ] && alias curl="$MODDIR/curl -kL" || alias curl="$MODDIR/curl -L"
+[ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs" || alias curl="$MODDIR/curl -Ls"
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
 [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)" || insloc=/system/bin
 
+# redefined with curl
+test_connection() {
+  (
+  if curl -Is --connect-timeout 3 https://www.google.com | grep -q 'HTTP/.* 200'; then
+    true
+  elif curl -Is --connect-timeout 3 https://www.baidu.com | grep -q 'HTTP/.* 200'; then
+    true
+  else
+    false
+  fi & e_spinner "Testing internet connection"
+  ) && echo " - OK" || { echo " - Error"; false; }
+}
+
 quit() {
-  rm -f $MODDIR/tmp
+  rm -f $MODDIR/tmp $MODDIR/dlerror
   exit 0
 }
 
@@ -57,7 +70,31 @@ print_pause() {
   sleep 2
 }
 
+download_file() {
+  rm -f $MODDIR/dlerror
+  local file="$1" url="$2"
+  curl -o "$file" "$url"
+  if [ "$file" == "$MODDIR/.checksums" ]; then
+    [ "$(head -n1 "$file")" == "checksums.txt" ] || { echo "Checksums download failed!"; quit; }
+  else
+    grep -Fq "`md5sum "$file" | awk '{print $1}'`" $MODDIR/.checksums || { rm -f "$file"; touch $MODDIR/dlerror; echo "Download error for $file!"; }
+  fi
+}
+
 reset_mod() {
+  echo "Are you sure you want to refresh ccbins?"
+  echo "1: Yes"
+  echo "2: No"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      1) break;;
+      2) return 0;;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
   local newloc=/data/adb/modules_update/$ID
   rm -rf $newloc
   mkdir -p /data/adb/modules_update/$ID/system/bin 2>/dev/null
@@ -72,13 +109,13 @@ reset_mod() {
 check_updates() {
   echo -e "\nChecking for mod updates"
   rm -f $MODDIR/.updated $MODDIR/.updatedfiles
-  curl -so $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt 2>/dev/null
+  download_file $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
   for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver service.sh,filever; do
     local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
-    if [ `curl -so - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) 2>/dev/null | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
+    if [ `curl -o - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
       echo "$scriptver" > $MODDIR/.updated
       echo "$(basename $file)" >> $MODDIR/.updatedfiles
-      curl -so $MODDIR/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) 2>/dev/null
+      download_file $MODDIR/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file)
       [ "$file" == "system/bin/ccbins" ] && { umount -l /$file; mount -o bind $MODDIR/$file /$file; }
     fi
   done
@@ -101,6 +138,10 @@ find_conflicts() {
 }
 
 list_installed() {
+  clear
+  echo "$div"
+  title_div "Installed Binaries:"
+  echo "$div"
   local curlocs
   sort -k3 $MODDIR/.installed > $MODDIR/tmp
   sed -i 's/dynamic/(dynamic)/g' $MODDIR/tmp
@@ -113,6 +154,16 @@ list_installed() {
     title_div "$i"
     echo "$div"
     grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2,4
+  done
+  echo -e "\nPress 1 to continue"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      1) break;;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
   done
 }
 
@@ -130,6 +181,16 @@ info() {
   echo "You'll want to install binaries to the lowest priority location unless you want to overwrite any existing ones"
   echo "Running 'echo \$PATH' will show you the priority with highest being first"
   echo "Vendor is typically lowest and product is typically highest (if present)"
+  echo -e "\nPress 1 to continue"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      1) break;;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
 }
 
 binary_update_menu() {
@@ -181,6 +242,7 @@ list_locs() {
 change_loc() {
   [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)"
   while true; do
+    clear
     echo "$div"
     title_div "Current install location:"
     title_div "$insloc"
@@ -232,15 +294,20 @@ install_binary() {
   [ "$file" == "$MODDIR/.binaries" ] && local url="https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary" || local url="https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/$ibinary/dynamic"
   for i in $(grep -w $binary $file | awk '{print $3}' | sed "s/,/ /g"); do
     check_conflicts
-    $spin && { curl -so $MODDIR$insloc/$i $url/$i-$ARCH 2>/dev/null & e_spinner; } || curl -so $MODDIR$insloc/$i $url/$i-$ARCH 2>/dev/null
+    $spin && { download_file $MODDIR$insloc/$i $url/$i-$ARCH & e_spinner; } || download_file $MODDIR$insloc/$i $url/$i-$ARCH
+    [ -f $MODDIR/dlerror ] && { remove_binary; return 1; }
     set_perm $MODDIR$insloc/$i 0 2000 0755
   done
   if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
     for i in $(echo $extras | sed "s|,| |g"); do
-      if wget -q --spider $url/$i.zip 2>/dev/null; then
-        $spin && { curl -so $MODDIR/$i.zip $url/$i.zip 2>/dev/null & e_spinner; } || curl -so $MODDIR/$i.zip $url/$i.zip 2>/dev/null
-        unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d' >> $MODDIR/.$ibinary
+      if curl -I --connect-timeout 3 $url/$i.zip | grep -q 'HTTP/.* 200'; then
+        $spin && { download_file $MODDIR/$i.zip $url/$i.zip & e_spinner; } || download_file $MODDIR/$i.zip $url/$i.zip
+        [ -f $MODDIR/dlerror ] && { remove_binary; return 1; }
         unzip -qod $MODDIR/system $MODDIR/$i.zip
+        for i in $(unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d'); do
+          echo $i >> $MODDIR/.$ibinary
+          set_perm $MODDIR/system/$i 0 2000 0644
+        done
         rm -f $MODDIR/$i.zip
       else
         cd $MODDIR$insloc
@@ -250,8 +317,9 @@ install_binary() {
       fi
     done
   fi
-  if wget -q --spider $url/install.sh 2>/dev/null; then
-    $spin && { curl -so $MODDIR/install.sh $url/install.sh 2>/dev/null & e_spinner; } || curl -so $MODDIR/install.sh $url/install.sh 2>/dev/null
+  if curl -I --connect-timeout 3 $url/install.sh | grep -q 'HTTP/.* 200'; then
+    $spin && { download_file $MODDIR/install.sh $url/install.sh & e_spinner; } || download_file $MODDIR/install.sh $url/install.sh
+    [ -f $MODDIR/dlerror ] && { remove_binary; return 1; }
     . $MODDIR/install.sh
     rm -f $MODDIR/install.sh
   fi
@@ -261,15 +329,21 @@ install_ncursesw() {
   [ "$1" == "-u" ] && local update=true || local update=false
   $update && echo " - Updating NCursesw (`cat $MODDIR/.ncursesver` -> `cat $MODDIR/tmp`)" || echo " - Installing NCursesw v`cat $MODDIR/tmp`"
   mv -f $MODDIR/tmp $MODDIR/.ncursesver
-  curl -so $MODDIR/system/ncursesw.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/ncursesw-$ARCH.zip 2>/dev/null
-  unzip -qod $MODDIR/system $MODDIR/system/ncursesw.zip
-  rm -f $MODDIR/system/ncursesw.zip
-  $update && echo " - NCursesw has been updated!" || echo " - NCursesw has been installed!"
+  download_file $MODDIR/system/ncursesw.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/ncursesw-$ARCH.zip
+  if [ ! -f $MODDIR/dlerror ]; then
+    unzip -qod $MODDIR/system $MODDIR/system/ncursesw.zip
+    rm -f $MODDIR/system/ncursesw.zip
+    $update && echo " - NCursesw has been updated!" || echo " - NCursesw has been installed!"
+  else
+    rm -f $MODDIR/system/ncursesw.zip
+    $update && echo " - NCursesw update failed!" || echo " - NCursesw install failed!"
+  fi
 }
 
 check_bin_updates() {
   echo -e "\nChecking for binary updates"
-  curl -so $MODDIR/tmp https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/version.txt 2>/dev/null
+  download_file $MODDIR/tmp https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/version.txt
+  [ -f $MODDIR/dlerror ] && { echo "Binary update check failed!"; return 0; }
   if [ ! -f $MODDIR/.ncursesver ]; then
     install_ncursesw 
   else
@@ -302,7 +376,7 @@ check_bin_updates() {
     sed -i "\|$binary.*$binloc| s/$insver/$newver/" $MODDIR/.installed
     remove_binary -f
     install_binary
-    echo " - $binary has been updated!"
+    [ $? -eq 0 ] && echo " - $binary has been updated!" || echo " - $binary update failed!"
   done < $MODDIR/.installed
 }
 
@@ -414,16 +488,20 @@ restore_config() {
 
 force_update() {
   echo "$scriptver" > $MODDIR/.updated
-  curl -so $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt 2>/dev/null
-  curl -so $MODDIR/system/bin/ccbins https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/ccbins 2>/dev/null
-  curl -so $MODDIR/mod-util.sh https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/mod-util.sh 2>/dev/null
+  download_file $MODDIR/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
+  download_file $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
+  for i in $MODDIR/mod-util.sh $MODDIR/system/bin/ccbins; do
+    cp -f $i $i.bak
+    download_file $i https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $i)
+    [ -f $MODDIR/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak
+  done
   umount -l /system/bin/ccbins
   mount -o bind $MODDIR/system/bin/ccbins /system/bin/ccbins
   ccbins && quit
 }
 
 hidden_menu() {
-  curl -so - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches 2>/dev/null | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
+  curl -o - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
   sed -i "1i0: Keep current branch, go back to main menu" $MODDIR/tmp
   while true; do
     clear
@@ -477,7 +555,10 @@ rm -f $MODDIR/tmp
 mod_head
 echo " "
 [ -f $MODDIR/.disable_autoupdate ] && autoupdate=false || autoupdate=true
-if [ -f $MODDIR/.updated ]; then
+if [ "$1" == "-f" ]; then
+  echo "Applying mod updates and restarting ccbins"
+  force_update
+elif [ -f $MODDIR/.updated ]; then
   echo "CCBins succesfully updated!"
   local oldver="$(cat $MODDIR/.updated)" newver="$scriptver"
   local oldline=$(sed -n "/^$oldver/=" $MODDIR/.changelog) newline=$(sed -n "/^$newver/=" $MODDIR/.changelog)
@@ -492,9 +573,12 @@ fi
 if test_connection; then
   online=true
   echo -e "\nFetching available binaries"
-  rm -f $MODDIR/.binaries $MODDIR/.binaries-dynamic
-  curl -so $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt 2>/dev/null & e_spinner
-  curl -so $MODDIR/.binaries-dynamic https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes-dynamic.txt 2>/dev/null & e_spinner
+  rm -f $MODDIR/.binaries $MODDIR/.binaries-dynamic $MODDIR/.checksums
+  download_file $MODDIR/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
+  download_file $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt & e_spinner
+  [ -f $MODDIR/dlerror ] && { echo "Unable to download binary list!"; quit; }
+  download_file $MODDIR/.binaries-dynamic https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes-dynamic.txt & e_spinner
+  [ -f $MODDIR/dlerror ] && { echo "Unable to download binary list!"; quit; }
   echo " - Done"
   check_updates & e_spinner
   [ -f $MODDIR/.updated ] && { echo -e " - Applying mod updates and restarting ccbins"; ccbins && quit; } || echo " - Ccbins is up to date"
@@ -549,12 +633,27 @@ while true; do
   done
 
   case $choice in
-    0) reset_mod;;
-    1) info;;
-    2) change_loc;;
-    3) binary_update_menu;;
-    4) [ -s $MODDIR/.installed ] && list_installed || print_pause "No binaries installed!";;
-    5) echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}'; echo " ";;
+    0) reset_mod; clear;;
+    1) info; clear;;
+    2) change_loc; clear;;
+    3) binary_update_menu; clear;;
+    4) [ -s $MODDIR/.installed ] && { list_installed; clear; } || print_pause "No binaries installed!";;
+    5) clear
+       echo "$div"
+       title_div "Downloadable Binaries: "
+       echo "$div"
+       echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}'; echo " "
+       echo -e "\nPress 1 to continue"
+       while true; do
+         read -r choice?'--> '
+         echo " "
+         case $choice in
+           1) break;;
+           q) quit;;
+           *) echo "Invalid option! Try again";;
+         esac
+       done
+       clear;;
     6) [ -s $MODDIR/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
     7) install_binary_menu;;
     8) install_binary_menu -d;;
