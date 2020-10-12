@@ -39,7 +39,7 @@ set -x 2>$VERLOG
 # > You can start your MOD here.
 # > You can add functions, variables & etc.
 # > Rather than editing the default vars above.
-scriptver=16
+scriptver=17
 branch=master
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
 [ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs" || alias curl="$MODDIR/curl -Ls"
@@ -50,13 +50,15 @@ locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/pr
 # redefined with curl
 test_connection() {
   (
-  if curl -Is --connect-timeout 3 https://www.google.com | grep -q 'HTTP/.* 200'; then
-    true
-  elif curl -Is --connect-timeout 3 https://www.baidu.com | grep -q 'HTTP/.* 200'; then
-    true
-  else
-    false
-  fi & e_spinner "Testing internet connection"
+  for i in github google baidu; do
+    if curl --connect-timeout 3 -I https://www.$i.com | grep -q 'HTTP/.* 200' || ping -q -c 1 -W 1 $i.com >/dev/null; then
+      true
+    elif curl --connect-timeout 3 -I https://www.$i.com | grep -q 'HTTP/.* 200' || ping -q -c 1 -W 1 $i.com >/dev/null; then
+      true
+    else
+      false
+    fi
+  done & e_spinner "Testing internet connection"
   ) && echo " - OK" || { echo " - Error"; false; }
 }
 
@@ -110,7 +112,7 @@ check_updates() {
   echo -e "\nChecking for mod updates"
   rm -f $MODDIR/.updated $MODDIR/.updatedfiles
   download_file $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
-  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver service.sh,filever; do
+  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver service.sh,filever module.prop,versionCode; do
     local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
     if [ `curl -o - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
       echo "$scriptver" > $MODDIR/.updated

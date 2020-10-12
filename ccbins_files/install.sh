@@ -1,4 +1,4 @@
-filever=6
+filever=7
 download_file() {
   rm -f $MODPATH/dlerror
   local file="$1" url="$2"
@@ -24,11 +24,11 @@ ui_print "- Downloading and installing needed files"
 download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt
 for i in service.sh mod-util.sh "system/bin/ccbins"; do
   download_file $MODPATH/$i https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ccbins_files/$(basename $i)
-  [ -f $MODDIR/dlerror ] && { echo "Unable to download files!"; abort; }
+  [ -f $MODPATH/dlerror ] && { echo "Unable to download files!"; abort; }
 done
 set_perm $MODPATH/system/bin/ccbins 0 0 0755
 
-if curl -I --connect-timeout 3 https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux | grep -q 'HTTP/.* 200'; then
+if curl -I --connect-timeout 3 https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux | grep -q 'HTTP/.* 200' || ping -q -c 1 -W 1 $i.com >/dev/null; then
   curl -o $MODPATH/busybox https://github.com/Magisk-Modules-Repo/busybox-ndk/raw/master/busybox-$ARCH-selinux
 else
   cp -f $MODPATH/busybox-$ARCH32 $MODPATH/busybox

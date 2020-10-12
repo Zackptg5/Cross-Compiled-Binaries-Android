@@ -1,3 +1,7 @@
+17 - 10.12.2020
+* Update module.prop when needed - gets rid of update notification in magisk manager
+* Further tweak connection_test
+
 16 - 10.5.2020
 * Switch everything to curl, no need for ping or wget anymore
 * Add md5sum checks to verify downloads
