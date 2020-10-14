@@ -39,7 +39,7 @@ set -x 2>$VERLOG
 # > You can start your MOD here.
 # > You can add functions, variables & etc.
 # > Rather than editing the default vars above.
-scriptver=17
+scriptver=18
 branch=master
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
 [ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs" || alias curl="$MODDIR/curl -Ls"
@@ -297,14 +297,14 @@ install_binary() {
   for i in $(grep -w $binary $file | awk '{print $3}' | sed "s/,/ /g"); do
     check_conflicts
     $spin && { download_file $MODDIR$insloc/$i $url/$i-$ARCH & e_spinner; } || download_file $MODDIR$insloc/$i $url/$i-$ARCH
-    [ -f $MODDIR/dlerror ] && { remove_binary; return 1; }
+    [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
     set_perm $MODDIR$insloc/$i 0 2000 0755
   done
   if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
     for i in $(echo $extras | sed "s|,| |g"); do
       if curl -I --connect-timeout 3 $url/$i.zip | grep -q 'HTTP/.* 200'; then
         $spin && { download_file $MODDIR/$i.zip $url/$i.zip & e_spinner; } || download_file $MODDIR/$i.zip $url/$i.zip
-        [ -f $MODDIR/dlerror ] && { remove_binary; return 1; }
+        [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
         unzip -qod $MODDIR/system $MODDIR/$i.zip
         for i in $(unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d'); do
           echo $i >> $MODDIR/.$ibinary
@@ -321,7 +321,7 @@ install_binary() {
   fi
   if curl -I --connect-timeout 3 $url/install.sh | grep -q 'HTTP/.* 200'; then
     $spin && { download_file $MODDIR/install.sh $url/install.sh & e_spinner; } || download_file $MODDIR/install.sh $url/install.sh
-    [ -f $MODDIR/dlerror ] && { remove_binary; return 1; }
+    [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
     . $MODDIR/install.sh
     rm -f $MODDIR/install.sh
   fi

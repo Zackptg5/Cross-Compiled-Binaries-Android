@@ -1,3 +1,7 @@
+18 - 10.13.2020
+* Fix download error logic
+* Fix sqlite3
+
 17 - 10.12.2020
 * Update module.prop when needed - gets rid of update notification in magisk manager
 * Further tweak connection_test
