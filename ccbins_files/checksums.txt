@@ -37,7 +37,7 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 4de75bf02a677c9d0eff33ef8a3095b7  ccbins_files/ccbins
 55821925e94e99978236215ffe3bb9e4  ccbins_files/changelog.txt
 a6aa587b82c2cee85a86577512ee915a  ccbins_files/includes-dynamic.txt
-62eb07df6f544463965899181a99fdb6  ccbins_files/includes.txt
+4ff3f28c8630638013811f4dfabefdd9  ccbins_files/includes.txt
 234eb1fa431e95e1ac53b81be3501e83  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 e63242c37267538531ff02b88d1906eb  ccbins_files/module.prop
@@ -197,11 +197,11 @@ cde84b9ad8fa975f79ef72676d9c98fa  nano/nano-arm
 cde84b9ad8fa975f79ef72676d9c98fa  nano/nano-arm64
 cde84b9ad8fa975f79ef72676d9c98fa  nano/nano-x64
 cde84b9ad8fa975f79ef72676d9c98fa  nano/nano-x86
-afa045aedd1999e7e4dabba0b952bba6  nano/nano.bin-arm
-921129d2e3916fab81da4f2daab6da8a  nano/nano.bin-arm64
-198977c70f848951108909f5036a6735  nano/nano.bin-x64
-ecdf4f6b2aba21f56ffad474f855100c  nano/nano.bin-x86
-c4f952e310005dc804233b3af3f15bcb  nano/usr.zip
+a717e5f889b70f2a782c48377b04f71f  nano/nano.bin-arm
+52ff8e5139e41f07a97e7d22ed37f878  nano/nano.bin-arm64
+79e87289bf85bfea8792770eeaec44e0  nano/nano.bin-x64
+3c1e0f826541029e53632eb0598c7b97  nano/nano.bin-x86
+b50977c737cbc8e4e6556341f7cacf33  nano/usr.zip
 d1b7c815ded3e603cbf530988ad42997  ncursesw/ncursesw-arm.zip
 362e93943a0e0da8a011adb5cd9803a2  ncursesw/ncursesw-arm64.zip
 48c40aa914970d3c5111bbf6f8eb070a  ncursesw/ncursesw-x64.zip

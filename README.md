@@ -18,7 +18,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * Htop (v3.0.1)
 * Iw (v5.8) - dynamic only
 * Keycheck
-* Nano (v5.2)
+* Nano (v5.3)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
 * Openssl (v1.1.1g)
 * Patch (v2.7.6)
