@@ -1,3 +1,9 @@
+19 - 10.20.2020
+* Fix connection_test - was returning true when it shouldn't have been
+* Added doh option as workaroud for dns poisoning (Chinese users)
+* Reworked menu a bit
+* Misc bug fixes
+
 18 - 10.13.2020
 * Fix download error logic
 * Fix sqlite3
