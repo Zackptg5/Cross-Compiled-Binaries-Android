@@ -3,7 +3,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 
 ## Currently includes:
 * Aria2 (v1.35.0) - dynamic has most features and works without need for root
-* Bash (v5.18)
+* Bash (v5.1.4)
 * Bc (v1.07.1)
 * Brotli (v1.0.9)
 * Coreutils (v8.32) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
@@ -13,27 +13,27 @@ This repo contains a variety of binaries cross compiled for android with Android
 * Ed (v1.16)
 * Findutils (v4.7.0)
 * Gawk (Awk) (v5.1.0)
-* Grep (v3.4)
+* Grep (v3.6)
 * Gzip (v1.10)
-* Htop (v3.0.1)
+* Htop (v3.0.4)
 * Iw (v5.8) - dynamic only
 * Keycheck
-* Nano (v5.3)
+* Nano (v5.4)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
 * Openssl (v1.1.1g)
 * Patch (v2.7.6)
-* Patchelf (v0.10)
+* Patchelf (v0.12)
 * Sed (v4.8)
-* Sqlite3 (v3.33.0) - dynamic only
+* Sqlite3 (v3.34.0) - dynamic only
 * Strace (v5.5)
 * Tar (v1.32)
 * Tcpdump (v4.9.3)
-* Vim (v8.2.1673)
+* Vim (v8.2.2305)
 * Xmlstarlet
 * Xxd (v1.10)
 * Zip (v3.0)
 * Zsh (v5.8.0)
-* Zstd (v1.4.5)
+* Zstd (v1.4.8)
 
 ## Credits
 * [Aria2](https://github.com/aria2/aria2)
