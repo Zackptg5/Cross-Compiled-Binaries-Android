@@ -12,6 +12,7 @@ Gawk (v5.1.0) gawk
 Grep (v3.6) egrep,fgrep,grep
 Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v3.0.4) htop
+Iw (v5.9) iw
 Keycheck (v1.0) keycheck
 Nano (v5.4) nano,nano.bin etc,usr,rnano
 Openssl (v1.1.1.7) openssl

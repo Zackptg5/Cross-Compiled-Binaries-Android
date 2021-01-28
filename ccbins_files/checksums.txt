@@ -36,8 +36,8 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 59db770b99b630a9ca4354aedd38679b  brotli/brotli-x86
 9a255b137f998963f7e003ba93b35959  ccbins_files/ccbins
 9fefd94728180f162291550182ee3fb6  ccbins_files/changelog.txt
-12233fd9749d51049d3cf914b101952b  ccbins_files/includes-dynamic.txt
-3562b6ced448d5b1eac31c6318c74a85  ccbins_files/includes.txt
+09181fcadc2bcdbb61c191d67627a9d9  ccbins_files/includes-dynamic.txt 
+13b1deaa7811b2777a639ffe8ecd8132  ccbins_files/includes.txt 
 3d137e18c4158809b99f58e1372f6fda  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 10809822121b77f6511d409faea664b7  ccbins_files/module.prop
@@ -184,10 +184,10 @@ c6dcc5322a00a9d5e65d7a53ff40e4fb  gzip/zless-x86
 8249005c8e67e346433f3e4f957db23b  htop/htop-arm64
 3a839fbd1470587355e5407cde89c879  htop/htop-x64
 faa3956948b8169864fbe21a66288869  htop/htop-x86
-6781c9a6d21243eae3026221faa7f313  iw/dynamic/iw-arm
-b2c4e551075197dec9a543cfa0278881  iw/dynamic/iw-arm64
-9312b58863fb36c46c6fd41e23cee5f0  iw/dynamic/iw-x64
-4928b37e64dde8ee960c79212765d3be  iw/dynamic/iw-x86
+294a10540ce7ca19295bc17f35b905a5  iw/iw-arm
+f4e33e1dab442ed9ee2d2656ce754636  iw/iw-arm64
+b09ec5a6d4cda6869cbfb581f3efcad1  iw/iw-x64
+758877bb3296709036a95e9d1e72f86d  iw/iw-x86 
 c48fb7ae93b2d14744f465ffa15d95d3  keycheck/keycheck-arm
 c3c4899297a8c03b3b5010348c409927  keycheck/keycheck-arm64
 801b406a50eda6ac67d4207362f2f665  keycheck/keycheck-x64

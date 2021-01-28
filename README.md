@@ -16,7 +16,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * Grep (v3.6)
 * Gzip (v1.10)
 * Htop (v3.0.4)
-* Iw (v5.8) - dynamic only
+* Iw (v5.9)
 * Keycheck
 * Nano (v5.4)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
