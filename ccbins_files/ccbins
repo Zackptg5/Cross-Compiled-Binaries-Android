@@ -714,7 +714,7 @@ while true; do
        echo "$div"
        title_div "Downloadable Binaries: "
        echo "$div"
-       echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}'; echo " "
+       echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}' | sed "s/-[0-9]* / /"; echo " "
        echo -e "\nPress 0 to continue"
        while true; do
          read -r choice?'--> '
