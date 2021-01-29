@@ -11,6 +11,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * Curl (v7.72.0) - boringssl support and more - working ssl, requires root, dynamic has most features
 * Diffutils (v3.7)
 * Ed (v1.16)
+* Exa (v0.9.0) - dynamic only
 * Findutils (v4.7.0)
 * Gawk (Awk) (v5.1.0)
 * Grep (v3.6)
@@ -45,6 +46,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * [Linux Kernel](https://www.kernel.org)
 * [Mikhail Grushinskiy](http://xmlstar.sourceforge.net)
 * [NixOS](https://nixos.org/patchelf.html)
+* [Ogham](https://github.com/ogham/exa)
 * [Partcyborg](https://github.com/Magisk-Modules-Repo/zsh_arm64)
 * [Sqlite](https://sqlite.org/index.html)
 * [Strace](https://github.com/strace/strace)

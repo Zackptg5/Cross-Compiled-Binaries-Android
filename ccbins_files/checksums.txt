@@ -34,9 +34,9 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 941624adbdca4e5f52d04aaf7100f64c  brotli/brotli-arm64
 3e7455f52680a67cfe0f9b771a1068fc  brotli/brotli-x64
 59db770b99b630a9ca4354aedd38679b  brotli/brotli-x86
-9a255b137f998963f7e003ba93b35959  ccbins_files/ccbins
-9fefd94728180f162291550182ee3fb6  ccbins_files/changelog.txt
-09181fcadc2bcdbb61c191d67627a9d9  ccbins_files/includes-dynamic.txt 
+ae3359fcc022413881302edeb6351e26  ccbins_files/ccbins
+6725a43d57b7f7d7fc55f151c72e47c9  ccbins_files/changelog.txt
+3d50060a3981db3833a4b94ff0e6846e  ccbins_files/includes-dynamic.txt
 13b1deaa7811b2777a639ffe8ecd8132  ccbins_files/includes.txt 
 3d137e18c4158809b99f58e1372f6fda  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
@@ -88,6 +88,14 @@ fe98b29e76a6963728e28ee6ca14e7ae  ed/ed-x64
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-arm64
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-x64
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-x86
+ddf86880f32d02ace18765d760bd5980  exa/dynamic/exa-arm
+d83178c6fb91c4b3635631ac21494a61  exa/dynamic/exa-arm64
+db30734131ef820912da334022e08490  exa/dynamic/exa-x64
+ead76a9d43a1e91ace5dfce79fe38f79  exa/dynamic/exa-x86
+5c9c7a29e624ad61a72724857d33dc09  exa/dynamic/lib-arm.zip
+86b778df5809035d80633e39b0948cfb  exa/dynamic/lib-arm64.zip
+18009935c9e4e7d97b13f3c70e4fc06d  exa/dynamic/lib-x64.zip
+3f85e2c5f79efed88fdbc77cfdbc901e  exa/dynamic/lib-x86.zip
 f58bb19df4df0304a0052ab6ed10e2ef  findutils/find-arm
 66373cbc380481b31bde495dcac68ea0  findutils/find-arm64
 70edd1e4cde52ec55401c6dc364571da  findutils/find-x64

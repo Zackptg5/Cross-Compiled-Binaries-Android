@@ -42,7 +42,7 @@ set -x 2>$VERLOG
 # > You can start your MOD here.
 # > You can add functions, variables & etc.
 # > Rather than editing the default vars above.
-scriptver=19
+scriptver=20
 branch=master
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
 [ -f $MODDIR/doh ] && { flag=" --doh-url $(tail -n1 $MODDIR/doh)"; doh="$(head -n1 $MODDIR/doh)"; }
@@ -492,6 +492,16 @@ install_binary_menu() {
       cat $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
     else
       grep -Ewv "$curbins" $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    fi
+    if [ "$file" == "$MODDIR/.binaries-dynamic" ]; then
+      while read -r line; do
+        local fapi="$(echo $line | awk '{print $2}' | sed 's/.*-//')"
+        [ "$fapi" ] || fapi=21
+        [ $API -lt $fapi ] && { sed -i "/$line/d" $MODDIR/tmp; continue; }
+        fapi="$(echo $line | awk '{print $2}' | sed 's/-.*//')"
+        [ "$fapi" ] && sed -i "s/$(echo $line | awk '{print $2}')/$fapi/" $MODDIR/tmp
+        unset fapi
+      done < $MODDIR/tmp
     fi
     [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Install all binaries listed below" $MODDIR/tmp || { print_pause "All binaries are installed!\n"; break; }
     echo "$div"
