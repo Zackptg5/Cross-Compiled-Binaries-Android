@@ -36,7 +36,7 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 59db770b99b630a9ca4354aedd38679b  brotli/brotli-x86
 2487fd287317437f233383d3103cfab4  ccbins_files/ccbins
 6725a43d57b7f7d7fc55f151c72e47c9  ccbins_files/changelog.txt
-3d50060a3981db3833a4b94ff0e6846e  ccbins_files/includes-dynamic.txt
+1e695549633ad3d4f4f639a28cee877b  ccbins_files/includes-dynamic.txt
 13b1deaa7811b2777a639ffe8ecd8132  ccbins_files/includes.txt 
 3d137e18c4158809b99f58e1372f6fda  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
@@ -248,6 +248,14 @@ b787008ca5074bb60a57e55536e69a70  tar/tar-arm
 b6ed6e5b0750c41eae291a184ceeb53f  tar/tar-arm64
 931f417233e2ee75175d6c76d30a28bc  tar/tar-x64
 5b9452ce4c77c8c86bd68d9dd8754122  tar/tar-x86
+99886de2657d711fba9bf1940b5d664b  tcpdump/dynamic/lib-arm.zip
+e21371db2b75e474e55c6c6ef566d7aa  tcpdump/dynamic/lib-arm64.zip
+fd8b873cfabe374edd6bbd33c6824a32  tcpdump/dynamic/lib-x64.zip
+264d520e0490f044a509c4508883210f  tcpdump/dynamic/lib-x86.zip
+2cf2a35a6127cbc46ed2df08eaff5a27  tcpdump/dynamic/tcpdump-arm
+f243be9ffd94fda7ce77029959966bb1  tcpdump/dynamic/tcpdump-arm64
+acae411636bb41afa2ea27223c3b4d07  tcpdump/dynamic/tcpdump-x64
+e29eb0f15902d5b7534dfdfc1c4a8d20  tcpdump/dynamic/tcpdump-x86
 f801e30121f10f835fd7e94c5e033505  tcpdump/tcpdump-arm
 8f8e642f33659a69a71ab48a874def59  tcpdump/tcpdump-arm64
 11083f7a2951e0698918b934fad6980b  tcpdump/tcpdump-x64

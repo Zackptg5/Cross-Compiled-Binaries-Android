@@ -28,7 +28,7 @@ This repo contains a variety of binaries cross compiled for android with Android
 * Sqlite3 (v3.34.0) - dynamic only
 * Strace (v5.5)
 * Tar (v1.32)
-* Tcpdump (v4.9.3)
+* Tcpdump (v4.9.3 static, v4.99.0 dynamic)
 * Vim (v8.2.2305)
 * Xmlstarlet
 * Xxd (v1.10)
