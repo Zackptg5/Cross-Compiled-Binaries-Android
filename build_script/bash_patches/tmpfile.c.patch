@@ -1,0 +1,22 @@
+--- ../bash-5.0/lib/sh/tmpfile.c	Thu Aug 11 10:05:58 2016
++++ lib/sh/tmpfile.c	Fri Dec 14 09:29:04 2018
+@@ -74,6 +74,11 @@
+     return sys_tmpdir;
+ #endif
+ 
++#ifdef __ANDROID__
++  sys_tmpdir = "/data/local/tmp";
++  if (file_iswdir (sys_tmpdir))
++    return sys_tmpdir;
++#else
+   sys_tmpdir = "/tmp";
+   if (file_iswdir (sys_tmpdir))
+     return sys_tmpdir;
+@@ -85,6 +90,7 @@
+   sys_tmpdir = "/usr/tmp";
+   if (file_iswdir (sys_tmpdir))
+     return sys_tmpdir;
++#endif
+ 
+   sys_tmpdir = DEFAULT_TMPDIR;
+ 

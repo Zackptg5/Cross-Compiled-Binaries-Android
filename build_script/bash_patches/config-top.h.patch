@@ -1,0 +1,55 @@
+--- ../bash-5.0/config-top.h	Thu May 19 13:34:02 2016
++++ config-top.h	Fri Dec 14 09:21:39 2018
+@@ -62,9 +62,14 @@
+ 
+ /* The default value of the PATH variable. */
+ #ifndef DEFAULT_PATH_VALUE
++#ifdef __ANDROID__
++#define DEFAULT_PATH_VALUE \
++  "/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin"
++#else
+ #define DEFAULT_PATH_VALUE \
+   "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:."
+ #endif
++#endif
+ 
+ /* If you want to unconditionally set a value for PATH in every restricted
+    shell, set this. */
+@@ -73,9 +78,14 @@
+ /* The value for PATH when invoking `command -p'.  This is only used when
+    the Posix.2 confstr () function, or CS_PATH define are not present. */
+ #ifndef STANDARD_UTILS_PATH
++#ifdef __ANDROID__
++#define STANDARD_UTILS_PATH \
++  "/system/bin"
++#else
+ #define STANDARD_UTILS_PATH \
+   "/bin:/usr/bin:/sbin:/usr/sbin:/etc:/usr/etc"
+ #endif
++#endif
+ 
+ /* Default primary and secondary prompt strings. */
+ #define PPROMPT "\\s-\\v\\$ "
+@@ -88,13 +98,21 @@
+ #define KSH_COMPATIBLE_SELECT
+ 
+ /* Default interactive shell startup file. */
+-#define DEFAULT_BASHRC "~/.bashrc"
++#define DEFAULT_BASHRC "/system/etc/bash/bashrc"
+ 
+ /* System-wide .bashrc file for interactive shells. */
++#ifdef __ANDROID__
++/* #define SYS_BASHRC "/system/etc/bash.bashrc" */
++#else
+ /* #define SYS_BASHRC "/etc/bash.bashrc" */
++#endif
+ 
+ /* System-wide .bash_logout for login shells. */
++#ifdef __ANDROID__
++/* #define SYS_BASH_LOGOUT "/system/etc/bash.bash_logout" */
++#else
+ /* #define SYS_BASH_LOGOUT "/etc/bash.bash_logout" */
++#endif
+ 
+ /* Define this to make non-interactive shells begun with argv[0][0] == '-'
+    run the startup files when not in posix mode. */

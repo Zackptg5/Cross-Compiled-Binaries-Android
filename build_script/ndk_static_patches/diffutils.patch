@@ -1,0 +1,116 @@
+--- lib/time_rz.c	2019-01-04 11:18:35.000000000 -0500
++++ lib/time_rz.c-2	2019-06-08 18:01:37.586438400 -0400
+@@ -89,28 +89,6 @@
+   abbrs[abbr_size] = '\0';
+ }
+ 
+-/* Return a newly allocated time zone for NAME, or NULL on failure.
+-   A null NAME stands for wall clock time (which is like unset TZ).  */
+-timezone_t
+-tzalloc (char const *name)
+-{
+-  size_t name_size = name ? strlen (name) + 1 : 0;
+-  size_t abbr_size = name_size < ABBR_SIZE_MIN ? ABBR_SIZE_MIN : name_size + 1;
+-  timezone_t tz = malloc (FLEXSIZEOF (struct tm_zone, abbrs, abbr_size));
+-  if (tz)
+-    {
+-      tz->next = NULL;
+-#if HAVE_TZNAME && !HAVE_TM_ZONE
+-      tz->tzname_copy[0] = tz->tzname_copy[1] = NULL;
+-#endif
+-      tz->tz_is_set = !!name;
+-      tz->abbrs[0] = '\0';
+-      if (name)
+-        extend_abbrs (tz->abbrs, name, name_size);
+-    }
+-  return tz;
+-}
+-
+ /* Save into TZ any nontrivial time zone abbreviation used by TM, and
+    update *TM (if HAVE_TM_ZONE) or *TZ (if !HAVE_TM_ZONE &&
+    HAVE_TZNAME) if they use the abbreviation.  Return true if
+@@ -191,19 +169,6 @@
+   return true;
+ }
+ 
+-/* Free a time zone.  */
+-void
+-tzfree (timezone_t tz)
+-{
+-  if (tz != local_tz)
+-    while (tz)
+-      {
+-        timezone_t next = tz->next;
+-        free (tz);
+-        tz = next;
+-      }
+-}
+-
+ /* Get and set the TZ environment variable.  These functions can be
+    overridden by programs like Emacs that manage their own environment.  */
+ 
+@@ -281,64 +246,3 @@
+       return ok;
+     }
+ }
+-
+-/* Use time zone TZ to compute localtime_r (T, TM).  */
+-struct tm *
+-localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
+-{
+-#ifdef HAVE_LOCALTIME_INFLOOP_BUG
+-  /* The -67768038400665599 comes from:
+-     https://lists.gnu.org/r/bug-gnulib/2017-07/msg00142.html
+-     On affected platforms the greatest POSIX-compatible time_t value
+-     that could return nonnull is 67768036191766798 (when
+-     TZ="XXX24:59:59" it resolves to the year 2**31 - 1 + 1900, on
+-     12-31 at 23:59:59), so test for that too while we're in the
+-     neighborhood.  */
+-  if (! (-67768038400665599 <= *t && *t <= 67768036191766798))
+-    {
+-      errno = EOVERFLOW;
+-      return NULL;
+-    }
+-#endif
+-
+-  if (!tz)
+-    return gmtime_r (t, tm);
+-  else
+-    {
+-      timezone_t old_tz = set_tz (tz);
+-      if (old_tz)
+-        {
+-          bool abbr_saved = localtime_r (t, tm) && save_abbr (tz, tm);
+-          if (revert_tz (old_tz) && abbr_saved)
+-            return tm;
+-        }
+-      return NULL;
+-    }
+-}
+-
+-/* Use time zone TZ to compute mktime (TM).  */
+-time_t
+-mktime_z (timezone_t tz, struct tm *tm)
+-{
+-  if (!tz)
+-    return timegm (tm);
+-  else
+-    {
+-      timezone_t old_tz = set_tz (tz);
+-      if (old_tz)
+-        {
+-          time_t t = mktime (tm);
+-#if HAVE_TM_ZONE || HAVE_TZNAME
+-          time_t badtime = -1;
+-          struct tm tm_1;
+-          if ((t != badtime
+-               || (localtime_r (&t, &tm_1) && equal_tm (tm, &tm_1)))
+-              && !save_abbr (tz, tm))
+-            t = badtime;
+-#endif
+-          if (revert_tz (old_tz))
+-            return t;
+-        }
+-      return -1;
+-    }
+-}

@@ -1,3 +1,5 @@
+# Since same libs are shared between multiple binaries, don't remove libs on uninstall of binary
+rm -f $MODDIR/.$ibinary
 # Generates ca-certificate.crt file from .0 files present on device
 mkdir -p $MODDIR/system/etc/security
 if [ -f "$(dirname $MOUNTPATH)/mirror/system/etc/security/ca-certificates.crt" ]; then
@@ -8,5 +10,3 @@ else
   done
 fi
 echo "etc/security/ca-certificates.crt" >> $MODDIR/.$ibinary
-# Since same libs are shared between multiple binaries, don't remove libs on uninstall of binary
-sed -i "/lib/d" $MODDIR/.$ibinary

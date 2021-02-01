@@ -6,23 +6,24 @@ Coreutils (v8.32) coreutils
 Cpio (v2.12) cpio
 Curl (v7.72.0) curl
 Diffutils (v3.7) cmp,diff3,diff,sdiff
-Ed (v1.16) ed,red
-Findutils (v4.7.0) find,frcode,locate,updatedb,xargs
+Ed (v1.17) ed,red
+Findutils (v4.8.0) find,frcode,locate,updatedb,xargs
 Gawk (v5.1.0) gawk
 Grep (v3.6) egrep,fgrep,grep
 Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
-Htop (v3.0.4) htop
+Htop (v3.0.5) htop
 Iw (v5.9) iw
 Keycheck (v1.0) keycheck
-Nano (v5.4) nano,nano.bin etc,usr,rnano
-Openssl (v1.1.1.7) openssl
+Nano (v5.5) nano,nano.bin etc,usr,rnano
+Nethogs (v0.8.6) nethogs
+Openssl (v1.1.1.9) openssl
 Patch (v2.7.6) patch
 Patchelf (v0.12) patchelf
 Sed (v4.8) sed
 Strace (v5.5) strace
-Tar (v1.32) tar
+Tar (v1.33) tar
 Tcpdump (v4.9.3) tcpdump
-Vim (v8.2.2305) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Vim (v8.2.2445) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd
 Zip (v3.0) zip

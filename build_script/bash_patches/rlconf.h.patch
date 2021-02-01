@@ -1,0 +1,14 @@
+--- ../bash-5.0/lib/readline/rlconf.h	Mon Jan 25 10:35:32 2016
++++ lib/readline/rlconf.h	Fri Dec 14 09:26:29 2018
+@@ -43,7 +43,11 @@
+ #define DEFAULT_INPUTRC "~/.inputrc"
+ 
+ /* The ultimate last-ditch filename for an init file -- system-wide. */
++#ifdef __ANDROID__
++#define SYS_INPUTRC "/system/etc/inputrc"
++#else
+ #define SYS_INPUTRC "/etc/inputrc"
++#endif
+ 
+ /* If defined, expand tabs to spaces. */
+ #define DISPLAY_TABS

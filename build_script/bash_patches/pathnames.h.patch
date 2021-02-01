@@ -1,0 +1,21 @@
+--- ../bash-5.0/pathnames.h.in	Sun Jan 04 14:32:40 2009
++++ pathnames.h.in	Fri Dec 14 09:59:38 2018
+@@ -22,10 +22,18 @@
+ #define _PATHNAMES_H_
+ 
+ /* The default file for hostname completion. */
++#ifdef __ANDROID__
++#define DEFAULT_HOSTS_FILE "/system/etc/hosts"
++#else
+ #define DEFAULT_HOSTS_FILE "/etc/hosts"
++#endif
+ 
+ /* The default login shell startup file. */
++#ifdef __ANDROID__
++#define SYS_PROFILE "/system/etc/profile"
++#else
+ #define SYS_PROFILE "/etc/profile"
++#endif
+ 
+ /* The default location of the bash debugger initialization/startup file. */
+ #define DEBUGGER_START_FILE	"@DEBUGGER_START_FILE@"

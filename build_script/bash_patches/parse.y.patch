@@ -1,0 +1,9 @@
+--- ../bash-5.0/parse.y	Sun Sep 11 10:31:46 2016
++++ parse.y	Fri Dec 14 10:03:10 2018
+@@ -35,6 +35,7 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <errno.h>
+ #include "chartypes.h"
+ #include <signal.h>

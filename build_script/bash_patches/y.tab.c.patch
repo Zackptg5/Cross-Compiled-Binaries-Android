@@ -1,0 +1,9 @@
+--- ../bash-5.0/y.tab.c	Sun Sep 11 10:32:05 2016
++++ y.tab.c	Fri Dec 14 10:04:44 2018
+@@ -80,6 +80,7 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <errno.h>
+ #include "chartypes.h"
+ #include <signal.h>
