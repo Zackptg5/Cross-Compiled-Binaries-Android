@@ -59,8 +59,9 @@ The below table notes if the binary is compatible with android ndk. If static or
 * Pwcat and Grcat (part of gawk) seg fault when ndk is used, compile without it to use them
 * Coreutils won't build with selinux with dynamic link - static only
 
-### Credits for Bash/Patches
+### Credits 
 
+* [Jarun](https://github.com/jarun/advcpmv)
 * [Alexander Gromnitsky](https://github.com/gromnitsky/bash-on-android)
 * [Termux](https://github.com/termux/termux-packages/tree/master/packages/bash)
 * [ATechnoHazard and koro666](https://github.com/ATechnoHazard/bash_patches)

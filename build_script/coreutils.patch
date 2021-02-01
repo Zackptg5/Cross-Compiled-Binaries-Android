@@ -73,8 +73,12 @@
  /* Initial size of the cp.dest_info hash table.  */
  #define DEST_INFO_INITIAL_CAPACITY 61
  
-@@ -225,7 +291,8 @@
-              size_t hole_size, bool punch_holes,
+@@ -258,10 +324,11 @@
+    bytes read.  */
+ static bool
+ sparse_copy (int src_fd, int dest_fd, char *buf, size_t buf_size,
+-             size_t hole_size, bool punch_holes,
++             size_t hole_size, bool punch_holes, bool move_mode,
               char const *src_name, char const *dst_name,
               uintmax_t max_n_read, off_t *total_n_read,
 -             bool *last_write_made_hole)
@@ -83,7 +87,7 @@
  {
    *last_write_made_hole = false;
    *total_n_read = 0;
-@@ -234,6 +301,83 @@
+@@ -270,6 +337,85 @@
  
    while (max_n_read)
      {
@@ -109,7 +113,7 @@
 +            int copy_speed = ( int ) ( ( double ) ( cur_size - s_progress->last_size )
 +              / sec_elapsed );
 +            char s_copy_speed[20];
-+            file_size_format ( s_copy_speed, copy_speed, 1 );
++            file_size_format ( s_copy_speed, copy_speed >= 0 ? copy_speed : 0, 1 );
 +            /* update vars */
 +            s_progress->last_time = cur_time;
 +            s_progress->last_size = cur_size;
@@ -124,7 +128,9 @@
 +            min_remaining -= hours_remaining * 60;
 +            /* print out */
 +            sprintf ( s_progress->cProgressField[3],
-+              "Copying at %s/s (about %uh %um %us remaining)", s_copy_speed,
++              move_mode
++                ? "Moving at %s/s (about %uh %um %us remaining)"
++                : "Copying at %s/s (about %uh %um %us remaining)", s_copy_speed,
 +              hours_remaining, min_remaining, sec_remaining );
 +
 +            int fs_len;
@@ -167,7 +173,7 @@
        ssize_t n_read = read (src_fd, buf, MIN (max_n_read, buf_size));
        if (n_read < 0)
          {
-@@ -320,6 +464,14 @@
+@@ -354,6 +500,14 @@
           certain files in /proc or /sys with linux kernels.  */
      }
  
@@ -182,18 +188,21 @@
    /* Ensure a trailing hole is created, so that subsequent
       calls of sparse_copy() start at the correct offset.  */
    if (make_hole && ! create_hole (dest_fd, dst_name, punch_holes, psize))
-@@ -388,7 +540,9 @@
+@@ -420,9 +574,11 @@
+ static bool
+ extent_copy (int src_fd, int dest_fd, char *buf, size_t buf_size,
               size_t hole_size, off_t src_total_size,
-              enum Sparse_type sparse_mode,
+-             enum Sparse_type sparse_mode,
++             enum Sparse_type sparse_mode, bool move_mode,
               char const *src_name, char const *dst_name,
 -             bool *require_normal_copy)
 +             bool *require_normal_copy,
-+             int iCountDown, char ** cProgressField, struct timeval last_time, 
++             int iCountDown, char ** cProgressField, struct timeval last_time,
 +             int last_size, int iBarLength, struct stat src_open_sb)
  {
    struct extent_scan scan;
    off_t last_ext_start = 0;
-@@ -519,10 +673,16 @@
+@@ -553,10 +709,16 @@
                last_ext_len = ext_len;
                bool read_hole;
  
@@ -205,17 +214,17 @@
 +
                if ( ! sparse_copy (src_fd, dest_fd, buf, buf_size,
                                    sparse_mode == SPARSE_ALWAYS ? hole_size: 0,
-                                   true, src_name, dst_name, ext_len, &n_read,
+-                                  true, src_name, dst_name, ext_len, &n_read,
 -                                  &read_hole))
-+                                  &read_hole,&s_progress))
++                                  true, move_mode, src_name, dst_name, ext_len,
++                                  &n_read, &read_hole,&s_progress))
                  goto fail;
  
                dest_pos = ext_start + n_read;
-@@ -1270,6 +1430,70 @@
- 
+@@ -1305,6 +1467,71 @@
        buf_alloc = xmalloc (buf_size + buf_alignment);
        buf = ptr_align (buf_alloc, buf_alignment);
-+      
+ 
 +      /* BEGIN progress mod */
 +      /* create a field of 6 lines */
 +      char ** cProgressField = ( char ** ) calloc ( 6, sizeof ( char * ) );
@@ -223,7 +232,8 @@
 +      int iBarLength = 80;
 +      struct winsize win;
 +      if ( ioctl (STDOUT_FILENO, TIOCGWINSZ, (char *) &win) == 0 && win.ws_col > 0 )
-+         iBarLength = win.ws_col;
++         if (win.ws_col > iBarLength) /* String printed may be longer on smaller screens */
++            iBarLength = win.ws_col;
 +      /* create rows */
 +      int it;
 +      for ( it = 0; it < 6; it++ )
@@ -279,35 +289,38 @@
 +      gettimeofday ( & last_time, NULL );
 +      int last_size = g_iTotalWritten;
 +      /* END progress mod */
- 
++
        if (sparse_src)
          {
-@@ -1282,7 +1506,9 @@
+           bool normal_copy_required;
+@@ -1316,7 +1543,9 @@
            if (extent_copy (source_desc, dest_desc, buf, buf_size, hole_size,
                             src_open_sb.st_size,
                             make_holes ? x->sparse_mode : SPARSE_NEVER,
 -                           src_name, dst_name, &normal_copy_required))
-+                           src_name, dst_name, &normal_copy_required,
-+                           iCountDown, cProgressField, last_time, last_size, 
++                           x->move_mode, src_name, dst_name, &normal_copy_required,
++                           iCountDown, cProgressField, last_time, last_size,
 +                           iBarLength, src_open_sb))
              goto preserve_metadata;
  
            if (! normal_copy_required)
-@@ -1294,11 +1520,12 @@
+@@ -1328,11 +1557,12 @@
  
        off_t n_read;
        bool wrote_hole_at_eof;
-+      struct progress_status s_progress = { iCountDown, cProgressField, last_time, last_size, iBarLength, src_open_sb}; 
++      struct progress_status s_progress = { iCountDown, cProgressField, last_time, last_size, iBarLength, src_open_sb};
        if (! sparse_copy (source_desc, dest_desc, buf, buf_size,
                           make_holes ? hole_size : 0,
-                          x->sparse_mode == SPARSE_ALWAYS, src_name, dst_name,
-                          UINTMAX_MAX, &n_read,
+-                         x->sparse_mode == SPARSE_ALWAYS, src_name, dst_name,
+-                         UINTMAX_MAX, &n_read,
 -                         &wrote_hole_at_eof))
++                         x->sparse_mode == SPARSE_ALWAYS, x->move_mode,
++                         src_name, dst_name, UINTMAX_MAX, &n_read,
 +                         &wrote_hole_at_eof, &s_progress))
          {
            return_val = false;
            goto close_src_and_dst_desc;
-@@ -1309,6 +1536,14 @@
+@@ -1343,6 +1573,14 @@
            return_val = false;
            goto close_src_and_dst_desc;
          }
@@ -334,19 +347,19 @@
    /* If true, do not copy a nondirectory that has an existing destination
       with the same or newer modification time. */
    bool update;
-@@ -309,4 +312,15 @@
+@@ -304,4 +307,15 @@
  bool chown_failure_ok (struct cp_options const *) _GL_ATTRIBUTE_PURE;
  mode_t cached_umask (void);
  
 +/* BEGIN OF PROGRESS MOD */
 +int file_size_format ( char * _cDst, long _lSize, int _iCounter );
 +
-+long g_iTotalSize; 
-+long g_iTotalWritten; 
-+int g_iFilesCopied; 
-+struct timeval g_oStartTime; 
-+int g_iTotalFiles; 
-+bool progress; 
++__attribute__((__common__)) long g_iTotalSize;
++__attribute__((__common__)) long g_iTotalWritten;
++__attribute__((__common__)) int g_iFilesCopied;
++__attribute__((__common__)) struct timeval g_oStartTime;
++__attribute__((__common__)) int g_iTotalFiles;
++__attribute__((__common__)) bool progress;
 +/* END OF PROGRESS MOD */ 
 +
  #endif
