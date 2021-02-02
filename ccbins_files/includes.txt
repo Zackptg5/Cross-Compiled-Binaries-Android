@@ -4,7 +4,7 @@ Bc (v1.07.1) bc,dc
 Brotli (v1.0.9) brotli
 Coreutils (v8.32) coreutils
 Cpio (v2.12) cpio
-Curl (v7.72.0) curl
+Curl (v7.74.0) curl
 Diffutils (v3.7) cmp,diff3,diff,sdiff
 Ed (v1.17) ed,red
 Findutils (v4.8.0) find,frcode,locate,updatedb,xargs

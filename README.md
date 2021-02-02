@@ -2,7 +2,7 @@
 This repo contains a variety of binaries cross compiled for android with Android NDK. All are static linked unless in a dynamic folder. Feel free to use them for whatever. Also contains some files for ccbins mod
 
 ## Binaries Build Script
-You can find the build script for these in the build_scripts folder. You can find the build script repos for [Aria2](https://github.com/Zackptg5/Aria2-Android) and [Curl](https://github.com/Zackptg5/curl-boringssl-android) at these links.
+You can find the build script for these in the build_scripts folder. You can find the build script repos for [Aria2 and Curl here](https://github.com/Zackptg5/Curl-and-Aria2-For-Android).
 
 ## Currently includes:
 * Aria2 (v1.35.0) - dynamic has most features and works without need for root
@@ -11,7 +11,7 @@ You can find the build script for these in the build_scripts folder. You can fin
 * Brotli (v1.0.9)
 * Coreutils (v8.32) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12)
-* Curl (v7.72.0) - boringssl support and more - working ssl, requires root, dynamic has most features
+* Curl (v7.74.0) - boringssl support and more - working ssl, requires root, dynamic has most features
 * Diffutils (v3.7)
 * Ed (v1.17)
 * Exa (v0.9.0) - dynamic only
