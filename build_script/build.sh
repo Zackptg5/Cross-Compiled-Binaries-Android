@@ -64,11 +64,13 @@ build_ncurses() {
   [ "$name" == "ncursesw" ] && local FLAGS="--enable-widec $FLAGS"
 	./configure $FLAGS--prefix=$NPREFIX --disable-nls --disable-stripping --host=$target_host --target=$target_host CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
   [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
-	make -j$JOBS
-	[ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-	make install
-  make distclean
-  cd $DIR/$LBIN
+	if [ "$LBIN" != "$name" ]; then
+    make -j$JOBS
+    [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+    make install
+    make distclean
+    cd $DIR/$LBIN
+  fi
 }
 build_zlib() {
   export ZPREFIX="$(echo $PREFIX | sed "s|$LBIN|zlib|")"
@@ -191,8 +193,6 @@ build_selinux() {
   cd $DIR/$LBIN
 }
 build_libmagic() {
-  $STATIC && build_zlib -s || build_zlib
-  build_bzip2
   export MPREFIX="$(echo $PREFIX | sed "s|$LBIN|libmagic|")"
   [ -d $MPREFIX ] && return 0
 	cd $DIR
@@ -200,8 +200,7 @@ build_libmagic() {
 	[ -f "file-$MVER.tar.gz" ] || wget -O file-$MVER.tar.gz ftp://ftp.astron.com/pub/file/file-$MVER.tar.gz
 	[ -d file-$MVER ] || { mkdir file-$MVER; tar -xf file-$MVER.tar.gz; }
 	cd file-$MVER
-  $STATIC && local FLAGS="--disable-shared $FLAGS"
-	./configure $FLAGS--prefix=$MPREFIX --disable-xzlib --host=$target_host --target=$target_host CFLAGS="$CFLAGS -I$ZPREFIX/include -I$BPREFIX/include" LDFLAGS="$LDFLAGS -Wl,--unresolved-symbols=ignore-all -L$ZPREFIX/lib -L$BPREFIX/lib" # Ignore errors about zlib and bzip2
+	./configure $FLAGS--prefix=$MPREFIX --disable-xzlib --disable-zlib --disable-bzlib --host=$target_host --target=$target_host CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
   [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
   sed -i "s|^FILE_COMPILE =.*|FILE_COMPILE = $(which file)|" magic/Makefile # Need to use host file binary
 	make -j$JOBS
@@ -247,27 +246,6 @@ setup_ohmyzsh() {
   cp -rf $OPREFIX/.oh-my-zsh $PREFIX/system/etc/zsh/
   cp -f $OPREFIX/.zshrc $PREFIX/system/etc/zsh/.zshrc
 }
-build_libpcap() {
-  export LPREFIX="$(echo $PREFIX | sed "s|$LBIN|libpcap|")"
-  [ -d $LPREFIX ] && return 0
-  echogreen "Building libpcap..."
-  cd $DIR
-  rm -rf libpcap-$LVER
-  # [ -f "libpcap-$LVER.tar.gz" ] || wget -O libpcap-$LVER.tar.gz https://www.tcpdump.org/release/libpcap-$LVER.tar.gz
-  # tar -xf libpcap-$LVER.tar.gz
-  git clone https://android.googlesource.com/platform/external/libpcap # Switch to google repo cause it just works
-  mv -f libpcap libpcap-$LVER
-  cd libpcap-$LVER
-  $STATIC && local FLAGS="--disable-shared $FLAGS"
-  ./configure $FLAGS--prefix=$LPREFIX --with-pcap=linux --without-libnl --host=$target_host --target=$target_host CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
-  [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
-  make -j$JOBS
-  [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-  make install -j$JOBS
-  cp -rf $DIR/libpcap-$LVER/* $LPREFIX/
-  make distclean
-  cd $DIR/$LBIN
-}
 build_readline() {
   export RPREFIX="$(echo $PREFIX | sed "s|$LBIN|readline|")"
   [ -d $RPREFIX ] && return 0
@@ -288,6 +266,54 @@ build_readline() {
 	make install -j$JOBS
   make distclean
 	cd $DIR/$LBIN
+}
+build_libnl() {
+  export LNPREFIX="$(echo $PREFIX | sed "s|$LBIN|libnl|")"
+  [ -d $LNPREFIX ] && return 0
+	echogreen "Building libnl..."
+  cd $DIR
+  rm -rf libnl-$LNVER
+	[ -f "libnl-$LNVER.tar.gz" ] || wget https://www.infradead.org/~tgr/libnl/files/libnl-$LNVER.tar.gz
+	[ -d "libnl-$LNVER" ] || tar -xf libnl-$LNVER.tar.gz
+	cd libnl-$LNVER
+	# $STATIC && { local FLAGS="--disable-shared $FLAGS"; sed -i "s/-rdynamic//" src/lib/Makefile.*; }
+  # grep -q '#include <math.h>' lib/utils.c || sed -i "/#include <netlink-private\/netlink.h>/i#include <math.h>" lib/utils.c
+  # cp -f $(dirname $ANDROID_TOOLCHAIN)/sysroot/usr/include/math.h lib/math.h
+  # sed -i -e '/#ifndef CCAN_HASH_H/d' -e '\|#endif /\* HASH_H \*/|d' include/netlink/hash.h
+	./configure $FLAGS--prefix=$LNPREFIX \
+              --host=$target_host \
+              --target=$target_host \
+              CFLAGS="$CFLAG" \
+              LDFLAGS="$LDFLAGS" \
+              --disable-pthreads
+	[ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
+	make # -j$JOBS # Weird font change happens when this is enabled for some reason
+	[ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+	make install -j$JOBS
+  make distclean
+	cd $DIR/$LBIN
+}
+build_libpcap() {
+  build_libnl
+  export LPREFIX="$(echo $PREFIX | sed "s|$LBIN|libpcap|")"
+  [ -d $LPREFIX ] && return 0
+  echogreen "Building libpcap..."
+  cd $DIR
+  rm -rf libpcap-$LVER
+  # [ -f "libpcap-$LVER.tar.gz" ] || wget -O libpcap-$LVER.tar.gz https://www.tcpdump.org/release/libpcap-$LVER.tar.gz
+  # tar -xf libpcap-$LVER.tar.gz
+  git clone https://android.googlesource.com/platform/external/libpcap # Switch to google repo cause it just works
+  mv -f libpcap libpcap-$LVER
+  cd libpcap-$LVER
+  $STATIC && local FLAGS="--disable-shared $FLAGS"
+  ./configure $FLAGS--prefix=$LPREFIX --with-pcap=linux --host=$target_host --target=$target_host CFLAGS="$CFLAGS -I$LNPREFIX/include" LDFLAGS="$LDFLAGS -L$LNPREFIX/lib"
+  [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
+  make -j$JOBS
+  [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+  make install -j$JOBS
+  cp -rf $DIR/libpcap-$LVER/* $LPREFIX/
+  make distclean
+  cd $DIR/$LBIN
 }
 
 TEXTRESET=$(tput sgr0)
@@ -332,13 +358,6 @@ export ANDROID_NDK_HOME=$DIR/android-ndk-$NDKVER
 export ANDROID_TOOLCHAIN=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
 export PATH=$ANDROID_TOOLCHAIN:$PATH
 # Create needed symlinks
-for i in armv7a-linux-androideabi aarch64-linux-android x86_64-linux-android i686-linux-android; do
-  [ "$i" == "armv7a-linux-androideabi" ] && j="arm-linux-androideabi" || j=$i
-  ln -sf $ANDROID_TOOLCHAIN/$i$API-clang $ANDROID_TOOLCHAIN/$j-clang
-  ln -sf $ANDROID_TOOLCHAIN/$i$API-clang++ $ANDROID_TOOLCHAIN/$j-clang++
-  ln -sf $ANDROID_TOOLCHAIN/$i$API-clang $ANDROID_TOOLCHAIN/$j-gcc
-  ln -sf $ANDROID_TOOLCHAIN/$i$API-clang++ $ANDROID_TOOLCHAIN/$j-g++
-done
 for i in ar as ld ranlib strip clang gcc clang++ g++; do
   ln -sf $ANDROID_TOOLCHAIN/arm-linux-androideabi-$i $ANDROID_TOOLCHAIN/arm-linux-gnueabi-$i
   ln -sf $ANDROID_TOOLCHAIN/i686-linux-android-$i $ANDROID_TOOLCHAIN/i686-linux-gnu-$i
@@ -353,6 +372,7 @@ for LBIN in $BIN; do
   # Versioning and overrides
   LAPI=$API
   DEP=false
+  LNVER=3.2.25
   LVER=1.10
   MVER=5.39
   NVER=6.2
@@ -392,6 +412,15 @@ for LBIN in $BIN; do
     "zstd") ver="v1.4.8"; url="https://github.com/facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
   esac
+
+  # Create needed symlinks - put here in case of LAPI overrides above
+  for i in armv7a-linux-androideabi aarch64-linux-android x86_64-linux-android i686-linux-android; do
+    [ "$i" == "armv7a-linux-androideabi" ] && j="arm-linux-androideabi" || j=$i
+    ln -sf $ANDROID_TOOLCHAIN/$i$LAPI-clang $ANDROID_TOOLCHAIN/$j-clang
+    ln -sf $ANDROID_TOOLCHAIN/$i$LAPI-clang++ $ANDROID_TOOLCHAIN/$j-clang++
+    ln -sf $ANDROID_TOOLCHAIN/$i$LAPI-clang $ANDROID_TOOLCHAIN/$j-gcc
+    ln -sf $ANDROID_TOOLCHAIN/$i$LAPI-clang++ $ANDROID_TOOLCHAIN/$j-g++
+  done
 
   # Fetch source
   if ! $DEP; then
@@ -437,8 +466,8 @@ for LBIN in $BIN; do
     export GCC=$target_host-gcc
     export GXX=$target_host-g++
     if $STATIC; then
-      CFLAGS='-static -O2'
-      LDFLAGS='-static'
+      CFLAGS="-static -O2"
+      LDFLAGS="-static"
       export PREFIX=$DIR/build-static/$LBIN/$LARCH
       [ -f $DIR/ndk_static_patches/$LBIN.patch ] && [ ! -f $LBIN.patch ] && patch_file $DIR/ndk_static_patches/$LBIN.patch
     else
@@ -457,7 +486,7 @@ for LBIN in $BIN; do
     # 7) Can't detect pthread from ndk so clear any values set by configure
     # 8) pthread_cancel not in ndk, use Hax4us workaround found here: https://github.com/axel-download-accelerator/axel/issues/150
     # 9) Allow static compile (will compile dynamic regardless of flags without this patch), only needed for arm64 oddly
-    # 10) Specify that ncursesw is defined since it doesn't do it on it's own for some reason
+    # 10) Specify that ncursesw is defined since clang errors out with ncursesw
     echogreen "Configuring for $LARCH"
     case $LBIN in
       "bash")
@@ -596,22 +625,25 @@ for LBIN in $BIN; do
           cp -f $DIR/Bpthread.h Bpthread.h #8
           sed -i '/pthread.h/a#include <Bpthread.h>' iftop.c #8
         fi
+        $STATIC && sed -i "s/cross_compiling=no/cross_compiling=yes/" configure
         ./configure CFLAGS="$CFLAGS -I$LPREFIX/include -I$NPREFIX/include" LDFLAGS="$LDFLAGS -L$LPREFIX/lib -L$NPREFIX/lib" --host=$target_host --target=$target_host \
         $FLAGS--prefix=$PREFIX \
         --with-libpcap=$LPREFIX \
         --with-resolver=netdb
         ;;
       "nano")
+        build_zlib
+        build_libmagic
         build_ncurses -w
         mkdir -p $PREFIX/system/usr/share
         cp -rf $NPREFIX/share/terminfo $PREFIX/system/usr/share
-        build_libmagic
         # Workaround no longer needed
         # wget -O - "https://kernel.googlesource.com/pub/scm/fs/ext2/xfstests-bld/+/refs/heads/master/android-compat/getpwent.c?format=TEXT" | base64 --decode > src/getpwent.c
         # wget -O src/pty.c https://raw.githubusercontent.com/CyanogenMod/android_external_busybox/cm-13.0/android/libc/pty.c
         # sed -i 's|int ptsname_r|//hack int ptsname_r(int fd, char* buf, size_t len) {\nint bb_ptsname_r|' src/pty.c
         # sed -i "/#include \"nano.h\"/a#define ptsname_r bb_ptsname_r\n//#define ttyname bb_ttyname\n#define ttyname_r bb_ttyname_r" src/proto.h
-        ./configure CFLAGS="$CFLAGS -I$ZPREFIX/include -I$BPREFIX/include -I$NPREFIX/include -I$MPREFIX/include" LDFLAGS="$LDFLAGS -L$ZPREFIX/lib -L$BPREFIX/lib -L$NPREFIX/lib -L$MPREFIX/lib" \
+        $STATIC || FLAGS="ac_cv_header_glob_h=no $FLAGS"
+        ./configure CFLAGS="$CFLAGS -I$ZPREFIX/include -I$NPREFIX/include -I$MPREFIX/include" LDFLAGS="$LDFLAGS -L$ZPREFIX/lib -L$NPREFIX/lib -L$MPREFIX/lib" \
         --host=$target_host --target=$target_host \
         $FLAGS--prefix=/system \
         --sbindir=/system/bin \
@@ -619,7 +651,6 @@ for LBIN in $BIN; do
         --datarootdir=/system/usr/share \
         --disable-nls || { echored "Configure failed!"; exit 1; }
         sed -i '/#if defined(HAVE_NCURSESW_NCURSES_H)/i#define HAVE_NCURSESW_NCURSES_H' src/definitions.h #10
-        # cp -rf $NPREFIX/include/ncursesw $NPREFIX/lib/libncursesw.a $MPREFIX/include/* $MPREFIX/lib/* src/
         ;;
       "ncurses")
         build_ncurses
@@ -631,9 +662,8 @@ for LBIN in $BIN; do
         build_libpcap
         build_ncurses
         echo '#include <ncurses/curses.h>' > $NPREFIX/include/ncurses.h #6
-        # Configure Makefile with proper flags/variables since no configure
         sed -i "1aexport PREFIX := $PREFIX\nexport CFLAGS := $CFLAGS -I$LPREFIX/include -I$NPREFIX/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$LPREFIX/lib -L$NPREFIX/lib" Makefile
-        sed -i "s/decpcap_test test/decpcap_test/g" Makefile
+        sed -i "s/decpcap_test test/decpcap_test/g" Makefile # Remove uneeded test - won't work cause we're cross-compiling
         ;;
       "openssl")
         build_openssl -z
@@ -756,9 +786,8 @@ for LBIN in $BIN; do
     [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
 
     if [ "$LBIN" != "exa" ] && ! $DEP; then
-      [ "$LBIN" == "nano" ] && make -j$JOBS LIBS="libncursesw.a" || make -j$JOBS
+      make -j$JOBS
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-
       if [ "$LBIN" == "findutils" ]; then
         sed -i -e "s|/usr/bin|/system/bin|g" -e "s|SHELL=\".*\"|SHELL=\"/system/bin/sh\"|" locate/updatedb
         make install DESTDIR=$PREFIX
@@ -767,11 +796,12 @@ for LBIN in $BIN; do
       elif [ "$LBIN" == "nano" ]; then
         make install DESTDIR=$PREFIX
         $STRIP $PREFIX/system/bin/nano
-        mv -f $PREFIX/system/bin/nano $PREFIX/system/bin/nano.bin
-        cp -f $DIR/nano_wrapper $PREFIX/system/bin/nano
+        # mv -f $PREFIX/system/bin/nano $PREFIX/system/bin/nano.bin
+        # cp -f $DIR/nano_wrapper $PREFIX/system/bin/nano
         rm -rf $PREFIX/system/usr/share/nano
         git clone https://github.com/scopatz/nanorc $PREFIX/system/usr/share/nano
-        rm -rf $PREFIX/system/usr/share/nano/.* $PREFIX/system/usr/share/nano/AUTHORS.txt 2>/dev/null
+        rm -rf $PREFIX/system/usr/share/nano/.git
+        find $PREFIX/system/usr/share/nano -type f ! -name '*.nanorc' -delete
       elif [ "$LBIN" == "zsh" ]; then
         make install -j$JOBS DESTDIR=$PREFIX
         ! $STATIC && [ "$LBIN" == "zsh" ] && [ "$LARCH" == "aarch64" -o "$LARCH" == "x86_64" ] && mv -f $DEST/$LARCH/lib $DEST/$LARCH/lib64

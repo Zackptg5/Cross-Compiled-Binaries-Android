@@ -14,7 +14,7 @@ Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,z
 Htop (v3.0.5) htop
 Iw (v5.9) iw
 Keycheck (v1.0) keycheck
-Nano (v5.5) nano,nano.bin etc,usr,rnano
+Nano (v5.5) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs
 Openssl (v1.1.1.9) openssl
 Patch (v2.7.6) patch
