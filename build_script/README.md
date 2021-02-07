@@ -29,40 +29,55 @@ The below table notes if the binary is compatible with android ndk. If static or
 | --------- |:-------:|:---------------------------------------------------------------------------:|
 | **bash**      | *Static*  | |
 | **bc**        | Yes       | Also includes dc |
-| **coreutils** | Yes       | Advanced cp/mv (progress bar), Openssl support, Optional Selinux Support |
+| **bzip2**     | Yes       | |
+| **coreutils** | Yes       | Advanced cp/mv (progress bar), Openssl support, Selinux Support |
 | **cpio**      | Yes       | Newer versions are bugged, stick with 2.12 for now |
 | **diffutils** | Yes       | Also includes cmp, diff, diff3, sdiff |
 | **ed**        | Yes       | |
 | **exa**       | *Static*  | |
 | **findutils** | Yes       | Also includes find, locate, updatedb, xargs |
 | **gawk**      | Yes       | GNU awk |
-| **grep**      | Yes       | Also includes egrep and fgrep, has ull perl regex support |
+| **gdbm**      | Yes       | |
+| **grep**      | Yes       | Also includes egrep and fgrep, has full perl regex support |
 | **gzip**      | Yes       | Also includes gunzip and gzexe |
 | **htop**      | Yes       | |
 | **iftop**     | *Dynamic* | |
+| **libmagic**  | Yes       | |
+| **libnl**     | Yes       | |
+| **libpcap**   | Yes       | |
 | **nano**      | *Static*  | |
 | **ncurses**   | Yes       | Also includes capconvert, clear, infocmp, tabs, tic, toe, tput, tset |
+| **ncursesw**  | Yes       | Also includes capconvert, clear, infocmp, tabs, tic, toe, tput, tset |
 | **nethogs**   | Yes       | |
+| **openssl**   | Yes       | |
 | **patch**     | Yes       | |
 | **patchelf**  | Yes       | |
+| **pcre**      | Yes       | |
+| **pcre2**     | Yes       | |
+| **readline**  | Yes       | |
 | **sed**       | Yes       | |
+| **selinux**   | Yes       | |
 | **sqlite3**   | *Dynamic* | |
+| **strace**    | Yes       | |
 | **tar**       | Yes       | |
 | **tcpdump**   | Yes       | |
 | **vim**       | Yes       | |
+| **wavemon**   | Yes       | |
+| **zlib**      | Yes       | |
 | **zsh**       | Yes       | |
 | **zstd**      | Yes       | |
 
 ## Issues
 * Sqlite3 static compile still ends up dynamically linked somehow
-* Exa static compile still ends up dynamically linked somehow
+* Exa always statically compiles, limitation with rust
 * Pwcat and Grcat (part of gawk) seg fault when ndk is used, compile without it to use them
-* Coreutils won't build with selinux with dynamic link - static only
 
 ### Credits 
 
 * [Jarun](https://github.com/jarun/advcpmv)
+* [Scopatz](https://github.com/scopatz/nanorc)
 * [Alexander Gromnitsky](https://github.com/gromnitsky/bash-on-android)
 * [Termux](https://github.com/termux/termux-packages/tree/master/packages/bash)
 * [ATechnoHazard and koro666](https://github.com/ATechnoHazard/bash_patches)
 * [BlissRoms](https://github.com/BlissRoms/platform_external_bash)
+* [OhMyZsh](https://github.com/ohmyzsh/ohmyzsh)

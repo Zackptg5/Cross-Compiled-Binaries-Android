@@ -1,0 +1,17 @@
+--- wavemon.h.orig	2021-02-02 21:10:43.950000000 -0500
++++ wavemon.h	2021-02-02 21:10:55.220000000 -0500
+@@ -33,14 +33,8 @@
+ #include <math.h>
+ #include <stdint.h>
+ #include <stdbool.h>
+-#ifdef HAVE_LIBNCURSESW
+ #define _XOPEN_SOURCE_EXTENDED
+-#endif
+-#if defined(HAVE_LIBNCURSESW) && defined(HAVE_NCURSESW_CURSES_H)
+ #include <ncursesw/curses.h>
+-#else
+-#include <ncurses.h>
+-#endif
+ 
+ #include "llist.h"
+ 
