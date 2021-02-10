@@ -638,7 +638,9 @@ build_bin() {
     esac
     make distclean 2>/dev/null
     [ $? -ne 0 ] && make clean 2>/dev/null
-    git reset --hard 2>/dev/null
+    if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == "https://android.googlesource.com/" ]]; then
+      git reset --hard 2>/dev/null
+    fi
   fi
   $STRIP $prefix/*bin/* 2>/dev/null
   echogreen "$bin built sucessfully and can be found at: $prefix"
