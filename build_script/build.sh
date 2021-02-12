@@ -23,6 +23,10 @@
 # 20) Force pcre2 - compile doesn't do this for some reason
 # 21) Remove reference to non-essential (I hope lol) macro that doesn't exist in ndk
 # 22) Renameat2 was added in ndk 21, multiple definition with existing files/macro in patch. Either use an older ndk (like r20b) or ignore the errors
+# 23) googletest dependency is not present in the aosp source version
+# 24) Remove no longer supported macro (needed for newer version of autoconf)
+# 25) Pthread inside ndk's libc rather than separate, create empty one to skirt around errors - https://stackoverflow.com/questions/57289494/ndk-r20-ld-ld-error-cannot-find-lpthread
+# 26) Add missing functions (present in openssl but not in boringssl) - modified from original source: https://github.com/egorovandreyrm/libssh_android_build_scripts
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -33,8 +37,8 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (bash, bc, bzip2, coreutils, cpio, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), nano, ncurses, ncursesw, nethogs, openssl, opensslz (openssl w/zlib), patch, patchelf, pcre, pcre2, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
-  echo "           Opensslz = openssl with zlib support"
+  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, gettext, grep, gzip, htop, iftop, libexpat, libidn2, libiconv, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2b, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echo "           Libssh2b = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
   echo "           Ex: bin=cpio,gzip,tar"
   echogreen "arch=     (Default: all) (all, arm, arm64, x86, x64)"
@@ -53,6 +57,7 @@ patch_file() {
   cp -f $1 $dest
   patch -p0 -i $dest
   [ $? -ne 0 ] && { echored "Patching failed! Did you verify line numbers? See README for more info"; exit 1; }
+  return 0
 }
 bash_patches() {
   echogreen "Applying patches"
@@ -89,10 +94,10 @@ build_bin() {
   [ "$lapi" ] || lapi=$api
   # Set flags
   case $arch in
-    arm64|aarch64) arch=aarch64; target_host=aarch64-linux-android; osarch=android-arm64;;
-    arm) arch=arm; target_host=arm-linux-androideabi; osarch=android-arm;;
-    x64|x86_64) arch=x86_64; target_host=x86_64-linux-android; osarch=android-x86_64;;
-    x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; flags="TIME_T_32_BIT_OK=yes ";;
+    arm64|aarch64) arch=aarch64; target_host=aarch64-linux-android; osarch=android-arm64; barch=arm64-v8a;;
+    arm) arch=arm; target_host=arm-linux-androideabi; osarch=android-arm; barch=armeabi-v7a;;
+    x64|x86_64) arch=x86_64; target_host=x86_64-linux-android; osarch=android-x86_64; barch=x86;;
+    x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; barch=x86_64; flags="TIME_T_32_BIT_OK=yes ";;
     *) echored "Invalid arch: $arch!"; exit 1;;
   esac
   export AR=$target_host-ar
@@ -106,32 +111,47 @@ build_bin() {
   export GXX=$target_host-g++
 
   case $bin in
+    "aria2") ver="release-1.35.0"; url="https://github.com/aria2/aria2";;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
+    "boringssl") ver="067cfd9"; url="https://boringssl.googlesource.com/boringssl";; # Keep consistent with quiche boringssl
+    "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
+    "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
+    "curl") ver="curl-7_75_0"; url="https://github.com/curl/curl"; $static || [ $lapi -ge 23 ] || lapi=23;;
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.9.0"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.19" url="gnu";;
+    "gettext") ext=gz; ver="0.21"; url="gnu";;
     "grep") ext=xz; ver="3.6"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.10"; url="gnu";;
     "htop") ver="3.0.5"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
+    "libexpat") ver="R_2_2_10"; url="https://github.com/libexpat/libexpat";;
+    "libiconv") ext=gz; ver="1.16"; url="gnu";;
+    "libidn2") ext=gz; ver="2.3.0"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext";;
     "libmagic") ext=gz; ver="5.39"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
+    "libmetalink") ver="release-0.1.3"; url="https://github.com/metalink-dev/libmetalink";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
+    "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl";;
+    "libssh2"|"libssh2b") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2b" ] && { bin=libssh2; alt=true; };;
+    "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
     "nano") ext=xz; ver="5.5"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "openssl"|"opensslz") ver="OpenSSL_1_1_1i"; url="https://github.com/openssl/openssl"; [ "$bin" == "opensslz" ] && { bin=openssl; alt=true; };;
+    "nghttp2") ver="v1.43.0"; url="https://github.com/nghttp2/nghttp2";;
+    "openssl") ver="OpenSSL_1_1_1i"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.12"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.44"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ext=gz; ver="10.36"; url="https://ftp.pcre.org/pub/pcre/pcre2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
+    "quiche") ver="0.7.0"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="20200710"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
@@ -163,11 +183,11 @@ build_bin() {
     "gnu")
       url="https://ftp.gnu.org/gnu/$bin/$bin-$ver.tar.$ext"
       ;;
-    "https://github.com/"*|"https://android.googlesource.com/"*) 
+    "https://github.com/"*|*"googlesource.com"*) 
       if [ -d $bin ]; then
         cd $bin
       else
-        git clone $url
+        [ "$bin" == "quiche" ] && git clone --recursive $url || git clone $url
         cd $bin
         [ "$ver" ] && git checkout $ver 2>/dev/null
       fi
@@ -178,6 +198,7 @@ build_bin() {
     name="$(basename $(echo "$url" | sed "s|download||"))"
     [ -f "$name" ] || wget -O $name $url
     tar -xf $name --transform s/$(echo $name | sed "s/.tar.$ext//")/$bin/
+    mv -f $bin-$ver $bin 2>/dev/null
     cd $bin
   fi
 
@@ -197,23 +218,53 @@ build_bin() {
 
   echogreen "Compiling $bin version $ver for $arch api $lapi"
   case $bin in
+    "aria2")
+      build_bin libexpat
+      build_bin c-ares
+      build_bin libssh2 # Also builds openssl
+      build_bin sqlite
+      build_bin zlib
+      cd $dir/$bin
+      autoreconf -fi
+      if $static; then #25
+        [ "$arch" == "armeabi-v7a" ] && export target_host=arm-linux-androideabi
+        $AR cr $toolchain/../sysroot/usr/lib/$target_host/libpthread.a
+        $AR cr $toolchain/../sysroot/usr/lib/$target_host/librt.a
+        [ "$arch" == "armeabi-v7a" ] && export target_host=armv7a-linux-androideabi
+        LDFLAGS="$LDFLAGS -static-libstdc++"
+        flags="ARIA2_STATIC=yes $flags"
+      fi
+      ./configure CFLAGS="$CFLAGS -g -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" CXXFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS" PKG_CONFIG_LIBDIR="$prefix/lib/pkgconfig" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --without-gnutls \
+        --with-openssl \
+        --with-sqlite3 \
+        --without-libxml2 \
+        --with-libexpat \
+        --with-libcares \
+        --with-libz \
+        --with-libssh2 \
+        --with-ca-bundle='/system/etc/security/ca-certificates.crt'
+      ;;
     "bash")
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
       bash_patches || exit 1
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls \
-      --without-bash-malloc \
-      --enable-largefile \
-      --enable-alias \
-      --enable-history \
-      --enable-readline \
-      --enable-multibyte \
-      --enable-job-control \
-      --enable-array-variables \
-      bash_cv_dev_fd=whacky \
-      bash_cv_getcwd_malloc=yes
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --without-bash-malloc \
+        --enable-largefile \
+        --enable-alias \
+        --enable-history \
+        --enable-readline \
+        --enable-multibyte \
+        --enable-job-control \
+        --enable-array-variables \
+        bash_cv_dev_fd=whacky \
+        bash_cv_getcwd_malloc=yes
       ;;
     "bc")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
@@ -221,11 +272,41 @@ build_bin() {
       $flags--prefix=$prefix || { echored "Configure failed!"; exit 1; }
       sed -i -e '\|./fbc -c|d' -e 's|$(srcdir)/fix-libmath_h|cp -f ../../patches/bc_libmath.h $(srcdir)/libmath.h|' bc/Makefile
       ;;
+    "boringssl")
+      wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz #23
+      tar -xf release-1.10.0.tar.gz
+      cp -rf googletest-release-1.10.0/googletest third_party
+      rm -rf release-1.10.0.tar.gz googletest-release-1.10.0
+      $static && flags="-DCMAKE_EXE_LINKER_FLAGS='-static' "
+      mkdir -p build/$arch
+      cd build/$arch/
+      cmake -DANDROID_ABI=$barch \
+        -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
+        -DANDROID_NATIVE_API_LEVEL=$lapi \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=0 \
+        $flags-GNinja $PWD/../..
+      ninja
+      ;;
+    "brotli")
+      $static && flags="--disable-shared $flags"
+      ./bootstrap
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
+      ;;
     "bzip2")
       sed -i -e '/# To assist in cross-compiling/,/RANLIB=/d' -e "s/LDFLAGS=/LDFLAGS=$LDFLAGS /" -e "s/CFLAGS=/CFLAGS=$CFLAGS /" -e "s|^PREFIX=.*|PREFIX=$prefix|" -e 's/bzip2recover test/bzip2recover/' Makefile
       ;;
+    "c-ares")
+      $static && flags="--disable-shared $flags"
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
+      ;;
     "coreutils")
-      build_bin opensslz
+      build_bin openssl
       build_bin selinux
       cd $dir/$bin
       autoreconf -fi #17
@@ -236,90 +317,138 @@ build_bin() {
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
       sed -i -e '/if (!num && negative)/d' -e "/return minus_zero/d" -e "/DOUBLE minus_zero = -0.0/d" lib/strtod.c #2
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls \
-      --with-openssl=yes \
-      --with-linux-crypto \
-      --enable-no-install-program=stdbuf || { echored "Configure failed!"; exit 1; }
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --with-openssl=yes \
+        --with-linux-crypto \
+        --enable-no-install-program=stdbuf || { echored "Configure failed!"; exit 1; }
       sed -i "1iLDFLAGS += -Wl,--unresolved-symbols=ignore-in-object-files" src/local.mk #5
       ;;
     "cpio")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' gnu/vasnprintf.c #1
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
+      ;;
+    "curl")
+      build_bin c-ares
+      build_bin brotli
+      build_bin zstd
+      build_bin libmetalink
+      build_bin libpsl # Also builds libidn2
+      build_bin nghttp2
+      build_bin libssh2b
+      build_bin quiche
+      $static || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
+      cd $dir/$bin
+      sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
+      sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
+      $static && flags="--disable-shared $flags"
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --enable-optimize \
+        --enable-symbol-hiding \
+        --enable-ares=$prefix \
+        --disable-manual \
+        --enable-threaded-resolver \
+        --enable-alt-svc \
+        --enable-hsts \
+        --with-brotli=$prefix \
+        --with-zstd=$prefix \
+        --with-ssl=$prefix \
+        --with-ca-path=/system/etc/security/cacerts \
+        --with-libmetalink=$prefix \
+        --with-nghttp2=$prefix \
+        --with-libidn2=$prefix \
+        --with-libssh2=$prefix \
+        --with-quiche=$prefix/lib/pkgconfig # Needs pointed to pkgconfig file location
+      [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
+      sed -i -e "s/#define OS .*/#define OS \"Android\"/" -e "s/#define SELECT_TYPE_RETV int/#define SELECT_TYPE_RETV ssize_t/" -e "s|/\* #undef _FILE_OFFSET_BITS \*/|#define _FILE_OFFSET_BITS 64|" lib/curl_config.h
+      $static && flags=" curl_LDFLAGS=-all-static" || flags=""
       ;;
     "diffutils")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
       ;;
     "ed")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      $flags--prefix=$prefix \
-      CC=$GCC CXX=$GXX
+        $flags--prefix=$prefix \
+        CC=$GCC CXX=$GXX
       ;;
     "exa")
       build_bin zlib # libz.so is a dependency
       cd $dir/$bin
-      cargo b --release --target $target_host -j $jobs
+      cargo ndk -t $barch -p $lapi -- build --release -j $jobs
+      # cargo b --release --target $target_host -j $jobs
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
       mkdir -p $prefix/bin
-      cp -f $dir/exa/target/$target_host/release/exa $prefix/bin/exa
+      cp -f $dir/$bin/target/$target_host/release/exa $prefix/bin/exa
     ;;
     "findutils")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=/system \
-      --disable-nls \
-      --sbindir=/system/bin \
-      --libexecdir=/system/bin \
-      --datarootdir=/system/usr/share || { echored "Configure failed!"; exit 1; }
+        --host=$target_host --target=$target_host \
+        $flags--prefix=/system \
+        --disable-nls \
+        --sbindir=/system/bin \
+        --libexecdir=/system/bin \
+        --datarootdir=/system/usr/share || { echored "Configure failed!"; exit 1; }
       $static || sed -i -e "/#ifndef HAVE_ENDGRENT/,/#endif/d" -e "/#ifndef HAVE_ENDPWENT/,/#endif/d" -e "/endpwent/d" -e "/endgrent/d" find/parser.c
       ;;
     "gawk")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
       ;;
     "gdbm")
         build_bin readline # Also builds ncurses which is required for this binary
         cd $dir/$bin
         ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+          --host=$target_host --target=$target_host \
+          $flags--prefix=$prefix \
+          --disable-nls \
+          --enable-libgdbm-compat
+      ;;
+    "gettext")
+      $static && flags="--disable-shared $flags"
+      [ -f "$prefix/include/iconv.h" ] && flags="--with-libiconv-prefix=\$prefix $flags"
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
-        --enable-libgdbm-compat
+        --without-libintl
       ;;
     "grep")
       build_bin pcre
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls \
-      --enable-perl-regexp
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --enable-perl-regexp
       ;;
     "gzip")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' lib/vasnprintf.c #1
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
       ;;
     "htop")
       build_bin ncursesw
       cd $dir/$bin
       ./autogen.sh
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --enable-proc \
-      --enable-unicode \
-      ac_cv_lib_ncursesw6_addnwstr=yes
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --enable-proc \
+        --enable-unicode \
+        ac_cv_lib_ncursesw6_addnwstr=yes
       $static && sed -i "/rdynamic/d" Makefile.am #9
       ;;
     "iftop")
@@ -335,33 +464,109 @@ build_bin() {
       fi
       $static && sed -i "s/cross_compiling=no/cross_compiling=yes/" configure
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --with-libpcap=$prefix \
-      --with-resolver=netdb
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-libpcap=$prefix \
+        --with-resolver=netdb
+      ;;
+    "libexpat")
+      cd expat
+      ./buildconf.sh
+      $static && flags="--disable-shared $flags"
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
+      ;;
+    "libiconv")
+      $static && { [ -f "$prefix/include/gettext-po.h" ] || flags="--disable-shared $flags"; }
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
+      ;;
+    "libidn2")
+      build_bin libunistring
+      [ $lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
+      cd $dir/$bin
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --with-libunistring-prefix=$prefix
       ;;
     "libmagic")
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-xzlib \
-      --disable-bzlib # Use zlib built-in to ndk
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-xzlib \
+        --disable-bzlib # Use zlib built-in to ndk
       sed -i "s|^FILE_COMPILE =.*|FILE_COMPILE = $(which file)|" magic/Makefile # 18
+      ;;
+    "libmetalink")
+      build_bin libexpat
+      cd $dir/$bin
+      ./buildconf
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        --prefix=$prefix
       ;;
     "libnl")
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-pthreads
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-pthreads
       ;;
     "libpcap")
       $alt && build_bin libnl || flags="--without-libnl $flags"
       cd $dir/$bin
       $static && flags="$flags--disable-shared "
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --with-pcap=linux 
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-pcap=linux 
+      ;;
+    "libpsl")
+      build_bin libidn2
+      cd $dir/$bin
+      [ $lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
+      ./autogen.sh
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        --prefix=$prefix \
+        --disable-nls
+      ;;
+    "libssh2")
+      if $alt; then
+        build_bin boringssl
+        cp -f $dir/patches/ssh-boringssl-compat.c $dir/libssh2/src/ssh-boringssl-compat.c #26
+        grep -q 'ssh-boringssl-compat.c' $dir/libssh2/src/openssl.c || sed -i '/#include "libssh2_priv.h"/a#include "ssh-boringssl-compat.c"' $dir/libssh2/src/openssl.c #26
+      else
+        build_bin openssl
+      fi
+      cd $dir/$bin
+      sed -i '/m4_undefine/d' configure.ac #24
+      ./buildconf
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --enable-hidden-symbols \
+        --disable-examples-build \
+        --with-crypto=openssl \
+        --with-libssl-prefix=$prefix
+      ;;
+    "libunistring")
+      if [ $lapi -lt 28 ]; then
+        build_bin libiconv
+        build_bin gettext
+        build_bin libiconv
+        cd $dir/$bin
+        flags="--with-libiconv-prefix=$prefix $flags"
+        CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib"
+      fi
+      $static && flags="--disable-shared $flags"
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
       ;;
     "nano")
       build_bin libmagic
@@ -374,18 +579,18 @@ build_bin() {
       # sed -i "/#include \"nano.h\"/a#define ptsname_r bb_ptsname_r\n//#define ttyname bb_ttyname\n#define ttyname_r bb_ttyname_r" src/proto.h
       $static || flags="ac_cv_header_glob_h=no $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls || { echored "Configure failed!"; exit 1; }
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls || { echored "Configure failed!"; exit 1; }
       sed -i '/#if defined(HAVE_NCURSESW_NCURSES_H)/i#define HAVE_NCURSESW_NCURSES_H' src/definitions.h #10
       ;;
     "ncurses")
       $alt && flags="--enable-widec $flags"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls \
-      --disable-stripping 
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --disable-stripping 
       ;;
     "nethogs")
       build_bin libpcap
@@ -395,74 +600,93 @@ build_bin() {
       sed -i "1aexport PREFIX := $prefix\nexport CFLAGS := $CFLAGS -I$prefix/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$prefix/lib" Makefile
       sed -i "s/decpcap_test test/decpcap_test/g" Makefile # 19
       ;;
+    "nghttp2")
+      $static && flags="--disable-shared $flags"
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --without-systemd \
+        --enable-lib-only
+      ;;
     "openssl")
-      $alt && build_bin zlib
       cd $dir/$bin
       if $static; then
         sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/client.c
         sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/server.c
-        $alt && flags=" no-shared zlib --with-zlib-include=$prefix/include --with-zlib-lib=$prefix/lib $flags" || flags=" no-shared no-zlib $flags"
+        flags=" no-shared $flags"
       else
-        $alt && flags=" shared zlib-dynamic --with-zlib-include=$prefix/include --with-zlib-lib=$prefix/lib $flags" || flags=" shared no-zlib-dynamic $flags"
+        flags=" shared $flags"
       fi
       ./Configure $osarch$flags \
-                  -D__ANDROID_API__=$lapi \
-                  --prefix=$prefix
+        -D__ANDROID_API__=$lapi \
+        --prefix=$prefix
       ;;
     "patch") #22
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
       ;;
     "patchelf")
       ./bootstrap.sh
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
       ;;
     "pcre")
       build_bin bzip2
       build_bin readline # comment out this and the libreadline flag to get rid of the minapi of 26 requirement
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host \
-      $flags--prefix= \
-      --enable-unicode-properties \
-      --enable-jit \
-      --enable-pcre16 \
-      --enable-pcre32 \
-      --enable-pcregrep-libz \
-      --enable-pcregrep-libbz2 \
-      --enable-pcre2test-libreadline
+        --host=$target_host \
+        $flags--prefix= \
+        --enable-unicode-properties \
+        --enable-jit \
+        --enable-pcre16 \
+        --enable-pcre32 \
+        --enable-pcregrep-libz \
+        --enable-pcregrep-libbz2 \
+        --enable-pcre2test-libreadline
       ;;
     "pcre2")
       build_bin bzip2
       build_bin readline # comment out this and the libreadline flag to get rid of the minapi of 26 requirement
       cd $dir/$bin
       ./configure CFLAGS="-O2 -fPIE -fPIC -I$prefix/include" LDFLAGS="-O2 -s -L$prefix/lib" \
-      --host=$target_host \
-      $flags--prefix= \
-      --enable-fuzz-support \
-      --enable-jit \
-      --enable-pcre2grep-libz \
-      --enable-pcre2grep-libbz2 \
-      --enable-pcre2test-libreadline
+        --host=$target_host \
+        $flags--prefix= \
+        --enable-fuzz-support \
+        --enable-jit \
+        --enable-pcre2grep-libz \
+        --enable-pcre2grep-libbz2 \
+        --enable-pcre2test-libreadline
+      ;;
+    "quiche")
+      cargo ndk -t $barch -p $lapi -- build --release --features ffi,pkg-config-meta,qlog
+      # cargo build --release --target $target_host -j $jobs --features ffi,pkg-config-meta,qlog
+      [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+      mkdir -p $prefix/lib/pkgconfig
+      cp -rf deps/boringssl/src/include $prefix/
+      cp -f include/quiche.h $prefix/include/quiche.h
+      cp -f $(find target/$target_host/release -name libcrypto.a -o -name libssl.a) target/$target_host/release/libquiche* $prefix/lib/
+      cp -f target/release/quiche.pc $prefix/lib/pkgconfig/quiche.pc
+      sed -i -e "s|=.*/quiche/include|=$prefix/include|" -e "s|=.*/quiche/target/.*|=$prefix/lib|" $prefix/lib/pkgconfig/quiche.pc
       ;;
     "readline")
       build_bin ncurses
       cd $dir/$bin
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --with-curses
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-curses
       ;;
     "sed")
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/cdefs.h; sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
       ;;
     "selinux")
       build_bin pcre2
@@ -478,58 +702,58 @@ build_bin() {
       cd $dir/$bin
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --enable-readline
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --enable-readline
       ;;
     "strace")
       [ "$arch" == "aarch64" ] && flags="ac_cv_prog_CC_FOR_M32=arm-linux-androideabi-clang $flags" #15
       ./bootstrap
       sed -i "/#  define static_assert(/i#  undef static_assert" static_assert.h #16
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --enable-mpers=m32 \
-      st_cv_have_static_assert=no #16
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --enable-mpers=m32 \
+        st_cv_have_static_assert=no #16
       ;;
     "tar")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' gnu/vasnprintf.c #1
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" gnu/cdefs.h #3
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" gnu/stdio.in.h #3
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls 
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls 
       ;;
     "tcpdump")
       $static || build_bin openssl # static will throw errors related to libdl missing
       build_bin libpcap
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
       ;;
     "vim")
       build_bin ncursesw
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      --disable-nls \
-      --with-tlib=ncursesw \
-      --without-x \
-      --with-compiledby=Zackptg5 \
-      --enable-gui=no \
-      --enable-multibyte \
-      --enable-terminal \
-      ac_cv_sizeof_int=4 \
-      vim_cv_getcwd_broken=no \
-      vim_cv_memmove_handles_overlap=yes \
-      vim_cv_stat_ignores_slash=yes \
-      vim_cv_tgetent=zero \
-      vim_cv_terminfo=yes \
-      vim_cv_toupper_broken=no \
-      vim_cv_tty_group=world
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --with-tlib=ncursesw \
+        --without-x \
+        --with-compiledby=Zackptg5 \
+        --enable-gui=no \
+        --enable-multibyte \
+        --enable-terminal \
+        ac_cv_sizeof_int=4 \
+        vim_cv_getcwd_broken=no \
+        vim_cv_memmove_handles_overlap=yes \
+        vim_cv_stat_ignores_slash=yes \
+        vim_cv_tgetent=zero \
+        vim_cv_terminfo=yes \
+        vim_cv_toupper_broken=no \
+        vim_cv_tty_group=world
       ;;
     "wavemon")
       build_bin ncursesw
@@ -544,9 +768,9 @@ build_bin() {
       patch_file $dir/patches/wavemon.patch #6
       sed -i -e 's/uninstall //' -e 's/@LIBS@ @LIBNL3_LIBS@/@LIBNL3_LIBS@ @LIBS@/' Makefile.in #14, Prevent output from getting deleted with distclean
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" CPPFLAGS="$CFLAGS -I$prefix/include" \
-      --host=$target_host --target=$target_host \
-      $flags--prefix=$prefix \
-      ac_cv_lib_pthread_pthread_create=yes #13
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        ac_cv_lib_pthread_pthread_create=yes #13
       ;;
     "zlib")
       $static && flags="--static " || flags=""
@@ -562,29 +786,29 @@ build_bin() {
       sed -i -e "/trap 'save=0'/azdmsg=$zd\nmkdir -p $zd" -e "/# Substitute an initial/,/# Don't run if we can't write to \$zd./d" Functions/Newuser/zsh-newuser-install
       $static && flags="--disable-dynamic --disable-dynamic-nss $flags"
       ./configure \
-      --host=$target_host --target=$target_host \
-      --enable-cflags="$CFLAGS -I$prefix/include" \
-      --enable-ldflags="$LDFLAGS -L$prefix/lib" \
-      $flags--prefix=/system \
-      --bindir=/system/bin \
-      --datarootdir=/system/usr/share \
-      --disable-restricted-r \
-      --disable-runhelpdir \
-      --enable-zshenv=/system/etc/zsh/zshenv \
-      --enable-zprofile=/system/etc/zsh/zprofile \
-      --enable-zlogin=/system/etc/zsh/zlogin \
-      --enable-zlogout=/system/etc/zsh/zlogout \
-      --enable-multibyte \
-      --enable-pcre \
-      --enable-site-fndir=/system/usr/share/zsh/functions \
-      --enable-fndir=/system/usr/share/zsh/functions \
-      --enable-function-subdirs \
-      --enable-scriptdir=/system/usr/share/zsh/scripts \
-      --enable-site-scriptdir=/system/usr/share/zsh/scripts \
-      --enable-etcdir=/system/etc \
-      --libexecdir=/system/bin \
-      --sbindir=/system/bin \
-      --sysconfdir=/system/etc
+        --host=$target_host --target=$target_host \
+        --enable-cflags="$CFLAGS -I$prefix/include" \
+        --enable-ldflags="$LDFLAGS -L$prefix/lib" \
+        $flags--prefix=/system \
+        --bindir=/system/bin \
+        --datarootdir=/system/usr/share \
+        --disable-restricted-r \
+        --disable-runhelpdir \
+        --enable-zshenv=/system/etc/zsh/zshenv \
+        --enable-zprofile=/system/etc/zsh/zprofile \
+        --enable-zlogin=/system/etc/zsh/zlogin \
+        --enable-zlogout=/system/etc/zsh/zlogout \
+        --enable-multibyte \
+        --enable-pcre \
+        --enable-site-fndir=/system/usr/share/zsh/functions \
+        --enable-fndir=/system/usr/share/zsh/functions \
+        --enable-function-subdirs \
+        --enable-scriptdir=/system/usr/share/zsh/scripts \
+        --enable-site-scriptdir=/system/usr/share/zsh/scripts \
+        --enable-etcdir=/system/etc \
+        --libexecdir=/system/bin \
+        --sbindir=/system/bin \
+        --sysconfdir=/system/etc
       ;;
     "zstd")
       $static && [ ! "$(grep '#Zackptg5' programs/Makefile)" ] && { sed -i "s/CFLAGS   +=/CFLAGS   += -static/" programs/Makefile; echo "#Zackptg5" >> programs/Makefile; }
@@ -593,9 +817,19 @@ build_bin() {
   esac
   [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
 
-  if [ "$bin" != "exa" ]; then
+  if [ "$bin" != "exa" ] && [ "$bin" != "quiche" ]; then
     case "$bin" in
-      "findutils") make install -j$JOBS DESTDIR=$prefix
+      "boringssl") mkdir lib
+                   cp -f ssl/libssl.a crypto/libcrypto.a decrepit/libdecrepit.a lib/
+                   cp -rf $PWD/../../include .
+                   mkdir -p $prefix
+                   cp -rf $PWD/../$arch/include $PWD/../$arch/lib $prefix/
+                   ;;
+      "curl") make$flags install -j$jobs
+              [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+              make clean
+              ;;
+      "findutils") make install -j$jobs DESTDIR=$prefix
                     [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                     sed -i -e "s|/usr/bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh|' $prefix/bin/updatedb
                     mv -f $prefix/system/* $prefix
@@ -604,7 +838,7 @@ build_bin() {
       "libnl") make install # Using multiple cores causes weird font glitch in terminal
                [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                ;;
-      "nano") make install -j$JOBS
+      "nano") make install -j$jobs
               [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
               rm -rf $prefix/share/nano; mkdir $prefix/usr; mv -f $prefix/share $prefix/usr/share
               git clone https://github.com/scopatz/nanorc $prefix/usr/share/nano
@@ -636,10 +870,12 @@ build_bin() {
          [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
          ;;
     esac
-    make distclean 2>/dev/null
-    [ $? -ne 0 ] && make clean 2>/dev/null
-    if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == "https://android.googlesource.com/" ]]; then
-      git reset --hard 2>/dev/null
+    if [ "$bin" != "curl" ]; then
+      grep -a '^distclean:' Makefile 2>/dev/null && make distclean || make clean
+    fi
+    if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
+      # git reset --hard 2>/dev/null
+      git clean -df 2>/dev/null
     fi
   fi
   $STRIP $prefix/*bin/* 2>/dev/null
@@ -698,6 +934,7 @@ if [ -d ~/.cargo ]; then
   sed -i "s|<toolchain>|$toolchain|g" ~/.cargo/config 2>/dev/null
 fi
 
+[ "$bin" == "libiconv" ] && bin="libiconv gettext libiconv" # Rebuild libiconv with gettext
 for lbin in $bin; do
   for larch in $arch; do
     first=true
