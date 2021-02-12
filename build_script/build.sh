@@ -862,8 +862,8 @@ build_bin() {
     fi
   fi
   if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
-    git reset --hard 2>/dev/null
     git clean -dxf 2>/dev/null
+    git reset --hard 2>/dev/null
   fi
   $STRIP $prefix/*bin/* 2>/dev/null
   echogreen "$bin built sucessfully and can be found at: $prefix"
