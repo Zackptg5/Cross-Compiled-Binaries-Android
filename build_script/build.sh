@@ -26,7 +26,8 @@
 # 23) googletest dependency is not present in the aosp source version
 # 24) Remove no longer supported macro (needed for newer version of autoconf)
 # 25) Pthread inside ndk's libc rather than separate, create empty one to skirt around errors - https://stackoverflow.com/questions/57289494/ndk-r20-ld-ld-error-cannot-find-lpthread
-# 26) Add missing functions (present in openssl but not in boringssl) - modified from original source: https://github.com/egorovandreyrm/libssh_android_build_scripts
+# 26) Add support for boringssl AES-CTR (see here: https://fuchsia-review.googlesource.com/c/third_party/libssh2/+/23460/1/src/openssl.c#417) and add missing functions (present in openssl but not in boringssl) - modified from original source: https://github.com/egorovandreyrm/libssh_android_build_scripts
+# 27) Quiche needs libdl and libmath libs specified and the configure arg pointed to the pkgconfig file location
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -37,7 +38,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, gettext, grep, gzip, htop, iftop, libexpat, libidn2, libiconv, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2b, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2b, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
   echo "           Libssh2b = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
   echo "           Ex: bin=cpio,gzip,tar"
@@ -96,8 +97,8 @@ build_bin() {
   case $arch in
     arm64|aarch64) arch=aarch64; target_host=aarch64-linux-android; osarch=android-arm64; barch=arm64-v8a;;
     arm) arch=arm; target_host=arm-linux-androideabi; osarch=android-arm; barch=armeabi-v7a;;
-    x64|x86_64) arch=x86_64; target_host=x86_64-linux-android; osarch=android-x86_64; barch=x86;;
-    x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; barch=x86_64; flags="TIME_T_32_BIT_OK=yes ";;
+    x64|x86_64) arch=x86_64; target_host=x86_64-linux-android; osarch=android-x86_64; barch=x86_64;;
+    x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; barch=x86; flags="TIME_T_32_BIT_OK=yes ";;
     *) echored "Invalid arch: $arch!"; exit 1;;
   esac
   export AR=$target_host-ar
@@ -120,28 +121,26 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl") ver="curl-7_75_0"; url="https://github.com/curl/curl"; $static || [ $lapi -ge 23 ] || lapi=23;;
+    "curl") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -ge 28 ] || lapi=28;; # minapi is 23 if you compile your own libiconv and link libunistring, libidn2, libpsl, and curl to it
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.9.0"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.19" url="gnu";;
-    "gettext") ext=gz; ver="0.21"; url="gnu";;
     "grep") ext=xz; ver="3.6"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.10"; url="gnu";;
     "htop") ver="3.0.5"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "libexpat") ver="R_2_2_10"; url="https://github.com/libexpat/libexpat";;
-    "libiconv") ext=gz; ver="1.16"; url="gnu";;
-    "libidn2") ext=gz; ver="2.3.0"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext";;
+    "libidn2") ext=gz; ver="2.3.0"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; [ $lapi -ge 28 ] || lapi=28;;
     "libmagic") ext=gz; ver="5.39"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libmetalink") ver="release-0.1.3"; url="https://github.com/metalink-dev/libmetalink";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
-    "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl";;
+    "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -ge 28 ] || lapi=28;;
     "libssh2"|"libssh2b") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2b" ] && { bin=libssh2; alt=true; };;
-    "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
+    "libunistring") ext=gz; ver="0.9.10"; url="gnu"; [ $lapi -ge 28 ] || lapi=28;;
     "nano") ext=xz; ver="5.5"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
@@ -273,6 +272,7 @@ build_bin() {
       sed -i -e '\|./fbc -c|d' -e 's|$(srcdir)/fix-libmath_h|cp -f ../../patches/bc_libmath.h $(srcdir)/libmath.h|' bc/Makefile
       ;;
     "boringssl")
+      cd src
       wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz #23
       tar -xf release-1.10.0.tar.gz
       cp -rf googletest-release-1.10.0/googletest third_party
@@ -347,7 +347,7 @@ build_bin() {
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
       $static && flags="--disable-shared $flags"
       autoreconf -fi
-      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
+      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" LIBS="-lidn2 -lunistring -ldl -lm" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --enable-optimize \
@@ -365,7 +365,7 @@ build_bin() {
         --with-nghttp2=$prefix \
         --with-libidn2=$prefix \
         --with-libssh2=$prefix \
-        --with-quiche=$prefix/lib/pkgconfig # Needs pointed to pkgconfig file location
+        --with-quiche=$prefix/lib/pkgconfig #27
       [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
       sed -i -e "s/#define OS .*/#define OS \"Android\"/" -e "s/#define SELECT_TYPE_RETV int/#define SELECT_TYPE_RETV ssize_t/" -e "s|/\* #undef _FILE_OFFSET_BITS \*/|#define _FILE_OFFSET_BITS 64|" lib/curl_config.h
       $static && flags=" curl_LDFLAGS=-all-static" || flags=""
@@ -384,6 +384,7 @@ build_bin() {
     "exa")
       build_bin zlib # libz.so is a dependency
       cd $dir/$bin
+      [ "$target_host" == "arm-linux-androideabi" ] && local target_host="armv7-linux-androideabi"
       cargo ndk -t $barch -p $lapi -- build --release -j $jobs
       # cargo b --release --target $target_host -j $jobs
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
@@ -414,15 +415,6 @@ build_bin() {
           $flags--prefix=$prefix \
           --disable-nls \
           --enable-libgdbm-compat
-      ;;
-    "gettext")
-      $static && flags="--disable-shared $flags"
-      [ -f "$prefix/include/iconv.h" ] && flags="--with-libiconv-prefix=\$prefix $flags"
-      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-        --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix \
-        --disable-nls \
-        --without-libintl
       ;;
     "grep")
       build_bin pcre
@@ -477,16 +469,8 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
       ;;
-    "libiconv")
-      $static && { [ -f "$prefix/include/gettext-po.h" ] || flags="--disable-shared $flags"; }
-      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-        --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix \
-        --disable-nls
-      ;;
     "libidn2")
       build_bin libunistring
-      [ $lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
         --host=$target_host --target=$target_host \
@@ -528,7 +512,6 @@ build_bin() {
     "libpsl")
       build_bin libidn2
       cd $dir/$bin
-      [ $lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
       ./autogen.sh
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
         --host=$target_host --target=$target_host \
@@ -539,11 +522,11 @@ build_bin() {
       if $alt; then
         build_bin boringssl
         cp -f $dir/patches/ssh-boringssl-compat.c $dir/libssh2/src/ssh-boringssl-compat.c #26
-        grep -q 'ssh-boringssl-compat.c' $dir/libssh2/src/openssl.c || sed -i '/#include "libssh2_priv.h"/a#include "ssh-boringssl-compat.c"' $dir/libssh2/src/openssl.c #26
       else
         build_bin openssl
       fi
       cd $dir/$bin
+      patch_file $dir/patches/$bin.patch #26
       sed -i '/m4_undefine/d' configure.ac #24
       ./buildconf
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
@@ -555,14 +538,6 @@ build_bin() {
         --with-libssl-prefix=$prefix
       ;;
     "libunistring")
-      if [ $lapi -lt 28 ]; then
-        build_bin libiconv
-        build_bin gettext
-        build_bin libiconv
-        cd $dir/$bin
-        flags="--with-libiconv-prefix=$prefix $flags"
-        CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib"
-      fi
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
@@ -662,6 +637,7 @@ build_bin() {
         --enable-pcre2test-libreadline
       ;;
     "quiche")
+      [ "$target_host" == "arm-linux-androideabi" ] && local target_host="armv7-linux-androideabi"
       cargo ndk -t $barch -p $lapi -- build --release --features ffi,pkg-config-meta,qlog
       # cargo build --release --target $target_host -j $jobs --features ffi,pkg-config-meta,qlog
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
@@ -819,11 +795,9 @@ build_bin() {
 
   if [ "$bin" != "exa" ] && [ "$bin" != "quiche" ]; then
     case "$bin" in
-      "boringssl") mkdir lib
-                   cp -f ssl/libssl.a crypto/libcrypto.a decrepit/libdecrepit.a lib/
-                   cp -rf $PWD/../../include .
-                   mkdir -p $prefix
-                   cp -rf $PWD/../$arch/include $PWD/../$arch/lib $prefix/
+      "boringssl") mkdir -p $prefix/lib
+                   cp -f ssl/libssl.a crypto/libcrypto.a decrepit/libdecrepit.a $prefix/lib/
+                   cp -rf $PWD/../../include $prefix/
                    ;;
       "curl") make$flags install -j$jobs
               [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
@@ -873,10 +847,10 @@ build_bin() {
     if [ "$bin" != "curl" ]; then
       grep -a '^distclean:' Makefile 2>/dev/null && make distclean || make clean
     fi
-    if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
-      # git reset --hard 2>/dev/null
-      git clean -df 2>/dev/null
-    fi
+  fi
+  if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
+    git reset --hard 2>/dev/null
+    git clean -dxf 2>/dev/null
   fi
   $STRIP $prefix/*bin/* 2>/dev/null
   echogreen "$bin built sucessfully and can be found at: $prefix"
@@ -934,7 +908,6 @@ if [ -d ~/.cargo ]; then
   sed -i "s|<toolchain>|$toolchain|g" ~/.cargo/config 2>/dev/null
 fi
 
-[ "$bin" == "libiconv" ] && bin="libiconv gettext libiconv" # Rebuild libiconv with gettext
 for lbin in $bin; do
   for larch in $arch; do
     first=true

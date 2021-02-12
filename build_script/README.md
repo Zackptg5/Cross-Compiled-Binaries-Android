@@ -15,7 +15,7 @@ bash setup/arch-manjaro.sh
 cd ..
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
-rustup target add aarch64-linux-android arm-linux-androideabi i686-linux-android x86_64-linux-android
+rustup target add aarch64-linux-android armv7-linux-androideabi arm-linux-androideabi i686-linux-android x86_64-linux-android
 cargo install cargo-ndk
 ```
 
@@ -48,13 +48,11 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **findutils**    | Yes       | Also includes find, locate, updatedb, xargs |
 | **gawk**         | Yes       | GNU awk |
 | **gdbm**         | Yes       | |
-| **gettext**      | Yes       | |
 | **grep**         | Yes       | Also includes egrep and fgrep, has full perl regex support |
 | **gzip**         | Yes       | Also includes gunzip and gzexe |
 | **htop**         | Yes       | |
 | **iftop**        | *Dynamic* | |
 | **libexpat**     | Yes       | |
-| **libiconv**     | Yes       | |
 | **libidn2**      | Yes       | |
 | **libmagic**     | Yes       | |
 | **libmetalink**  | Yes       | |

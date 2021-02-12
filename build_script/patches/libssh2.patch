@@ -1,0 +1,25 @@
+--- src/openssl.c.orig	2021-02-12 00:48:24.274433200 -0500
++++ src/openssl.c	2021-02-12 00:46:19.836645000 -0500
+@@ -39,6 +39,9 @@
+  */
+ 
+ #include "libssh2_priv.h"
++#ifdef OPENSSL_IS_BORINGSSL
++    #include "ssh-boringssl-compat.c"
++#endif
+ 
+ #ifdef LIBSSH2_OPENSSL /* compile only if we build with openssl */
+ 
+@@ -578,7 +581,11 @@
+     (*aes_ctr_cipher)->key_len = keylen;
+     (*aes_ctr_cipher)->iv_len = 16;
+     (*aes_ctr_cipher)->init = aes_ctr_init;
+-    (*aes_ctr_cipher)->do_cipher = aes_ctr_do_cipher;
++    #ifdef OPENSSL_IS_BORINGSSL
++        (*aes_ctr_cipher)->cipher = aes_ctr_do_cipher;
++    #else
++        (*aes_ctr_cipher)->do_cipher = aes_ctr_do_cipher;
++    #endif
+     (*aes_ctr_cipher)->cleanup = aes_ctr_cleanup;
+ #endif
+ 
