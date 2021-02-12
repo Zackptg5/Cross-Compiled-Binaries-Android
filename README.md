@@ -2,7 +2,7 @@
 This repo contains a variety of binaries cross compiled for android with Android NDK. All are static linked unless in a dynamic folder. Feel free to use them for whatever. Also contains some files for ccbins mod
 
 ## Binaries Build Script
-You can find the build script for these in the [build_scripts folder](build_script). You can find the build script repos for [Aria2 and Curl here](https://github.com/Zackptg5/Curl-and-Aria2-For-Android).
+You can find the build script for these in the [build_scripts folder](build_script).
 
 ## Currently includes:
 * Aria2 (v1.35.0) - dynamic has most features and works without need for root
