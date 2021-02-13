@@ -1,3 +1,7 @@
+21 - 2.13.20201
+* Added check for required binaries
+* Fix for connection issues when running wireguard
+
 20 - 1.28.20
 * Added ability for different minapi dynamic binaries
 

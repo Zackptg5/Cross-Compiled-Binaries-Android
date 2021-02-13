@@ -28,6 +28,7 @@
 # 25) Pthread inside ndk's libc rather than separate, create empty one to skirt around errors - https://stackoverflow.com/questions/57289494/ndk-r20-ld-ld-error-cannot-find-lpthread
 # 26) Add support for boringssl AES-CTR (see here: https://fuchsia-review.googlesource.com/c/third_party/libssh2/+/23460/1/src/openssl.c#417) and add missing functions (present in openssl but not in boringssl) - modified from original source: https://github.com/egorovandreyrm/libssh_android_build_scripts
 # 27) Quiche needs libdl and libmath libs specified and the configure arg pointed to the pkgconfig file location
+# 28) Openssl needs libdl during static compiles
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -713,12 +714,12 @@ build_bin() {
         --disable-nls 
       ;;
     "tcpdump")
-      $static || build_bin openssl # static will throw errors related to libdl missing
+      build_bin openssl 
       build_bin libpcap
       cd $dir/$bin
-      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" LIBS="-ldl" \
         --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix
+        $flags--prefix=$prefix #28
       ;;
     "vim")
       build_bin ncursesw

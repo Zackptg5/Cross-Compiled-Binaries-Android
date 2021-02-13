@@ -1,5 +1,3 @@
-Aria2- (v1.35.0) aria2c lib-$ARCH
 Exa-24 (v0.9.0) exa lib-$ARCH
 Iftop-28 (v1.0.4) iftop lib-$ARCH
 Sqlite3- (v3.34.1) sqlite3 lib-$ARCH
-Tcpdump- (v4.99.0) tcpdump lib-$ARCH

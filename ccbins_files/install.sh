@@ -1,4 +1,4 @@
-filever=8
+filever=9
 # Keep current mod settings
 if [ -f $NVBASE/modules/$MODID/system/bin/ccbins ]; then
   ui_print "- Using current ccbin files/settings"
@@ -54,4 +54,4 @@ else
 fi
 
 # Cleanup
-rm -f $MODPATH/busybox-* $MODPATH/curl-* $MODPATH/functions.sh $MODPATH/install.sh
+rm -f $MODPATH/busybox-* $MODPATH/curl-* $MODPATH/wg-quick-* $MODPATH/wg-arm $MODPATH/wg-x86 $MODPATH/functions.sh $MODPATH/install.sh $MODPATH/customize.sh $MODPATH/README.md
