@@ -1,7 +1,7 @@
 # This script will be executed in late_start service mode
 # More info in the main Magisk thread
 MODPATH=${0%/*}
-filever=4
+filever=5
 (
 until [ "$(getprop sys.boot_completed)" == "1" ] && [ -d /storage/emulated/0/Android ]; do
   sleep 1
@@ -17,7 +17,7 @@ if ! grep -q 'alias curl=' /storage/emulated/0/.aliases 2>/dev/null || ! grep -q
   done
   dnsrvs="$(echo "$dnsrvs" | sed 's/^,//')"
   grep -q 'alias curl=' /storage/emulated/0/.aliases 2>/dev/null || echo "alias curl='curl --dns-servers $dnsrvs \"\$@\"'" >> /storage/emulated/0/.aliases
-  grep -q 'alias aria2c=' /storage/emulated/0/.aliases 2>/dev/null || echo "alias aria2c='aria2c --async-dns-servers=$dnsrvs \"\$@\"'" >> /storage/emulated/0/.aliases
+  grep -q 'alias aria2c=' /storage/emulated/0/.aliases 2>/dev/null || echo "alias aria2c='aria2c --async-dns-server=$dnsrvs \"\$@\"'" >> /storage/emulated/0/.aliases
 fi
 if [ -f $MODPATH/system/etc/zsh/.zshrc ] && [ ! -f /storage/emulated/0/.zsh/.zshrc ]; then
   mkdir -p /storage/emulated/0/.zsh 2>/dev/null
