@@ -222,6 +222,7 @@ build_bin() {
       build_bin c-ares
       build_bin libssh2 # Also builds openssl
       build_bin sqlite
+      $static || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
       cd $dir/$bin
       autoreconf -fi
       if $static; then #25
