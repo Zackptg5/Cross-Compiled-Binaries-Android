@@ -39,8 +39,9 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2b, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
-  echo "           Libssh2b = libssh2 with boringssl rather than openssl"
+  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, curl-alt, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echo "           aria2-alt and curl-alt = only applies for dynamic link - all non-android libs are statically linked to make it much more portable"
+  echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
   echo "           Ex: bin=cpio,gzip,tar"
   echogreen "arch=     (Default: all) (all, arm, arm64, x86, x64)"
@@ -113,7 +114,7 @@ build_bin() {
   export GXX=$target_host-g++
 
   case $bin in
-    "aria2") ver="release-1.35.0"; url="https://github.com/aria2/aria2";;
+    "aria2"|"aria2-alt") ver="release-1.35.0"; url="https://github.com/aria2/aria2"; [ "$bin" == "aria2-alt" ] && { bin=aria2; alt=true; }; if $static || $alt; then [ $lapi -lt 26 ] && lapi=26; fi;;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
@@ -122,7 +123,7 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -ge 28 ] || lapi=28;; # minapi is 23 if you compile your own libiconv and link libunistring, libidn2, libpsl, and curl to it
+    "curl"|"curl-alt") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -ge 28 ] || lapi=28; [ "$bin" == "curl-alt" ] && { bin=curl; alt=true; };; # minapi is 23 if you compile your own libiconv and link libunistring, libidn2, libpsl, and curl to it
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.9.0"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -140,7 +141,7 @@ build_bin() {
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -ge 28 ] || lapi=28;;
-    "libssh2"|"libssh2b") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2b" ] && { bin=libssh2; alt=true; };;
+    "libssh2"|"libssh2-alt") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="0.9.10"; url="gnu"; [ $lapi -ge 28 ] || lapi=28;;
     "nano") ext=xz; ver="5.5"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
@@ -155,7 +156,7 @@ build_bin() {
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="20200710"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3340100"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext";;
+    "sqlite") ext=gz; ver="3340100"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "strace") ver="v5.10"; url="https://github.com/strace/strace";; # Note that the hacks for this aren't needed with versions <= 5.5
     "tar") ext=xz; ver="1.33"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
     "tcpdump") ver="tcpdump-4.99.0"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
@@ -219,22 +220,29 @@ build_bin() {
   echogreen "Compiling $bin version $ver for $arch api $lapi"
   case $bin in
     "aria2")
+      $static && local origstatic=true || { local origstatic=false; $alt && static=true; }
       build_bin libexpat
-      build_bin c-ares
       build_bin libssh2 # Also builds openssl
       build_bin sqlite
-      $static || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
+      $origstatic && build_bin c-ares || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
       cd $dir/$bin
-      autoreconf -fi
+      static=$origstatic
       if $static; then #25
         [ "$arch" == "armeabi-v7a" ] && export target_host=arm-linux-androideabi
         $AR cr $toolchain/../sysroot/usr/lib/$target_host/libpthread.a
         $AR cr $toolchain/../sysroot/usr/lib/$target_host/librt.a
         [ "$arch" == "armeabi-v7a" ] && export target_host=armv7a-linux-androideabi
+        flags="--with-libcares ARIA2_STATIC=yes $flags"
+      else
+        flags="--without-libcares $flags"
         LDFLAGS="$LDFLAGS -static-libstdc++"
-        flags="ARIA2_STATIC=yes $flags"
+        if $alt; then
+          flags="--disable-shared $flags"
+          rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
+        fi
       fi
-      ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS -g -I$prefix/include -DANDROID" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS -g -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
@@ -243,7 +251,6 @@ build_bin() {
         --with-sqlite3 \
         --without-libxml2 \
         --with-libexpat \
-        --with-libcares \
         --with-libz \
         --with-libssh2 \
         --with-ca-bundle='/system/etc/security/ca-certificates.crt'
@@ -345,33 +352,35 @@ build_bin() {
         --disable-nls
       ;;
     "curl")
-      build_bin c-ares
+      $static && local origstatic=true || { local origstatic=false; $alt && static=true; }
       build_bin brotli
       build_bin zstd
       build_bin libmetalink
       build_bin libpsl # Also builds libidn2
       build_bin nghttp2
-      build_bin libssh2b
+      build_bin libssh2-alt # Also builds boringssl
       build_bin quiche
-      $static || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
+      $origstatic && build_bin c-ares || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
       cd $dir/$bin
+      static=$origstatic
+      LIBS="-lidn2 -lunistring -ldl -lm" #27
+      if $static || $alt; then flags="--disable-shared $flags"; fi
+      $static && flags="--enable-ares=$prefix $flags" || { $alt && rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]* || LDFLAGS="$LDFLAGS -Wl,-rpath=$prefix/lib"; }
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
-      $static && flags="--disable-shared $flags"
       autoreconf -fi
-      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include -DANDROID" LDFLAGS="$LDFLAGS -L$prefix/lib" LIBS="-lidn2 -lunistring -ldl -lm" \
+      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include -DANDROID" LDFLAGS="$LDFLAGS -L$prefix/lib" LIBS="$LIBS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --enable-optimize \
         --enable-symbol-hiding \
-        --enable-ares=$prefix \
         --disable-manual \
         --enable-threaded-resolver \
         --enable-alt-svc \
         --enable-hsts \
+        --with-ssl=$prefix \
         --with-brotli=$prefix \
         --with-zstd=$prefix \
-        --with-ssl=$prefix \
         --with-ca-path=/system/etc/security/cacerts \
         --with-libmetalink=$prefix \
         --with-nghttp2=$prefix \
@@ -654,9 +663,10 @@ build_bin() {
       # cargo build --release --target $target_host -j $jobs --features ffi,pkg-config-meta,qlog
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
       mkdir -p $prefix/lib/pkgconfig
-      cp -rf deps/boringssl/src/include $prefix/
+      # cp -rf deps/boringssl/src/include $prefix/
       cp -f include/quiche.h $prefix/include/quiche.h
-      cp -f $(find target/$target_host/release -name libcrypto.a -o -name libssl.a) target/$target_host/release/libquiche* $prefix/lib/
+      # cp -f $(find target/$target_host/release -name libcrypto.a -o -name libssl.a) target/$target_host/release/libquiche* $prefix/lib/
+      cp -f target/$target_host/release/libquiche* $prefix/lib/
       cp -f target/release/quiche.pc $prefix/lib/pkgconfig/quiche.pc
       sed -i -e "s|=.*/quiche/include|=$prefix/include|" -e "s|=.*/quiche/target/.*|=$prefix/lib|" $prefix/lib/pkgconfig/quiche.pc
       ;;

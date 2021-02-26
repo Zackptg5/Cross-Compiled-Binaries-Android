@@ -8,3 +8,12 @@ else
   done
 fi
 echo "etc/security/ca-certificates.crt" >> $MODDIR/.$ibinary
+# dns server fix
+sed -i '/^alias aria2c=/d' /storage/emulated/0/.aliases
+for i in 'net.dns1' 'net.dns2' 'net.dns3' 'net.dns4'; do
+  j="$(getprop $i | sed 's/%.*//')"
+  [ "$j" ] || continue
+  dnsrvs="$dnsrvs,$j"
+done
+dnsrvs="$(echo "$dnsrvs" | sed 's/^,//')"
+echo "alias aria2c='aria2c --async-dns-server=$dnsrvs \"\$@\"'" >> /storage/emulated/0/.aliases
