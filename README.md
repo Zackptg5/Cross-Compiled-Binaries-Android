@@ -11,7 +11,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Brotli (v1.0.9)
 * Coreutils (v8.32) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12)
-* Curl (v7.75.0) - boringssl support and more - working ssl. To use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v7.75.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
 * Diffutils (v3.7)
 * Ed (v1.17)
 * Exa (v0.9.0) - dynamic only

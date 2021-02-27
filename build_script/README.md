@@ -95,9 +95,10 @@ The below table notes if the binary is compatible with android ndk. If static or
 ### DNS Issues
 * Starting with oreo, new restrictions were placed on the net.dns# props.
   * So aria2, curl, whatever is unable to get the dns server without root
-  * C-ares updated for that with an app permission [see here](https://github.com/c-ares/c-ares/pull/148) but this only works for apps, note binaries and so c-ares will not resolve dns without root
+  * C-ares updated for that with an app permission [see here](https://github.com/c-ares/c-ares/pull/148) but this only works for apps, not binaries and so c-ares will not resolve dns without root
   * Using native android threaded resolver will work fine when dynamic link but not static link
     * Maybe libc related or something? Not due to outdated libc in NDK based on my testing
+      * Libc version on test device (OOS A11 - 11.0.2), NDK r21e (9.0.7), NDK r22 (11.0.4) - didn't work for either ndk static compile so probably not due to being out of date
 * Best workaround currently: curl-alt and aria2-alt options when compiling with this script
   * Static link all non-android dependencies
   * Actual binary is dynamic linked with android binaries (libc, libm, libdl)
