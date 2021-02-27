@@ -20,7 +20,7 @@ cargo install cargo-ndk
 ```
 
 ## Generate Needed crt file for aria2
-* Just copy the [ca-certificate.crt_gen.sh script](build_script/ca-certificate.crt_gen.sh) to your device and run it in terminal as su
+* Just copy the [ca-certificate.crt_gen.sh script](ca-certificate.crt_gen.sh) to your device and run it in terminal as su
 
 ## Build instructions
 
