@@ -87,10 +87,10 @@ The below table notes if the binary is compatible with android ndk. If static or
 
 ## Issues
 * Aria2 and Curl have weird DNS error in Android Q when not run as superuser (static compile only) - see notes on it below
-* Aria2 static linked doesn't resolve url names - you'll have to use the --async-dns flag
 * Sqlite3 static compile still ends up dynamically linked somehow
 * Exa always statically compiles, limitation with rust
 * Pwcat and Grcat (part of gawk) seg fault when ndk is used, compile without it to use them
+* Iftop static compile segfaults
 
 ### DNS Issues
 * Starting with oreo, new restrictions were placed on the net.dns# props.
