@@ -39,7 +39,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, curl-alt, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, curl-alt, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
   echo "           aria2-alt and curl-alt = only applies for dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -123,7 +123,7 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl"|"curl-alt") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -ge 28 ] || lapi=28; [ "$bin" == "curl-alt" ] && { bin=curl; alt=true; };; # minapi is 23 if you compile your own libiconv and link libunistring, libidn2, libpsl, and curl to it
+    "curl"|"curl-alt") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26; [ "$bin" == "curl-alt" ] && { bin=curl; alt=true; };;
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.9.0"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -135,14 +135,15 @@ build_bin() {
     "htop") ver="3.0.5"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "libexpat") ver="R_2_2_10"; url="https://github.com/libexpat/libexpat";;
-    "libidn2") ext=gz; ver="2.3.0"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; [ $lapi -ge 28 ] || lapi=28;;
+    "libiconv") ext=gz; ver="1.16"; url="gnu";;
+    "libidn2") ext=gz; ver="2.3.0"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libmagic") ext=gz; ver="5.39"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libmetalink") ver="release-0.1.3"; url="https://github.com/metalink-dev/libmetalink";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
-    "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -ge 28 ] || lapi=28;;
+    "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
+    "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
-    "libunistring") ext=gz; ver="0.9.10"; url="gnu"; [ $lapi -ge 28 ] || lapi=28;;
+    "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
     "nano") ext=xz; ver="5.5"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
@@ -363,7 +364,7 @@ build_bin() {
       $origstatic && build_bin c-ares || build_bin zlib # zlib.so dependency (but not required to compile - built-in to ndk) - may not be present in rom so we build it here
       cd $dir/$bin
       static=$origstatic
-      LIBS="-lidn2 -lunistring -ldl -lm" #27
+      [ $lapi -lt 28 ] && LIBS="-lidn2 -lunistring -liconv -ldl -lm" || LIBS="-lidn2 -lunistring -ldl -lm" #27
       if $static || $alt; then flags="--disable-shared $flags"; fi
       $static && flags="--enable-ares=$prefix $flags" || { $alt && rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]* || LDFLAGS="$LDFLAGS -Wl,-rpath=$prefix/lib"; }
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
@@ -490,9 +491,16 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
       ;;
+    "libiconv")
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
+      ;;
     "libidn2")
       build_bin libunistring
       cd $dir/$bin
+      [ -$lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -559,10 +567,16 @@ build_bin() {
         --with-libssl-prefix=$prefix
       ;;
     "libunistring")
+      if [ -$lapi -lt 28 ]; then
+        build_bin libiconv
+        cd $dir/$bin
+        flags="--with-libiconv-prefix=$prefix $flags"
+      fi
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix
+        $flags--prefix=$prefix \
+        --disable-nls
       ;;
     "nano")
       build_bin libmagic
