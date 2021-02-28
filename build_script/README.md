@@ -102,7 +102,8 @@ The below table notes if the binary is compatible with android ndk. If static or
 * Best workaround currently: curl-alt and aria2-alt options when compiling with this script
   * Static link all non-android dependencies
   * Actual binary is dynamic linked with android binaries (libc, libm, libdl)
-  * Only limitation is the minimum api of 26 which is fine because api of 26 and newer is where this problem occurs - older roms will be fine with static* Other workaround for static compiles
+  * Only limitation is the minimum api of 26 which is fine because api of 26 and newer is where this problem occurs - older roms will be fine with static
+* Other workaround for static compiles
   * Set alias with dns server arguments set (see the install.sh script in aria2 and curl folders) - need root to get the dns servers
 
 ### Credits 
