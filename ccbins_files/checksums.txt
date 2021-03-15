@@ -203,7 +203,7 @@ c48fb7ae93b2d14744f465ffa15d95d3  keycheck/keycheck-arm
 c3c4899297a8c03b3b5010348c409927  keycheck/keycheck-arm64
 801b406a50eda6ac67d4207362f2f665  keycheck/keycheck-x64
 a16d4cded54cedd5ff9e87addd9a6f12  keycheck/keycheck-x86
-836eded2e6daf1de37eb1afc4303e1bc  etc.zip
+836eded2e6daf1de37eb1afc4303e1bc  nano/etc.zip
 afb1f751bd0d2d6b1f5fe5c3d697be5f  nano/nano-arm
 3d421c8a2c702cbbccef1cf7351b7bb2  nano/nano-arm64
 1d46d38ed1d0741871c1f115d30b0c66  nano/nano-x64

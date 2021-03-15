@@ -41,8 +41,8 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, curl-alt, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
-  echo "           aria2-alt and curl-alt = only applies for dynamic link - all non-android libs are statically linked to make it much more portable"
+  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echo "           For aria, curl, and nmap dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
   echo "           Ex: bin=cpio,gzip,tar"
@@ -116,7 +116,7 @@ build_bin() {
   export GXX=$target_host-g++
 
   case $bin in
-    "aria2"|"aria2-alt") ver="release-1.35.0"; url="https://github.com/aria2/aria2"; [ "$bin" == "aria2-alt" ] && { bin=aria2; alt=true; }; if $static || $alt; then [ $lapi -lt 26 ] && lapi=26; fi;;
+    "aria2") ver="release-1.35.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
@@ -125,8 +125,7 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl"|"curl-alt") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ "$bin" == "curl-alt" ] && { bin=curl; alt=true; }
-                       if ($static || $alt) && [ $lapi -lt 26 ]; then lapi=26; fi;;
+    "curl") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.9.0"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -151,6 +150,7 @@ build_bin() {
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.43.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nmap") ext="tgz"; ver="7.91"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     "openssl") ver="OpenSSL_1_1_1j"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.12"; url="https://github.com/NixOS/patchelf";;
@@ -210,14 +210,15 @@ build_bin() {
   fi
 
   # Set other flags
+  local origstatic=$static
   if $static; then
-    CFLAGS="-static -O2"
-    LDFLAGS="-static"
+    local CFLAGS="-static -O2"
+    local LDFLAGS="-static"
     [ "$prefix" ] || local prefix=$dir/build-static/$bin/$arch
     [ -f $dir/patches/ndk_static_patches/$bin.patch ] && patch_file $dir/patches/ndk_static_patches/$bin.patch
   else
-    CFLAGS='-O2 -fPIE -fPIC'
-    LDFLAGS='-s -pie'
+    local CFLAGS='-O2 -fPIE -fPIC'
+    local LDFLAGS='-s -pie'
     [ "$prefix" ] || local prefix=$dir/build-dynamic/$bin/$arch
   fi
 
@@ -226,7 +227,7 @@ build_bin() {
   echogreen "Compiling $bin version $ver for $arch api $lapi"
   case $bin in
     "aria2")
-      $static && local origstatic=true || { local origstatic=false; $alt && static=true; }
+      static=true
       build_bin libexpat
       build_bin libssh2 # Also builds openssl
       build_bin sqlite
@@ -242,10 +243,8 @@ build_bin() {
       else
         flags="--without-libcares $flags"
         LDFLAGS="$LDFLAGS -static-libstdc++"
-        if $alt; then
-          flags="--disable-shared $flags"
-          rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
-        fi
+        flags="--disable-shared $flags"
+        rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
       fi
       autoreconf -fi
       ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS -g -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
@@ -358,7 +357,7 @@ build_bin() {
         --disable-nls
       ;;
     "curl")
-      $static && local origstatic=true || { local origstatic=false; $alt && static=true; }
+      static=true
       build_bin brotli
       build_bin zstd
       build_bin libmetalink
@@ -370,8 +369,8 @@ build_bin() {
       cd $dir/$bin
       static=$origstatic
       [ $lapi -lt 28 ] && LIBS="-lidn2 -lunistring -liconv -ldl -lm" || LIBS="-lidn2 -lunistring -ldl -lm" #27
-      if $static || $alt; then flags="--disable-shared $flags"; fi
-      $static && flags="--enable-ares=$prefix $flags" || { $alt && rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]* || LDFLAGS="$LDFLAGS -Wl,-rpath=$prefix/lib"; }
+      flags="--disable-shared $flags"
+      $static && flags="--enable-ares=$prefix $flags" || rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
       autoreconf -fi
@@ -602,6 +601,7 @@ build_bin() {
       ;;
     "ncurses")
       $alt && flags="--enable-widec $flags"
+      [ "$(echo $prefix | awk -F/ '{print $(NF-1)}')" == "tmux" ] && flags="--with-termlib $flags"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -618,13 +618,35 @@ build_bin() {
       sed -i "s/decpcap_test test/decpcap_test/g" Makefile # 19
       ;;
     "nghttp2")
-      $static && flags="--disable-shared $flags"
+      $static && flags=" $flags --disable-shared"
       autoreconf -fi
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --without-systemd \
         --enable-lib-only
+      ;;
+    "nmap")
+      static=true
+      build_bin zlib
+      build_bin openssl
+      cd $dir/$bin
+      static=$origstatic
+      flags="--disable-shared $flags"
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS -static-libstdc++" \
+        --host=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --without-ndiff \
+        --without-zenmap \
+        --with-openssl=$prefix \
+        --with-libpcap=included \
+        --with-libpcre=included \
+        --with-libssh2=included \
+        --with-libz=$prefix \
+        --with-libdnet=included \
+        --with-liblua=included \
+        --with-liblinear=included
       ;;
     "openssl")
       cd $dir/$bin
