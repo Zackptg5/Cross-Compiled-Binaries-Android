@@ -12,7 +12,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Bc (v1.07.1)
 * Brotli (v1.0.9)
 * Coreutils (v8.32) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
-* Cpio (v2.12)
+* Cpio (v2.12) - v2.13 is bugged so staying with this version
 * Curl (v7.75.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
@@ -27,24 +27,24 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Iftop (v1.0pre4) - dynamic only
 * Iw (v5.9)
 * Keycheck
-* Nano (v5.5)
+* Nano (v5.6.1)
 * Nethogs (v0.8.6)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
-* Openssl (v1.1.1i)
+* Openssl (v1.1.1j)
 * Patch (v2.7.6)
 * Patchelf (v0.12)
 * Sed (v4.8)
-* Sqlite3 (v3.34.1) - dynamic only
-* Strace (v5.5)
-* Tar (v1.33)
+* Sqlite3 (v3.35) - dynamic only
+* Strace (v5.11)
+* Tar (v1.34)
 * Tcpdump (v4.99.0)
-* Vim (v8.2.2445)
+* Vim (v8.2.2607)
 * Wavemon (v0.9.3) - note that your kernel must have wireless extensions enabled (which most android ones don't). [See here](https://github.com/uoaerg/wavemon#dependencies) [and here](https://github.com/uoaerg/wavemon/blob/master/wavemon.1#L129) for more details
 * Xmlstarlet
 * Xxd (v1.10)
 * Zip (v3.0)
 * Zsh (v5.8.0)
-* Zstd (v1.4.8)
+* Zstd (v1.4.9)
 
 ## Credits
 * [Aria2](https://github.com/aria2/aria2)
