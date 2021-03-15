@@ -218,10 +218,10 @@ e64a42dcd178bca230a32fa882462e64  nethogs/nethogs-arm
 f7e8d295079cd9d8a59518f4e0aa7534  nethogs/nethogs-arm64
 0d9f5ec0e6b035fad000e6e97e0ce7f5  nethogs/nethogs-x64
 6b23c29aabecc7e95fff7e872e61a513  nethogs/nethogs-x86
-3acb092f534f2f604651426bd2b4b5b2  openssl/openssl-arm
-d60ed6238e276246ad59c7dd6c7a3c0d  openssl/openssl-arm64
-6676d2e0954116379b804c64631ed7af  openssl/openssl-x64
-cdda1631be56fdb0fed89e5f867f234d  openssl/openssl-x86
+b1e7ba42f88fde68baa387363223f97d  openssl/openssl-arm
+8667bbbbaa2ecfac0510956b21b3e6d9  openssl/openssl-arm64
+922f0fb2727b7784aff9a39319136131  openssl/openssl-x64
+a68c6686e5967a2960782a9e56779a96  openssl/openssl-x86
 600f0fd861e595716d2ae60b16f86036  patch/patch-arm
 2656831eb4e6d92b59f0a4bfc918e74d  patch/patch-arm64
 b796bb5d9793611ad5d7d68e58302acb  patch/patch-x64
