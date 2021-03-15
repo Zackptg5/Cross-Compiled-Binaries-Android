@@ -631,7 +631,7 @@ build_bin() {
       if $static; then
         sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/client.c
         sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/server.c
-        flags=" no-shared $flags"
+        flags=" -static threads $flags"
       else
         flags=" shared $flags"
       fi
