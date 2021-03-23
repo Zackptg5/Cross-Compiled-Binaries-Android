@@ -29,6 +29,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Keycheck
 * Nano (v5.6.1)
 * Nethogs (v0.8.6)
+* Nmap (v7.91) - dynamic only
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
 * Openssl (v1.1.1j)
 * Patch (v2.7.6)
@@ -51,6 +52,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * [Daniel Stenberg](https://curl.haxx.se)
 * [GNU](https://www.gnu.org/software)
 * [Google](https://github.com/google/brotli)
+* [Gordon Lyon](https://nmap.org)
 * [Htop](https://github.com/hishamhm/htop)
 * [Iftop](https://ex-parrot.com/psdw/iftop)
 * [james34602](https://github.com/james34602)

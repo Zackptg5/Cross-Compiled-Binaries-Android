@@ -2,4 +2,5 @@ Aria2-26 (v1.35.0) aria2c
 Curl-26 (v7.75.0) curl
 Exa-24 (v0.9.0) exa lib-$ARCH
 Iftop-28 (v1.0.4) iftop lib-$ARCH
+Nmap- (v7.91) ncat,nmap,nping usr-$ARCH
 Sqlite3- (v3.35) sqlite3 lib-$ARCH
