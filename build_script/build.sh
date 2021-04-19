@@ -125,10 +125,10 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl") ver="curl-7_75_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_76_1 "; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
-    "exa") ver="v0.9.0"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
+    "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.19" url="gnu";;
@@ -151,7 +151,7 @@ build_bin() {
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.43.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.91"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="OpenSSL_1_1_1j"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="OpenSSL_1_1_1k"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.12"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.44"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
@@ -160,7 +160,7 @@ build_bin() {
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="20200710"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3350000"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "sqlite") ext=gz; ver="3350500"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "strace") ver="v5.11"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
@@ -618,7 +618,7 @@ build_bin() {
       sed -i "s/decpcap_test test/decpcap_test/g" Makefile # 19
       ;;
     "nghttp2")
-      $static && flags=" $flags --disable-shared"
+      $static && flags="--disable-shared $flags"
       autoreconf -fi
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
