@@ -13,10 +13,10 @@ b5660f9bd6a452edabcc8070221f0c66  aria2/aria2c.bin-arm64
 2bd806fbdccc3718bacbf3c247fd5069  aria2/aria2c.bin-x64
 bc9cb475a285118c412c54771666eb62  aria2/aria2c.bin-x86
 99161a625ee08d71962614ba722bc77c  aria2/install.sh
-99009be7514d73375f96f21aa29e288d  bash/bash-arm
-a6d21b32f50f9f90f323c28feb846e64  bash/bash-arm64
-bb7e429b11bad74137d0c9280c6de1d4  bash/bash-x64
-b85635c05bbe2237ede923dee060c2bd  bash/bash-x86
+97ade297531adb8a53ebc3571f98d2e1  bash/bash-arm
+ae4db412fe20ed97302dabe5bc1fea2b  bash/bash-arm64
+a0e7a41f12062a108195e021ee7bcc03  bash/bash-x64
+21202ec9ab3150107f296b8a997ce1d4  bash/bash-x86
 0605818f6fcca02e72c7c6eb2347e418  bash/etc.zip
 8bbc85b02f58d017130877786ccb3915  bc/bc-arm
 3a6d957c7b58574e8093290c8d07f270  bc/bc-arm64
@@ -33,7 +33,7 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 cd9d9f25b42aabf3c09f8b93417b9fa0  ccbins_files/ccbins
 1474461ae318b466f48a3763bd8645fa  ccbins_files/changelog.txt
 d316f7b4298a6a6f129fe788d1e3fe69  ccbins_files/includes-dynamic.txt
-65aa8b7a74ccaac3bf209e1f1db6457d  ccbins_files/includes.txt
+765aad1e76a64c19b58cc4f0a26569fa  ccbins_files/includes.txt
 945dfa2f5474b700311f202d7df64695  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 6cb88e4e4fcb47ec16e6aa8ae10071e2  ccbins_files/module.prop

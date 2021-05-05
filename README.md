@@ -8,7 +8,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Aria2 (v1.35.0) - to use static linked without root, use `--async-dns --async-dns-server=<yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
-* Bash (v5.1.4)
+* Bash (v5.1.8)
 * Bc (v1.07.1)
 * Brotli (v1.0.9)
 * Coreutils (v8.32) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
