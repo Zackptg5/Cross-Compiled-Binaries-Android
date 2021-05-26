@@ -31,6 +31,7 @@
 # 28) Openssl needs libdl during static compiles
 # 29) Replace deprecated (and removed since API 21) getdtablesize() with sysconf(_SC_OPEN_MAX). Strange because it's properly defined elsewhere
 # 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11)
+# 31) Commit isn't compatible with current quiche release, for future version - this fix revert will be removed with next quiche update
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -64,19 +65,20 @@ patch_file() {
   [ $? -ne 0 ] && { echored "Patching failed! Did you verify line numbers? See README for more info"; exit 1; }
   return 0
 }
-bash_patches() {
+gnu_patches() {
   echogreen "Applying patches"
-  local pver=$(echo $ver | sed 's/\.//') url="$(dirname $url)/bash-$ver-patches"
+  local pver=$(echo $ver | sed 's/\.//') url="$(dirname $url)/$bin-$ver-patches"
   for i in {001..050}; do
-    wget $url/bash$pver-$i 2>/dev/null
-    if [ -f "bash$pver-$i" ]; then
-      patch -p0 -i bash$pver-$i
-      rm -f bash$pver-$i
+    wget $url/$bin$pver-$i 2>/dev/null
+    if [ -f "$bin$pver-$i" ]; then
+      patch -p0 -i $bin$pver-$i
+      rm -f $bin$pver-$i
     else
       break
     fi
   done
-  for i in $dir/patches/bash_patches/*; do
+  [ -d "$dir/patches/$bin\_patches" ] || return 0
+  for i in $dir/patches/$bin\_patches/*; do
     local PFILE=$(basename $i)
     cp -f $i $PFILE
     sed -i "s/4.4/$ver/g" $PFILE
@@ -125,7 +127,7 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl") ver="curl-7_76_1 "; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_77_0 "; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -136,17 +138,17 @@ build_bin() {
     "gzip") ext=xz; ver="1.10"; url="gnu";;
     "htop") ver="3.0.5"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
-    "libexpat") ver="R_2_2_10"; url="https://github.com/libexpat/libexpat";;
+    "libexpat") ver="R_2_4_1"; url="https://github.com/libexpat/libexpat";;
     "libiconv") ext=gz; ver="1.16"; url="gnu";;
-    "libidn2") ext=gz; ver="2.3.0"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "libmagic") ext=gz; ver="5.39"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
+    "libidn2") ext=gz; ver="2.3.1"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "libmagic") ext=gz; ver="5.40"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libmetalink") ver="release-0.1.3"; url="https://github.com/metalink-dev/libmetalink";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
-    "nano") ext=xz; ver="5.6.1"; url="gnu";;
+    "nano") ext=xz; ver="5.7"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.43.0"; url="https://github.com/nghttp2/nghttp2";;
@@ -155,11 +157,11 @@ build_bin() {
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.12"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.44"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "pcre2") ext=gz; ver="10.36"; url="https://ftp.pcre.org/pub/pcre/pcre2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.7.0"; url="https://github.com/cloudflare/quiche";;
+    "pcre2") ext=gz; ver="10.37"; url="https://ftp.pcre.org/pub/pcre/pcre2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
+    "quiche") ver="0.8.1"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "selinux") ver="20200710"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
+    "selinux") ver="cf853c1"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
     "sqlite") ext=gz; ver="3350500"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "strace") ver="v5.11"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
@@ -170,7 +172,7 @@ build_bin() {
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "zlib") ext="gz"; ver="1.2.11"; url="http://zlib.net/zlib-$ver.tar.$ext";;
     "zsh") ext=xz; ver="5.8"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
-    "zstd") ver="v1.4.9"; url="https://github.com/facebook/zstd";;
+    "zstd") ver="v1.5.0"; url="https://github.com/facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
   esac
 
@@ -262,7 +264,7 @@ build_bin() {
       ;;
     "bash")
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
-      bash_patches || exit 1
+      gnu_patches || exit 1
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -357,6 +359,7 @@ build_bin() {
         --disable-nls
       ;;
     "curl")
+      git revert 424aa64d54fd2c4baf69aa0c09bf5db347ff59f0 #31
       static=true
       build_bin brotli
       build_bin zstd
@@ -709,7 +712,7 @@ build_bin() {
       cargo ndk -t $barch -p $lapi -- build --release --features ffi,pkg-config-meta,qlog
       # cargo build --release --target $target_host -j $jobs --features ffi,pkg-config-meta,qlog
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-      mkdir -p $prefix/lib/pkgconfig
+      mkdir -p $prefix/include $prefix/lib/pkgconfig 2>/dev/null
       # cp -rf deps/boringssl/src/include $prefix/
       cp -f include/quiche.h $prefix/include/quiche.h
       # cp -f $(find target/$target_host/release -name libcrypto.a -o -name libssl.a) target/$target_host/release/libquiche* $prefix/lib/
@@ -720,6 +723,7 @@ build_bin() {
     "readline")
       build_bin ncurses
       cd $dir/$bin
+      gnu_patches || exit 1      
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
