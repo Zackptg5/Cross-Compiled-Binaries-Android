@@ -101,7 +101,7 @@ The below table notes if the binary is compatible with android ndk. If static or
   * Using native android threaded resolver will work fine when dynamic link but not static link
     * Maybe libc related or something? Not due to outdated libc in NDK based on my testing
       * Libc version on test device (OOS A11 - 11.0.2), NDK r21e (9.0.7), NDK r22 (11.0.4) - didn't work for either ndk static compile so probably not due to being out of date
-* Best workaround currently: curl-alt and aria2-alt options when compiling with this script
+* Best workaround currently:
   * Static link all non-android dependencies
   * Actual binary is dynamic linked with android binaries (libc, libm, libdl)
   * Only limitation is the minimum api of 26 which is fine because api of 26 and newer is where this problem occurs - older roms will be fine with static
