@@ -148,7 +148,7 @@ build_bin() {
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
-    "nano") ext=xz; ver="5.7"; url="gnu";;
+    "nano") ext=xz; ver="5.8"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.43.0"; url="https://github.com/nghttp2/nghttp2";;
@@ -162,12 +162,12 @@ build_bin() {
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="cf853c1"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3350500"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.11"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "sqlite") ext=gz; ver="3360000"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v5.12"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
-    "tcpdump") ver="tcpdump-4.99.0"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
+    "tcpdump") ver="tcpdump-4.99.1"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "zlib") ext="gz"; ver="1.2.11"; url="http://zlib.net/zlib-$ver.tar.$ext";;

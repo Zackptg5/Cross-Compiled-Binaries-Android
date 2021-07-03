@@ -27,7 +27,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Iftop (v1.0pre4) - dynamic only
 * Iw (v5.9)
 * Keycheck
-* Nano (v5.6.1)
+* Nano (v5.8.0)
 * Nethogs (v0.8.6)
 * Ncursesw (v6.2) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.91) - dynamic only
@@ -35,17 +35,17 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Patch (v2.7.6)
 * Patchelf (v0.12)
 * Sed (v4.8)
-* Sqlite3 (v3.35.5) - dynamic only
-* Strace (v5.11)
+* Sqlite3 (v3.36.0) - dynamic only
+* Strace (v5.12)
 * Tar (v1.34)
-* Tcpdump (v4.99.0)
-* Vim (v8.2.2785)
+* Tcpdump (v4.99.1)
+* Vim (v8.2.3095)
 * Wavemon (v0.9.3) - note that your kernel must have wireless extensions enabled (which most android ones don't). [See here](https://github.com/uoaerg/wavemon#dependencies) [and here](https://github.com/uoaerg/wavemon/blob/master/wavemon.1#L129) for more details
 * Xmlstarlet
 * Xxd (v1.10)
 * Zip (v3.0)
 * Zsh (v5.8.0)
-* Zstd (v1.4.9)
+* Zstd (v1.5.0)
 
 ## Credits
 * [Aria2](https://github.com/aria2/aria2)

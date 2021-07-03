@@ -14,16 +14,16 @@ Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,z
 Htop (v3.0.5) htop
 Iw (v5.9) iw
 Keycheck (v1.0) keycheck
-Nano (v5.7.0) nano etc,usr,rnano
+Nano (v5.8.0) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs
 Openssl (v1.1.1.11) openssl
 Patch (v2.7.6) patch
 Patchelf (v0.12) patchelf
 Sed (v4.8) sed
-Strace (v5.11) strace
+Strace (v5.12) strace
 Tar (v1.34) tar
-Tcpdump (v4.99.0) tcpdump
-Vim (v8.2.2886) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Tcpdump (v4.99.1) tcpdump
+Vim (v8.2.3095) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Wavemon (v0.9.3) wavemon
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd

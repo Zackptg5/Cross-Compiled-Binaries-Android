@@ -3,4 +3,4 @@ Curl-26 (v7.77.0) curl
 Exa-24 (v0.10.1) exa lib-$ARCH
 Iftop-28 (v1.0.4) iftop lib-$ARCH
 Nmap- (v7.91) ncat,nmap,nping usr-$ARCH
-Sqlite3- (v3.35.5) sqlite3 lib-$ARCH
+Sqlite3- (v3.36.0) sqlite3 lib-$ARCH
