@@ -55,7 +55,6 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **libexpat**     | Yes       | |
 | **libidn2**      | Yes       | |
 | **libmagic**     | Yes       | |
-| **libmetalink**  | Yes       | |
 | **libnl**        | Yes       | |
 | **libpcap**      | Yes       | |
 | **libpsl**       | Yes       | |
@@ -66,7 +65,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **ncursesw**     | Yes       | Also includes capconvert, clear, infocmp, tabs, tic, toe, tput, tset |
 | **nethogs**      | Yes       | |
 | **nghttp2**      | Yes       | Lib only |
-| **nmap**         | Yes       | |
+| **nmap**         | *Yes*     | |
 | **openssl**      | Yes       | |
 | **patch**        | Yes       | |
 | **patchelf**     | Yes       | |

@@ -20,7 +20,7 @@ Openssl (v1.1.1.11) openssl
 Patch (v2.7.6) patch
 Patchelf (v0.12) patchelf
 Sed (v4.8) sed
-Strace (v5.12) strace
+Strace (v5.13) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
 Vim (v8.2.3095) vim,vimtutor usr,ex,rview,rvim,view,vimdiff

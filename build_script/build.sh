@@ -31,7 +31,7 @@
 # 28) Openssl needs libdl during static compiles
 # 29) Replace deprecated (and removed since API 21) getdtablesize() with sysconf(_SC_OPEN_MAX). Strange because it's properly defined elsewhere
 # 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11)
-# 31) Commit isn't compatible with current quiche release, for future version - this fix revert will be removed with next quiche update
+# 31) Fix for issue 189 (https://github.com/strace/strace/issues/189) - won't be needed in next strace release
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -42,7 +42,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libmetalink, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
   echo "           For aria, curl, and nmap dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -127,22 +127,21 @@ build_bin() {
     "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl") ver="curl-7_77_0 "; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_78_0 "; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.7"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
-    "gdbm") ext=gz; ver="1.19" url="gnu";;
+    "gdbm") ext=gz; ver="1.20" url="gnu";;
     "grep") ext=xz; ver="3.6"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.10"; url="gnu";;
     "htop") ver="3.0.5"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "libexpat") ver="R_2_4_1"; url="https://github.com/libexpat/libexpat";;
     "libiconv") ext=gz; ver="1.16"; url="gnu";;
-    "libidn2") ext=gz; ver="2.3.1"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "libidn2") ext=gz; ver="2.3.2"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "libmagic") ext=gz; ver="5.40"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
-    "libmetalink") ver="release-0.1.3"; url="https://github.com/metalink-dev/libmetalink";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
@@ -151,19 +150,19 @@ build_bin() {
     "nano") ext=xz; ver="5.8"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.43.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.44.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.91"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     "openssl") ver="OpenSSL_1_1_1k"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.12"; url="https://github.com/NixOS/patchelf";;
-    "pcre") ext=gz; ver="8.44"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
+    "pcre") ext=gz; ver="8.45"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ext=gz; ver="10.37"; url="https://ftp.pcre.org/pub/pcre/pcre2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.8.1"; url="https://github.com/cloudflare/quiche";;
+    "quiche") ver="0.9.0"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="cf853c1"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
     "sqlite") ext=gz; ver="3360000"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.12"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "strace") ver="v5.13"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
@@ -359,11 +358,9 @@ build_bin() {
         --disable-nls
       ;;
     "curl")
-      git revert 424aa64d54fd2c4baf69aa0c09bf5db347ff59f0 #31
       static=true
       build_bin brotli
       build_bin zstd
-      build_bin libmetalink
       build_bin libpsl # Also builds libidn2
       build_bin nghttp2
       build_bin libssh2-alt # Also builds boringssl
@@ -390,7 +387,6 @@ build_bin() {
         --with-brotli=$prefix \
         --with-zstd=$prefix \
         --with-ca-path=/system/etc/security/cacerts \
-        --with-libmetalink=$prefix \
         --with-nghttp2=$prefix \
         --with-libidn2=$prefix \
         --with-libssh2=$prefix \
@@ -507,7 +503,7 @@ build_bin() {
     "libidn2")
       build_bin libunistring
       cd $dir/$bin
-      [ -$lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
+      [ $lapi -lt 28 ] && flags="--with-libiconv-prefix=$prefix $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,-rpath=$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -522,14 +518,6 @@ build_bin() {
         --disable-bzlib \
         --disable-zlib
       sed -i "s|^FILE_COMPILE =.*|FILE_COMPILE = $(which file)|" magic/Makefile # 18
-      ;;
-    "libmetalink")
-      build_bin libexpat
-      cd $dir/$bin
-      ./buildconf
-      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
-        --host=$target_host --target=$target_host \
-        --prefix=$prefix
       ;;
     "libnl")
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
@@ -575,7 +563,7 @@ build_bin() {
         --with-libssl-prefix=$prefix
       ;;
     "libunistring")
-      if [ -$lapi -lt 28 ]; then
+      if [ $lapi -lt 28 ]; then
         build_bin libiconv
         cd $dir/$bin
         flags="--with-libiconv-prefix=$prefix $flags"
@@ -756,6 +744,7 @@ build_bin() {
         --enable-readline
       ;;
     "strace")
+      git cherry-pick c84144062ecf285da12e9605ee6fa8a4aa7af285 d2b1a5d79476f1df2adc1465ac53eefb85a52f50 #31
       [ "$arch" == "aarch64" ] && flags="ac_cv_prog_CC_FOR_M32=arm-linux-androideabi-clang $flags" #15
       ./bootstrap
       sed -i "/#  define static_assert(/i#  undef static_assert" src/static_assert.h #16

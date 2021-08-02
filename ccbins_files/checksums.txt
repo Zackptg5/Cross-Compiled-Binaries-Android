@@ -260,10 +260,10 @@ ea2753e831553dc2be117ed4782e9c26  sqlite3/dynamic/sqlite3-arm
 a9c7615f37cf788ac5abbfa2978f4288  sqlite3/dynamic/sqlite3-arm64
 3bfff69423ff0286c6c9d370857c74a9  sqlite3/dynamic/sqlite3-x64
 eeb501dfbc9c8517010cc2b797aceaf0  sqlite3/dynamic/sqlite3-x86
-55f6a9f0cf0438ffe1b7e7522febcd81  strace/strace-arm
-3e69079ff6d9264fd84a2a441c0b9b04  strace/strace-arm64
-598d2e01663dae2683bb0a4d5516d567  strace/strace-x64
-e111b4e11b90545ca39e2cb3f6cb5639  strace/strace-x86
+0fe1ea20936bd1ec378978acc0902a7b  strace/strace-arm
+836bc4f9b65d69ef01a86481e60f884b  strace/strace-arm64
+156a31e492dfcd216f48f8b1c76c954a  strace/strace-x64
+5beede04150d52855e4fd2f3dab4ebca  strace/strace-x86
 06f7df46140d31e352ee4a2413b029f6  tar/tar-arm
 17e9c6519eed96f105c16ad33cda3833  tar/tar-arm64
 608f1c33507a7b943f9d5bde51955b29  tar/tar-x64
