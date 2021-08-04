@@ -374,7 +374,7 @@ build_bin() {
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
       autoreconf -fi
-      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include -DANDROID" LDFLAGS="$LDFLAGS -L$prefix/lib" LIBS="$LIBS" \
+      ./configure CFLAGS="$CFLAGS" CPPFLAGS="$CFLAGS -I$prefix/include -DANDROID" LDFLAGS="$LDFLAGS -L$prefix/lib -all-static" LIBS="$LIBS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --enable-optimize \
@@ -393,7 +393,6 @@ build_bin() {
         --with-quiche=$prefix/lib/pkgconfig #27
       [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
       sed -i -e "s/#define OS .*/#define OS \"ANDROID\"/" -e "s/#define SELECT_TYPE_RETV int/#define SELECT_TYPE_RETV ssize_t/" -e "s|/\* #undef _FILE_OFFSET_BITS \*/|#define _FILE_OFFSET_BITS 64|" lib/curl_config.h
-      $static && flags=" curl_LDFLAGS=-all-static" || flags=""
       ;;
     "diffutils")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
@@ -866,10 +865,6 @@ build_bin() {
       "c-ares") ninja install
                 $static || cp $prefix/lib/libcares_static.a $prefix/lib/libcares.a
                 ;;
-      "curl") make$flags install -j$jobs
-              [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-              make clean
-              ;;
       "findutils") make install -j$jobs DESTDIR=$prefix
                     [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                     sed -i -e "s|/usr/bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh|' $prefix/bin/updatedb
@@ -915,8 +910,10 @@ build_bin() {
          [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
          ;;
     esac
-    if [ "$bin" != "curl" ]; then
-      grep -a '^distclean:' Makefile 2>/dev/null && make distclean || make clean
+    if [ "$bin" != "curl" ] && grep -a '^distclean:' Makefile 2>/dev/null; then
+      make distclean
+    else
+      make clean
     fi
   fi
   if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
