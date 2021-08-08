@@ -86,12 +86,13 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **zstd**         | Yes       | |
 
 ## Issues
-* Aria2 and Curl have weird DNS error in Android Q when not run as superuser (static compile only) - see notes on it below
+* Aria2 and Curl have weird DNS error in Android Q and newer when not run as superuser (static compile only) - see notes on it below
 * Sqlite3 static compile still ends up dynamically linked somehow
 * Exa always statically compiles, limitation with rust
 * Pwcat and Grcat (part of gawk) seg fault when ndk is used, compile without it to use them
 * Iftop static compile segfaults
-* Nmap arm64 won't compile static - always ends up dynamic linked somehow
+* Nmap arm64 won't compile static - always ends up dynamic linked somehow 
+* [Known Curl bugs](https://curl.se/docs/knownbugs.html)
 
 ### DNS Issues
 * Starting with oreo, new restrictions were placed on the net.dns# props.
