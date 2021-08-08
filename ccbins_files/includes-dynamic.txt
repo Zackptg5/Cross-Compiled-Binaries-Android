@@ -1,5 +1,5 @@
 Aria2-26 (v1.35.0) aria2c
-Curl-26 (v7.77.0) curl
+Curl-26 (v7.78.0) curl
 Exa-24 (v0.10.1) exa lib-$ARCH
 Iftop-28 (v1.0.4) iftop lib-$ARCH
 Nmap- (v7.91) ncat,nmap,nping usr-$ARCH
