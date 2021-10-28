@@ -31,7 +31,9 @@
 # 28) Openssl needs libdl during static compiles
 # 29) Replace deprecated (and removed since API 21) getdtablesize() with sysconf(_SC_OPEN_MAX). Strange because it's properly defined elsewhere
 # 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11)
-# 31) Fix for issue 189 (https://github.com/strace/strace/issues/189) - won't be needed in next strace release
+# 31) ffsl not present in ndk, use __builtin_ffsl instead
+# 32) time_t stops working after Jan 2038 error fix
+# 33) Remove __GNUC_PREREQ sections, not in ndk so not needed
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -118,51 +120,51 @@ build_bin() {
   export GXX=$target_host-g++
 
   case $bin in
-    "aria2") ver="release-1.35.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
+    "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
-    "boringssl") ver="067cfd9"; url="https://boringssl.googlesource.com/boringssl";; # Keep consistent with quiche boringssl
+    "boringssl") ver="f1c7534"; url="https://boringssl.googlesource.com/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
-    "c-ares") ver="cares-1_17_1"; url="https://github.com/c-ares/c-ares";;
-    "coreutils") ext=xz; ver="8.32"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
+    "c-ares") ver="cares-1_17_2"; url="https://github.com/c-ares/c-ares";;
+    "coreutils") ext=xz; ver="9.0"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
-    "curl") ver="curl-7_78_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
-    "diffutils") ext=xz; ver="3.7"; url="gnu";;
+    "curl") ver="curl-7_79_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
-    "gdbm") ext=gz; ver="1.20" url="gnu";;
-    "grep") ext=xz; ver="3.6"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "gzip") ext=xz; ver="1.10"; url="gnu";;
-    "htop") ver="3.0.5"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
+    "gdbm") ext=gz; ver="1.22" url="gnu";;
+    "grep") ext=xz; ver="3.7"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "gzip") ext=xz; ver="1.11"; url="gnu";;
+    "htop") ver="3.1.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "libexpat") ver="R_2_4_1"; url="https://github.com/libexpat/libexpat";;
     "libiconv") ext=gz; ver="1.16"; url="gnu";;
     "libidn2") ext=gz; ver="2.3.2"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "libmagic") ext=gz; ver="5.40"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
+    "libmagic") ext=gz; ver="5.41"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
-    "libssh2"|"libssh2-alt") ver="libssh2-1.9.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
+    "libssh2"|"libssh2-alt") ver="libssh2-1.10.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
-    "nano") ext=xz; ver="5.8"; url="gnu";;
+    "nano") ext=xz; ver="5.9"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.44.0"; url="https://github.com/nghttp2/nghttp2";;
-    "nmap") ext="tgz"; ver="7.91"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="OpenSSL_1_1_1k"; url="https://github.com/openssl/openssl";;
+    "nghttp2") ver="v1.46.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
+    "openssl") ver="openssl-3.0.0"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
-    "patchelf") ver="0.12"; url="https://github.com/NixOS/patchelf";;
+    "patchelf") ver="0.13"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ext=gz; ver="10.37"; url="https://ftp.pcre.org/pub/pcre/pcre2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.9.0"; url="https://github.com/cloudflare/quiche";;
+    "quiche") ver="0.10.0"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "selinux") ver="cf853c1"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
+    "selinux") ver="7f600c4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
     "sqlite") ext=gz; ver="3360000"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.13"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "strace") ver="v5.14"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
@@ -335,12 +337,13 @@ build_bin() {
       build_bin selinux
       cd $dir/$bin
       autoreconf -fi #17
-      patch_file $dir/patches/coreutils.patch
+      patch_file $dir/patches/coreutils.patch #32
       $sep || flags="$flags--enable-single-binary=symlinks "
       sed -i 's/#ifdef __linux__/#ifndef __linux__/g' src/ls.c #4
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/cdefs.h #3
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
       sed -i -e '/if (!num && negative)/d' -e "/return minus_zero/d" -e "/DOUBLE minus_zero = -0.0/d" lib/strtod.c #2
+      [ "$larch" == "x86" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -451,6 +454,7 @@ build_bin() {
       ;;
     "gzip")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' lib/vasnprintf.c #1
+      [ "$larch" == "x86" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
@@ -459,13 +463,14 @@ build_bin() {
       build_bin ncursesw
       cd $dir/$bin
       ./autogen.sh
+      $static && flags="--enable-static $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
-        --enable-proc \
         --enable-unicode \
         ac_cv_lib_ncursesw6_addnwstr=yes
       $static && sed -i "/rdynamic/d" Makefile.am #9
+      sed -i 's/ ffsl/ __builtin_ffsl/' linux/LinuxProcessList.c #31
       ;;
     "iftop")
       build_bin libpcap
@@ -743,7 +748,6 @@ build_bin() {
         --enable-readline
       ;;
     "strace")
-      git cherry-pick c84144062ecf285da12e9605ee6fa8a4aa7af285 d2b1a5d79476f1df2adc1465ac53eefb85a52f50 #31
       [ "$arch" == "aarch64" ] && flags="ac_cv_prog_CC_FOR_M32=arm-linux-androideabi-clang $flags" #15
       ./bootstrap
       sed -i "/#  define static_assert(/i#  undef static_assert" src/static_assert.h #16
@@ -958,13 +962,30 @@ else
 fi
 
 # Set up Android NDK
+ndknum=$(echo $ndk | sed 's/[a-zA-Z]*//g')
 echogreen "Fetching Android NDK $ndk"
-[ -f "android-ndk-$ndk-linux-x86_64.zip" ] || wget https://dl.google.com/android/repository/android-ndk-$ndk-linux-x86_64.zip
-[ -d "android-ndk-$ndk" ] || unzip -qo android-ndk-$ndk-linux-x86_64.zip
+if [ $ndknum -ge 23 ]; then
+  [ -f "android-ndk-$ndk-linux.zip" ] || wget https://dl.google.com/android/repository/android-ndk-$ndk-linux.zip
+  [ -d "android-ndk-$ndk" ] || unzip -qo android-ndk-$ndk-linux.zip
+else
+  [ -f "android-ndk-$ndk-linux-x86_64.zip" ] || wget https://dl.google.com/android/repository/android-ndk-$ndk-linux-x86_64.zip
+  [ -d "android-ndk-$ndk" ] || unzip -qo android-ndk-$ndk-linux-x86_64.zip
+fi
 export ANDROID_NDK_HOME=$dir/android-ndk-$ndk
 export toolchain=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
 export PATH=$toolchain:$PATH
 # Create needed symlinks
+if [ $ndknum -ge 23 ]; then
+  for i in aarch64-linux-android arm-linux-androideabi x86_64-linux-android i686-linux-android; do
+    ln -sf $toolchain/llvm-ar $toolchain/$i-ar
+    ln -sf $toolchain/ld $toolchain/$i-ld
+    ln -sf $toolchain/llvm-ranlib $toolchain/$i-ranlib
+    ln -sf $toolchain/llvm-strip $toolchain/$i-strip
+    [ "$i" == "armv7a-linux-androideabi" ] && j="arm-linux-androideabi" || j=$i
+    # ln -sf $toolchain/$i-clang $toolchain/$i-as
+  done
+fi
 for i in ar as ld ranlib strip clang gcc clang++ g++; do
   ln -sf $toolchain/arm-linux-androideabi-$i $toolchain/arm-linux-gnueabi-$i
   ln -sf $toolchain/i686-linux-android-$i $toolchain/i686-linux-gnu-$i

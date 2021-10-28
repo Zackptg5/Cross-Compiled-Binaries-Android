@@ -1,29 +1,29 @@
-Aria2 (v1.35.0) aria2c,aria2c.bin
+Aria2 (v1.36.0) aria2c,aria2c.bin
 Bash (v5.1.8) bash etc
 Bc (v1.07.1) bc,dc
 Brotli (v1.0.9) brotli
-Coreutils (v8.32) coreutils
+Coreutils (v9.0) coreutils
 Cpio (v2.12) cpio
-Curl (v7.78.0) curl
-Diffutils (v3.7) cmp,diff3,diff,sdiff
+Curl (v7.79.1) curl
+Diffutils (v3.8) cmp,diff3,diff,sdiff
 Ed (v1.17) ed,red
 Findutils (v4.8.0) find,frcode,locate,updatedb,xargs
 Gawk (v5.1.0) gawk
-Grep (v3.6) egrep,fgrep,grep
-Gzip (v1.10) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
-Htop (v3.0.5) htop
+Grep (v3.7) egrep,fgrep,grep
+Gzip (v1.11) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
+Htop (v3.1.1) htop
 Iw (v5.9) iw
 Keycheck (v1.0) keycheck
-Nano (v5.8.0) nano etc,usr,rnano
+Nano (v5.9.0) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs
-Openssl (v1.1.1.11) openssl
+Openssl (v3.0.0.0) openssl
 Patch (v2.7.6) patch
-Patchelf (v0.12) patchelf
+Patchelf (v0.13) patchelf
 Sed (v4.8) sed
-Strace (v5.13) strace
+Strace (v5.14) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
-Vim (v8.2.3095) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Vim (v8.2.3564) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Wavemon (v0.9.3) wavemon
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd

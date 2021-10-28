@@ -1,6 +1,27 @@
---- src/copy.c	2018-07-01 04:32:02.000000000 +0200
-+++ src/copy.c	2018-09-20 10:32:15.473398296 +0200
-@@ -129,6 +129,72 @@
+--- src/ls.c	2021-10-27 23:12:56.224181200 -0400
++++ src/ls.c	2021-10-27 23:13:17.477429300 -0400
+@@ -2273,18 +2273,11 @@
+       if (linelen < 0)
+         {
+           /* Suppress bogus warning re comparing ws.ws_col to big integer.  */
+-# if __GNUC_PREREQ (4, 6)
+-#  pragma GCC diagnostic push
+-#  pragma GCC diagnostic ignored "-Wtype-limits"
+-# endif
+           struct winsize ws;
+           if (stdout_isatty ()
+               && 0 <= ioctl (STDOUT_FILENO, TIOCGWINSZ, &ws)
+               && 0 < ws.ws_col)
+             linelen = ws.ws_col <= MIN (PTRDIFF_MAX, SIZE_MAX) ? ws.ws_col : 0;
+-# if __GNUC_PREREQ (4, 6)
+-#  pragma GCC diagnostic pop
+-# endif
+         }
+ #endif
+       if (linelen < 0)
+--- src/copy.c	2021-09-24 07:31:05.000000000 -0400
++++ src/copy.c	2021-10-27 21:33:32.299248300 -0400
+@@ -129,6 +129,70 @@
    dev_t dev;
  };
  
@@ -68,17 +89,15 @@
 +}
 +/* END progress mod */
 +
-+
-+
  /* Initial size of the cp.dest_info hash table.  */
  #define DEST_INFO_INITIAL_CAPACITY 61
  
-@@ -258,10 +324,11 @@
+@@ -299,10 +363,11 @@
     bytes read.  */
  static bool
  sparse_copy (int src_fd, int dest_fd, char *buf, size_t buf_size,
--             size_t hole_size, bool punch_holes,
-+             size_t hole_size, bool punch_holes, bool move_mode,
+-             size_t hole_size, bool punch_holes, bool allow_reflink,
++             size_t hole_size, bool punch_holes, bool allow_reflink, bool move_mode,
               char const *src_name, char const *dst_name,
               uintmax_t max_n_read, off_t *total_n_read,
 -             bool *last_write_made_hole)
@@ -87,7 +106,7 @@
  {
    *last_write_made_hole = false;
    *total_n_read = 0;
-@@ -270,6 +337,85 @@
+@@ -362,6 +427,85 @@
  
    while (max_n_read)
      {
@@ -173,7 +192,7 @@
        ssize_t n_read = read (src_fd, buf, MIN (max_n_read, buf_size));
        if (n_read < 0)
          {
-@@ -354,6 +500,14 @@
+@@ -446,6 +590,14 @@
           certain files in /proc or /sys with linux kernels.  */
      }
  
@@ -188,40 +207,40 @@
    /* Ensure a trailing hole is created, so that subsequent
       calls of sparse_copy() start at the correct offset.  */
    if (make_hole && ! create_hole (dest_fd, dst_name, punch_holes, psize))
-@@ -420,9 +574,11 @@
+@@ -516,9 +668,11 @@
  static bool
- extent_copy (int src_fd, int dest_fd, char *buf, size_t buf_size,
-              size_t hole_size, off_t src_total_size,
--             enum Sparse_type sparse_mode,
-+             enum Sparse_type sparse_mode, bool move_mode,
-              char const *src_name, char const *dst_name,
--             bool *require_normal_copy)
-+             bool *require_normal_copy,
-+             int iCountDown, char ** cProgressField, struct timeval last_time,
-+             int last_size, int iBarLength, struct stat src_open_sb)
+ lseek_copy (int src_fd, int dest_fd, char *buf, size_t buf_size,
+             size_t hole_size, off_t ext_start, off_t src_total_size,
+-            enum Sparse_type sparse_mode,
++            enum Sparse_type sparse_mode, bool move_mode,
+             bool allow_reflink,
+-            char const *src_name, char const *dst_name)
++            char const *src_name, char const *dst_name,
++            int iCountDown, char ** cProgressField, struct timeval last_time,
++            int last_size, int iBarLength, struct stat src_open_sb)
  {
-   struct extent_scan scan;
    off_t last_ext_start = 0;
-@@ -553,10 +709,16 @@
-               last_ext_len = ext_len;
-               bool read_hole;
+   off_t last_ext_len = 0;
+@@ -590,10 +744,16 @@
+          is conservative and may miss some holes.  */
+       off_t n_read;
+       bool read_hole;
++
++      struct timeval a;
++      struct stat b;
++
++      struct progress_status s_progress={iCountDown, cProgressField, last_time, last_size, iBarLength, src_open_sb};
++
+       if ( ! sparse_copy (src_fd, dest_fd, buf, buf_size,
+                           sparse_mode == SPARSE_NEVER ? 0 : hole_size,
+-                          true, allow_reflink, src_name, dst_name,
+-                          ext_len, &n_read, &read_hole))
++                          true, allow_reflink, move_mode, src_name,
++                          dst_name, ext_len, &n_read, &read_hole, &s_progress))
+         return false;
  
-+              struct timeval a;
-+              struct stat b;
-+
-+              struct progress_status s_progress={iCountDown, cProgressField, last_time, last_size, iBarLength, src_open_sb};
-+
-+
-               if ( ! sparse_copy (src_fd, dest_fd, buf, buf_size,
-                                   sparse_mode == SPARSE_ALWAYS ? hole_size: 0,
--                                  true, src_name, dst_name, ext_len, &n_read,
--                                  &read_hole))
-+                                  true, move_mode, src_name, dst_name, ext_len,
-+                                  &n_read, &read_hole,&s_progress))
-                 goto fail;
- 
-               dest_pos = ext_start + n_read;
-@@ -1305,6 +1467,71 @@
+       dest_pos = ext_start + n_read;
+@@ -1374,8 +1534,74 @@
        buf_alloc = xmalloc (buf_size + buf_alignment);
        buf = ptr_align (buf_alloc, buf_alignment);
  
@@ -290,37 +309,34 @@
 +      int last_size = g_iTotalWritten;
 +      /* END progress mod */
 +
-       if (sparse_src)
-         {
-           bool normal_copy_required;
-@@ -1316,7 +1543,9 @@
-           if (extent_copy (source_desc, dest_desc, buf, buf_size, hole_size,
-                            src_open_sb.st_size,
-                            make_holes ? x->sparse_mode : SPARSE_NEVER,
--                           src_name, dst_name, &normal_copy_required))
-+                           x->move_mode, src_name, dst_name, &normal_copy_required,
-+                           iCountDown, cProgressField, last_time, last_size,
-+                           iBarLength, src_open_sb))
-             goto preserve_metadata;
- 
-           if (! normal_copy_required)
-@@ -1328,11 +1557,12 @@
- 
        off_t n_read;
-       bool wrote_hole_at_eof;
+       bool wrote_hole_at_eof = false;
 +      struct progress_status s_progress = { iCountDown, cProgressField, last_time, last_size, iBarLength, src_open_sb};
-       if (! sparse_copy (source_desc, dest_desc, buf, buf_size,
-                          make_holes ? hole_size : 0,
--                         x->sparse_mode == SPARSE_ALWAYS, src_name, dst_name,
--                         UINTMAX_MAX, &n_read,
--                         &wrote_hole_at_eof))
-+                         x->sparse_mode == SPARSE_ALWAYS, x->move_mode,
-+                         src_name, dst_name, UINTMAX_MAX, &n_read,
-+                         &wrote_hole_at_eof, &s_progress))
+       if (! (
+ #ifdef SEEK_HOLE
+              scantype == LSEEK_SCANTYPE
+@@ -1383,15 +1609,17 @@
+                            scan_inference.ext_start, src_open_sb.st_size,
+                            make_holes ? x->sparse_mode : SPARSE_NEVER,
+                            x->reflink_mode != REFLINK_NEVER,
+-                           src_name, dst_name)
++                           x->move_mode, src_name, dst_name,
++                           iCountDown, cProgressField, last_time, last_size,
++                           iBarLength, src_open_sb)
+              :
+ #endif
+              sparse_copy (source_desc, dest_desc, buf, buf_size,
+                             make_holes ? hole_size : 0,
+                             x->sparse_mode == SPARSE_ALWAYS,
+                             x->reflink_mode != REFLINK_NEVER,
+-                            src_name, dst_name, UINTMAX_MAX, &n_read,
+-                            &wrote_hole_at_eof)))
++                            x->move_mode, src_name, dst_name, UINTMAX_MAX,
++                             &n_read, &wrote_hole_at_eof, &s_progress)))
          {
            return_val = false;
            goto close_src_and_dst_desc;
-@@ -1343,6 +1573,14 @@
+@@ -1402,6 +1630,14 @@
            return_val = false;
            goto close_src_and_dst_desc;
          }
@@ -334,10 +350,10 @@
 +      /* END progress mod */
      }
  
- preserve_metadata:
---- src/copy.h	2018-05-14 06:20:24.000000000 +0200
-+++ src/copy.h	2018-09-19 19:23:13.265541538 +0200
-@@ -234,6 +234,9 @@
+   if (x->preserve_timestamps)
+--- src/copy.h	2021-09-24 07:31:05.000000000 -0400
++++ src/copy.h	2021-10-27 21:33:32.299248300 -0400
+@@ -236,6 +236,9 @@
       Create destination directories as usual. */
    bool symbolic_link;
  
@@ -347,7 +363,7 @@
    /* If true, do not copy a nondirectory that has an existing destination
       with the same or newer modification time. */
    bool update;
-@@ -304,4 +307,15 @@
+@@ -308,4 +311,15 @@
  bool chown_failure_ok (struct cp_options const *) _GL_ATTRIBUTE_PURE;
  mode_t cached_umask (void);
  
@@ -363,8 +379,8 @@
 +/* END OF PROGRESS MOD */ 
 +
  #endif
---- src/cp.c	2018-06-24 04:12:51.000000000 +0200
-+++ src/cp.c	2018-09-19 20:42:07.159168551 +0200
+--- src/cp.c	2021-09-24 07:31:05.000000000 -0400
++++ src/cp.c	2021-10-27 21:22:08.913768100 -0400
 @@ -131,6 +131,7 @@
    {"symbolic-link", no_argument, NULL, 's'},
    {"target-directory", required_argument, NULL, 't'},
@@ -381,7 +397,7 @@
    -i, --interactive            prompt before overwrite (overrides a previous -n\
  \n\
                                    option)\n\
-@@ -635,6 +637,70 @@
+@@ -634,6 +636,70 @@
          die (EXIT_FAILURE, 0, _("target %s is not a directory"),
               quoteaf (file[n_files - 1]));
      }
@@ -452,7 +468,7 @@
  
    if (target_directory)
      {
-@@ -777,6 +843,46 @@
+@@ -781,6 +847,46 @@
        ok = copy (source, new_dest, 0, x, &unused, NULL);
      }
  
@@ -499,7 +515,7 @@
    return ok;
  }
  
-@@ -812,6 +918,7 @@
+@@ -816,6 +922,7 @@
    x->recursive = false;
    x->sparse_mode = SPARSE_AUTO;
    x->symbolic_link = false;
@@ -507,7 +523,7 @@
    x->set_mode = false;
    x->mode = 0;
  
-@@ -950,7 +1057,7 @@
+@@ -954,7 +1061,7 @@
    selinux_enabled = (0 < is_selinux_enabled ());
    cp_option_init (&x);
  
@@ -516,7 +532,7 @@
                             long_opts, NULL))
           != -1)
      {
-@@ -1007,6 +1114,10 @@
+@@ -1011,6 +1118,10 @@
            x.unlink_dest_after_failed_open = true;
            break;
  
@@ -527,8 +543,8 @@
          case 'H':
            x.dereference = DEREF_COMMAND_LINE_ARGUMENTS;
            break;
---- src/mv.c	2018-06-24 04:12:51.000000000 +0200
-+++ src/mv.c	2018-09-20 10:36:33.316124125 +0200
+--- src/mv.c	2021-09-24 07:31:05.000000000 -0400
++++ src/mv.c	2021-10-27 21:33:32.299248300 -0400
 @@ -66,6 +66,7 @@
    {"target-directory", required_argument, NULL, 't'},
    {"update", no_argument, NULL, 'u'},
@@ -539,7 +555,7 @@
    {NULL, 0, NULL, 0}
 @@ -168,10 +169,86 @@
  static bool
- do_move (const char *source, const char *dest, const struct cp_options *x)
+ do_move (char const *source, char const *dest, const struct cp_options *x)
  {
 +  struct timeval start_time;
 +
@@ -641,15 +657,13 @@
           != -1)
      {
        switch (c)
-@@ -407,6 +485,11 @@
+@@ -407,6 +485,9 @@
          case 'v':
            x.verbose = true;
            break;
-+
 +        case 'g': 
 +          progress = true; 
-+          break; 
-+
++          break;
          case 'S':
            make_backups = true;
            backup_suffix = optarg;
