@@ -5,6 +5,6 @@ for i in 'net.dns1' 'net.dns2' 'net.dns3' 'net.dns4'; do
   [ "$j" ] || continue
   dnsrvs="$dnsrvs,$j"
 done
-[ "$dnsrvs" ] || exit 0
+[ $API -lt 31 ] && [ -z "$dnsrvs" ] && exit 0
 dnsrvs="$(echo "$dnsrvs" | sed 's/^,//')"
-echo "alias curl='curl --dns-servers $dnsrvs \"\$@\"'" >> /storage/emulated/0/.aliases
+[ "$dnsrvs" ] && echo "alias curl='curl --dns-servers $dnsrvs \"\$@\"'" >> /storage/emulated/0/.aliases || echo "alias curl='curl $dns \"\$@\"'" >> /storage/emulated/0/.aliases

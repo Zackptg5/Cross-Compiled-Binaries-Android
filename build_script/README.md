@@ -107,6 +107,7 @@ The below table notes if the binary is compatible with android ndk. If static or
   * Only limitation is the minimum api of 26 which is fine because api of 26 and newer is where this problem occurs - older roms will be fine with static
 * Other workaround for static compiles
   * Set alias with dns server arguments set (see the install.sh script in aria2 and curl folders) - need root to get the dns servers
+* For Android 12 and newer, static won't resolve dns at all unless manually specifed as above regardless of root status
 
 ### Credits 
 

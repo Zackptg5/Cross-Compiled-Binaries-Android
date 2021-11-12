@@ -48,10 +48,12 @@ quit() {
   exit 0
 }
 
-scriptver=21
+scriptver=22
 branch=master
+# DNS workaround for static curl
+[ $API -ge 31 ] && dns=" --dns-servers 8.8.8.8" || dns=""
 # Doh workaround for dns poisoning
-[ -f $MODDIR/doh ] && { flag=" --doh-url $(tail -n1 $MODDIR/doh)"; doh="$(head -n1 $MODDIR/doh)"; }
+[ -f $MODDIR/doh ] && { [ $API -ge 31 ] && dns=" --dns-servers 223.5.5.5"; flag=" --doh-url $(tail -n1 $MODDIR/doh)"; doh="$(head -n1 $MODDIR/doh)"; }
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
 [ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs$flag" || alias curl="$MODDIR/curl -Ls$flag"
 unset flag
@@ -63,8 +65,8 @@ for i in curl wg wg-quick; do
   set_perm $MODDIR/$i 0 0 755
 done
 # DNS resolution fix for wireguard tunnels - use wireguard dns servers if specified
+curlalias="$(alias | grep 'curl=' | sed -r "s/curl='(.*)'/\1/")"
 if [ "$(pm list packages com.wireguard.android)" ] && [ "$(wg show)" ]; then
-  curlalias="$(alias | grep 'curl=' | sed -r "s/curl='(.*)'/\1/")"
   wgint="$(wg show | grep 'interface' | sed 's/interface: //')"
   # Initial log/output from starting a tunnel is only surefire way to get the dns addresses to my knowledge
   for i in $wgint; do
@@ -76,9 +78,11 @@ if [ "$(pm list packages com.wireguard.android)" ] && [ "$(wg show)" ]; then
   done
   dnsrvs="$(echo "$dnsrvs" | sed 's/^,//')"
   rm -f $MODDIR/tmp
-  alias curl="$(echo "$curlalias" | sed "s/curl /curl --dns-servers $dnsrvs /")"
-  unset curlalias wgint
+  [ "$dnsrvs" ] && dns=" --dns-servers $dnsrvs"
+  unset wgint dnsrvs
 fi
+alias curl="$(echo "$curlalias$dns")"
+unset curlalias
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
 [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)" || insloc=/system/bin
