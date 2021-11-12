@@ -389,15 +389,17 @@
    {"verbose", no_argument, NULL, 'v'},
    {GETOPT_SELINUX_CONTEXT_OPTION_DECL},
    {GETOPT_HELP_OPTION_DECL},
-@@ -170,6 +171,7 @@
+@@ -170,6 +171,9 @@
    -f, --force                  if an existing destination file cannot be\n\
                                   opened, remove it and try again (this option\n\
                                   is ignored when the -n option is also used)\n\
-+  -g, --progress-bar           add a progress bar\n\
++  -g, --progress-bar           add a progress bar.\n\
++                                 Note that this doesn't work with reflink,\n\ 
++                                 reflink will be automatically disabled\n\ 
    -i, --interactive            prompt before overwrite (overrides a previous -n\
  \n\
                                    option)\n\
-@@ -634,6 +636,70 @@
+@@ -634,6 +638,70 @@
          die (EXIT_FAILURE, 0, _("target %s is not a directory"),
               quoteaf (file[n_files - 1]));
      }
@@ -468,7 +470,7 @@
  
    if (target_directory)
      {
-@@ -781,6 +847,46 @@
+@@ -781,6 +849,46 @@
        ok = copy (source, new_dest, 0, x, &unused, NULL);
      }
  
@@ -515,7 +517,7 @@
    return ok;
  }
  
-@@ -816,6 +922,7 @@
+@@ -816,6 +924,7 @@
    x->recursive = false;
    x->sparse_mode = SPARSE_AUTO;
    x->symbolic_link = false;
@@ -523,7 +525,7 @@
    x->set_mode = false;
    x->mode = 0;
  
-@@ -954,7 +1061,7 @@
+@@ -954,7 +1063,7 @@
    selinux_enabled = (0 < is_selinux_enabled ());
    cp_option_init (&x);
  
@@ -532,7 +534,7 @@
                             long_opts, NULL))
           != -1)
      {
-@@ -1011,6 +1118,10 @@
+@@ -1011,6 +1120,10 @@
            x.unlink_dest_after_failed_open = true;
            break;
  
@@ -543,13 +545,23 @@
          case 'H':
            x.dereference = DEREF_COMMAND_LINE_ARGUMENTS;
            break;
+@@ -1171,6 +1284,9 @@
+       usage (EXIT_FAILURE);
+     }
+ 
++  if (progress)
++    x.reflink_mode = REFLINK_NEVER;
++
+   x.backup_type = (make_backups
+                    ? xget_version (_("backup type"),
+                                    version_control_string)
 --- src/mv.c	2021-09-24 07:31:05.000000000 -0400
 +++ src/mv.c	2021-10-27 21:33:32.299248300 -0400
 @@ -66,6 +66,7 @@
    {"target-directory", required_argument, NULL, 't'},
    {"update", no_argument, NULL, 'u'},
    {"verbose", no_argument, NULL, 'v'},
-+  {"progress-ar", no_argument, NULL, 'g'},
++  {"progress-bar", no_argument, NULL, 'g'},
    {GETOPT_HELP_OPTION_DECL},
    {GETOPT_VERSION_OPTION_DECL},
    {NULL, 0, NULL, 0}
