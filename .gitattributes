@@ -1,0 +1,6 @@
+# Declare files that will always have LF line endings on checkout.
+*.sh text eol=lf
+*.prop text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+ccbins_files/* eol=lf
