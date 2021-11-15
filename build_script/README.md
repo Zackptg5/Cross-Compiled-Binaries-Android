@@ -44,7 +44,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **curl**         | Yes       | |
 | **diffutils**    | Yes       | Also includes cmp, diff, diff3, sdiff |
 | **ed**           | Yes       | |
-| **exa**          | *Static*  | |
+| **exa**          | *Dynamic* | |
 | **findutils**    | Yes       | Also includes find, locate, updatedb, xargs |
 | **gawk**         | Yes       | GNU awk |
 | **gdbm**         | Yes       | |
