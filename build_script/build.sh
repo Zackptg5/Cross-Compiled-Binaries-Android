@@ -343,7 +343,7 @@ build_bin() {
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/cdefs.h #3
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
       sed -i -e '/if (!num && negative)/d' -e "/return minus_zero/d" -e "/DOUBLE minus_zero = -0.0/d" lib/strtod.c #2
-      [ "$larch" == "x86" ] && flags="--disable-year2038 $flags" #32
+      [ "$larch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -454,7 +454,7 @@ build_bin() {
       ;;
     "gzip")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' lib/vasnprintf.c #1
-      [ "$larch" == "x86" ] && flags="--disable-year2038 $flags" #32
+      [ "$larch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
