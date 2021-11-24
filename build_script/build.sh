@@ -35,6 +35,11 @@
 # 32) time_t stops working after Jan 2038 error fix
 # 33) Remove __GNUC_PREREQ sections, not in ndk so not needed
 # 34) Fix bin path, pwcat segfaults, apply termux patches
+# 35) Create missing file
+# 36) Fix data home directory
+# 37) Openssl OCSP doesn't yet work, disable it for now
+# 38) Duplicate definition of time
+# 39 Fix htoprc path
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -45,8 +50,8 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
-  echo "           For aria, curl, and nmap dynamic link - all non-android libs are statically linked to make it much more portable"
+  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
   echo "           Ex: bin=cpio,gzip,tar"
@@ -82,12 +87,12 @@ gnu_patches() {
   done
   [ -d "$dir/patches/$bin\_patches" ] || return 0
   for i in $dir/patches/$bin\_patches/*; do
-    local PFILE=$(basename $i)
-    cp -f $i $PFILE
-    sed -i "s/4.4/$ver/g" $PFILE
-    patch -p0 -i $PFILE
+    local pfile=$(basename $i)
+    cp -f $i $pfile
+    sed -i "s/4.4/$ver/g" $pfile
+    patch -p0 -i $pfile
     [ $? -ne 0 ] && { echored "Patching failed!"; return 1; }
-    rm -f $PFILE
+    rm -f $pfile
   done
 }
 setup_ohmyzsh() {
@@ -110,7 +115,6 @@ build_bin() {
     x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; barch=x86; GOARCH=386; flags="TIME_T_32_BIT_OK=yes ";;
     *) echored "Invalid arch: $arch!"; exit 1;;
   esac
-  export GOOS=android
   export AR=$target_host-ar
   export AS=$target_host-as
   export LD=$target_host-ld
@@ -131,6 +135,7 @@ build_bin() {
     "c-ares") ver="cares-1_18_1"; url="https://github.com/c-ares/c-ares";;
     "coreutils") ext=xz; ver="9.0"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
+    "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
     "curl") ver="curl-7_80_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
@@ -138,11 +143,13 @@ build_bin() {
     "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.22" url="gnu";;
+    "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
     "grep") ext=xz; ver="3.7"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.11"; url="gnu";;
     "htop") ver="3.1.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "libexpat") ver="R_2_4_1"; url="https://github.com/libexpat/libexpat";;
+    "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.16"; url="gnu";;
     "libidn2") ext=gz; ver="2.3.2"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "libmagic") ext=gz; ver="5.41"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
@@ -159,7 +166,7 @@ build_bin() {
     "openssl") ver="openssl-3.0.0"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.13"; url="https://github.com/NixOS/patchelf";;
-    "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;; # No longer exists, will need to be local file
+    "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ver="pcre2-10.39"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
     "quiche") ver="0.10.0"; url="https://github.com/cloudflare/quiche";;
     "rclone") ver="v1.57.0"; url="https://github.com/rclone/rclone";;
@@ -174,6 +181,7 @@ build_bin() {
     "tcpdump") ver="tcpdump-4.99.1"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
+    "wget2") ver="v2.0.0"; url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
     "zlib") ext="gz"; ver="1.2.11"; url="http://zlib.net/zlib-$ver.tar.$ext";;
     "zsh") ext=xz; ver="5.8"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
     "zstd") ver="v1.5.0"; url="https://github.com/facebook/zstd";;
@@ -267,22 +275,28 @@ build_bin() {
         --with-ca-bundle='/system/etc/security/ca-certificates.crt'
       ;;
     "bash")
+      build_bin readline
+      cd $dir/$bin
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
       gnu_patches || exit 1
-      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
         --without-bash-malloc \
         --enable-largefile \
         --enable-alias \
-        --enable-history \
         --enable-readline \
         --enable-multibyte \
         --enable-job-control \
         --enable-array-variables \
         bash_cv_dev_fd=whacky \
-        bash_cv_getcwd_malloc=yes
+        bash_cv_getcwd_malloc=yes \
+        bash_cv_job_control_missing=present \
+        bash_cv_sys_siglist=yes \
+        bash_cv_func_sigsetjmp=present \
+        bash_cv_unusable_rtsigs=no \
+        ac_cv_func_mbsnrtowcs=no # bash_cv args from termux: https://github.com/termux/termux-packages/blob/master/packages/bash/build.sh
       ;;
     "bc")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
@@ -362,6 +376,18 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls
+      ;;
+    "cunit")
+      $static && flags="-DCMAKE_EXE_LINKER_FLAGS='-static' "
+      mkdir -p build
+      cd build
+      cmake -DANDROID_ABI=$barch \
+            -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
+            -DANDROID_NATIVE_API_LEVEL=$lapi \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX:PATH=$prefix \
+            $flags-GNinja ..
+      ninja
       ;;
     "curl")
       static=true
@@ -450,6 +476,11 @@ build_bin() {
           --disable-nls \
           --enable-libgdbm-compat
       ;;
+    "gmp")
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
+      ;;
     "grep")
       build_bin pcre
       cd $dir/$bin
@@ -478,6 +509,7 @@ build_bin() {
         ac_cv_lib_ncursesw6_addnwstr=yes
       $static && sed -i "/rdynamic/d" Makefile.am #9
       sed -i 's/ ffsl/ __builtin_ffsl/' linux/LinuxProcessList.c #31
+      sed -i 's|/.config|/system/etc|g' Settings.c #39
       ;;
     "iftop")
       build_bin libpcap
@@ -504,6 +536,13 @@ build_bin() {
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
+      ;;
+    "libhsts")
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls
       ;;
     "libiconv")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
@@ -619,9 +658,11 @@ build_bin() {
       sed -i "s/decpcap_test test/decpcap_test/g" Makefile # 19
       ;;
     "nghttp2")
+      build_bin cunit
+      cd $dir/$bin
       $static && flags="--disable-shared $flags"
       autoreconf -fi
-      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --without-systemd \
@@ -656,13 +697,13 @@ build_bin() {
     "openssl")
       cd $dir/$bin
       if $static; then
-        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/client.c
-        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/server.c
-        flags=" -static threads $flags"
+        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/client.c #38
+        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/server.c #38
+        flags="-static threads $flags"
       else
-        flags=" shared $flags"
+        flags="shared $flags"
       fi
-      ./Configure $osarch$flags \
+      ./Configure $flags$osarch \
         -D__ANDROID_API__=$lapi \
         --prefix=$prefix
       ;;
@@ -722,7 +763,7 @@ build_bin() {
       sed -i -e "s|=.*/quiche/include|=$prefix/include|" -e "s|=.*/quiche/target/.*|=$prefix/lib|" $prefix/lib/pkgconfig/quiche.pc
       ;;
     "rclone")
-      CGO_ENABLED=0 GOPATH=$prefix go build -buildmode=pie -tags="android" -trimpath -ldflags="-linkmode external -extldflags \"$LDFLAGS\""
+      GOOS=android CGO_ENABLED=0 GOPATH=$prefix go build -buildmode=pie -tags="android" -trimpath -ldflags="-linkmode external -extldflags \"$LDFLAGS\""
       mkdir -p $prefix/bin
       cp -f rclone $prefix/bin/rclone
       go clean
@@ -830,6 +871,38 @@ build_bin() {
         $flags--prefix=$prefix \
         ac_cv_lib_pthread_pthread_create=yes #13
       ;;
+    "wget2")
+      static=true
+      build_bin openssl
+      build_bin libpsl # Also builds libidn2
+      build_bin nghttp2
+      build_bin brotli
+      build_bin zstd
+      build_bin pcre2 # Also builds bzip2
+      build_bin libhsts
+      $origstatic || build_bin zlib
+      cd $dir/$bin
+      static=$origstatic
+      flags="--disable-shared $flags"
+      $static && LDFLAGS="$LDFLAGS -all-static" || rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
+      sed -i 's|%s/.local/share|/sdcard|' src/options.c #36
+      sed -i 's|\[openssl/ocsp.h\]|\[openssl/ocsp2.h\]|' configure.ac #37
+      ./bootstrap
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-nls \
+        --disable-doc \
+        --enable-threads=posix \
+        --without-libidn \
+        --without-libpcre \
+        --without-libmicrohttpd \
+        --without-lzma \
+        --without-gpgme \
+        --with-ssl=openssl \
+        --with-openssl=yes \
+        LIBHSTS_LIBS="-L$prefix/lib"
+      ;;
     "zlib")
       $static && flags="--static " || flags=""
       ./configure $flags--prefix=$prefix
@@ -884,6 +957,8 @@ build_bin() {
       "c-ares") ninja install
                 $static || cp $prefix/lib/libcares_static.a $prefix/lib/libcares.a
                 ;;
+      "cunit") ninja install
+               ;;
       "findutils") make install -j$jobs DESTDIR=$prefix
                     [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                     sed -i -e "s|/usr/bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh|' $prefix/bin/updatedb

@@ -1,5 +1,5 @@
 Aria2 (v1.36.0) aria2c,aria2c.bin
-Bash (v5.1.8) bash etc
+Bash (v5.1.12) bash etc
 Bc (v1.07.1) bc,dc
 Brotli (v1.0.9) brotli
 Coreutils (v9.0) coreutils

@@ -41,6 +41,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Tar (v1.34)
 * Tcpdump (v4.99.1)
 * Vim (v8.2.3564)
+* Wget2 (v2.0.0) - dynamic only
 * Xmlstarlet
 * Xxd (v1.10)
 * Zip (v3.0)
@@ -73,5 +74,6 @@ These are binaries that will be left "as is". I will not be updating them anymor
 * [Tcpdump](https://www.tcpdump.org)
 * [Uoaerg](https://github.com/uoaerg/wavemon)
 * [Vim](https://github.com/vim/vim)
+* [Wget2](https://gitlab.com/gnuwget/wget2)
 * [Zsh](https://www.zsh.org)
 * [Zstd](https://github.com/facebook/zstd)

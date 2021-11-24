@@ -48,8 +48,8 @@ quit() {
   exit 0
 }
 
-scriptver=22
-branch=testing
+scriptver=23
+[ -f $MODDIR/.branch ] && branch="$(cat $MODDIR/.branch)" || branch=master
 # DNS workaround for static curl
 [ $API -ge 31 ] && dns=" --dns-servers 8.8.8.8" || dns=""
 # Doh workaround for dns poisoning
@@ -648,6 +648,7 @@ hidden_menu() {
            esac
          done
          branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
+         echo "$branch" > $MODDIR/.branch
          echo "Switching branch to $branch"
          force_update
          ;;
