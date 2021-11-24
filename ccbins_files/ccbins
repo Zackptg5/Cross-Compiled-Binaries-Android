@@ -49,7 +49,7 @@ quit() {
 }
 
 scriptver=22
-branch=master
+branch=testing
 # DNS workaround for static curl
 [ $API -ge 31 ] && dns=" --dns-servers 8.8.8.8" || dns=""
 # Doh workaround for dns poisoning
