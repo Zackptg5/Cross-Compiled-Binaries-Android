@@ -1,0 +1,143 @@
+--- io.c	2018-02-19 17:55:00.000000000 +0000
++++ io.c	2018-02-27 11:12:19.067766916 +0000
+@@ -2025,7 +2025,7 @@
+ 
+ 		set_sigpipe_to_default();
+ 
+-		execl("/bin/sh", "sh", "-c", command, NULL);
++		execl("/system/bin/sh", "sh", "-c", command, NULL);
+ 		_exit(errno == ENOENT ? 127 : 126);
+ 
+ 	case -1:
+@@ -2077,7 +2077,7 @@
+ 
+ 		signal(SIGPIPE, SIG_DFL);
+ 
+-		execl("/bin/sh", "sh", "-c", command, NULL);
++		execl("/system/bin/sh", "sh", "-c", command, NULL);
+ 		_exit(errno == ENOENT ? 127 : 126);
+ 
+ 	case -1:
+@@ -2364,7 +2364,7 @@
+ 
+ 	/* stderr does NOT get dup'ed onto child's stdout */
+ #ifdef __EMX__
+-	pid = spawnl(P_NOWAIT, "/bin/sh", "sh", "-c", str, NULL);
++	pid = spawnl(P_NOWAIT, /system/bin/sh", "sh", "-c", str, NULL);
+ #else  /* __MINGW32__ */
+ 	pid = spawnl(P_NOWAIT, getenv("ComSpec"), "cmd.exe", "/c",
+ 		     qcmd = quote_cmd(str), NULL);
+@@ -2422,7 +2422,7 @@
+ 			fatal(_("close of pipe failed (%s)"), strerror(errno));
+ 		/* stderr does NOT get dup'ed onto child's stdout */
+ 		set_sigpipe_to_default();
+-		execl("/bin/sh", "sh", "-c", str, NULL);
++		execl("/system/bin/sh", "sh", "-c", str, NULL);
+ 		_exit(errno == ENOENT ? 127 : 126);
+ 	}
+ #endif /* NOT __EMX__, NOT __MINGW32__ */
+@@ -2634,7 +2634,7 @@
+ 	os_close_on_exec(save_stdout, cmd, "pipe", "from"); /* saved stdout of the parent process */
+ 
+ #ifdef __EMX__
+-	pid = spawnl(P_NOWAIT, "/bin/sh", "sh", "-c", cmd, NULL);
++	pid = spawnl(P_NOWAIT, "/system/bin/sh", "sh", "-c", cmd, NULL);
+ #else  /* __MINGW32__ */
+ 	pid = spawnl(P_NOWAIT, getenv("ComSpec"), "cmd.exe", "/c",
+ 		     qcmd = quote_cmd(cmd), NULL);
+@@ -2659,7 +2659,7 @@
+ 		if (close(p[0]) == -1 || close(p[1]) == -1)
+ 			fatal(_("close of pipe failed (%s)"), strerror(errno));
+ 		set_sigpipe_to_default();
+-		execl("/bin/sh", "sh", "-c", cmd, NULL);
++		execl("/system/bin/sh", "sh", "-c", cmd, NULL);
+ 		_exit(errno == ENOENT ? 127 : 126);
+ 	}
+ #endif /* NOT __EMX__, NOT __MINGW32__ */
+--- main.c	2018-02-23 08:44:11.000000000 +0000
++++ main.c	2018-10-28 21:59:28.583118833 +0000
+@@ -246,10 +246,12 @@
+ 	if ((cp = getenv("GAWK_LOCALE_DIR")) != NULL)
+ 		locale_dir = cp;
+ 
+-#if defined(F_GETFL) && defined(O_APPEND)
++#if defined(F_GETFL) && defined(O_APPEND) && !defined(__ANDROID__)
+ 	// 1/2018: This is needed on modern BSD systems so that the
+ 	// inplace tests pass. I think it's a bug in those kernels
+ 	// but let's just work around it anyway.
++	// Do not do this for Android as it interferes with SELinux,
++	// see https://github.com/termux/termux-packages/issues/2979
+ 	int flags = fcntl(fileno(stderr), F_GETFL, NULL);
+ 	if (flags >= 0 && (flags & O_APPEND) == 0) {
+ 		flags |= O_APPEND;
+--- awklib/eg/lib/pwcat.c	2013-05-09 15:05:20.000000000 +0200
++++ awklib/eg/lib/pwcat.c	2014-02-05 23:33:08.000000000 +0100
+@@ -23,6 +23,7 @@
+ int
+ main(int argc, char **argv)
+ {
++#ifndef __ANDROID__
+     struct passwd *p;
+ 
+     while ((p = getpwent()) != NULL)
+@@ -37,5 +38,6 @@
+ #endif
+ 
+     endpwent();
++#endif
+     return 0;
+ }
+--- extension/stack.c	2013-05-02 21:51:30.000000000 +0200
++++ extension/stack.c	2014-02-12 16:54:08.000000000 +0100
+@@ -31,14 +31,14 @@
+ 
+ static size_t size;
+ static void **stack;
+-static int index = -1;
++static int stack_index = -1;
+ 
+ /* stack_empty --- return true if stack is empty */
+ 
+ int
+ stack_empty()
+ {
+-	return index < 0;
++	return stack_index < 0;
+ }
+ 
+ /* stack_top --- return top object on the stack */
+@@ -49,7 +49,7 @@
+ 	if (stack_empty() || stack == NULL)
+ 		return NULL;
+ 
+-	return stack[index];
++	return stack[stack_index];
+ }
+ 
+ /* stack_pop --- pop top object and return it */
+@@ -60,7 +60,7 @@
+ 	if (stack_empty() || stack == NULL)
+ 		return NULL;
+ 
+-	return stack[index--];
++	return stack[stack_index--];
+ }
+ 
+ /* stack_push --- push an object onto the stack */
+@@ -75,7 +75,7 @@
+ 		if (stack == NULL)
+ 			return 0;
+ 		size = INITIAL_STACK;
+-	} else if (index + 1 >= size) {
++	} else if (stack_index + 1 >= size) {
+ 		if (new_size < size)
+ 			return 0;
+ 		new_stack = realloc(stack, new_size * sizeof(void *));
+@@ -85,6 +85,6 @@
+ 		stack = new_stack;
+ 	}
+ 
+-	stack[++index] = object;
++	stack[++stack_index] = object;
+ 	return 1;
+ }

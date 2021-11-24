@@ -8,7 +8,7 @@ Curl (v7.80.0) curl
 Diffutils (v3.8) cmp,diff3,diff,sdiff
 Ed (v1.17) ed,red
 Findutils (v4.8.0) find,frcode,locate,updatedb,xargs
-Gawk (v5.1.0) gawk
+Gawk (v5.1.0) gawk,grcat,pwcat
 Grep (v3.7) egrep,fgrep,grep
 Gzip (v1.11) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v3.1.1) htop
@@ -19,6 +19,7 @@ Nethogs (v0.8.6) nethogs
 Openssl (v3.0.0.0) openssl
 Patch (v2.7.6) patch
 Patchelf (v0.13) patchelf
+RClone (v1.57.0) rclone
 Sed (v4.8) sed
 Strace (v5.14) strace
 Tar (v1.34) tar

@@ -46,7 +46,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **ed**           | Yes       | |
 | **exa**          | *Dynamic* | |
 | **findutils**    | Yes       | Also includes find, locate, updatedb, xargs |
-| **gawk**         | Yes       | GNU awk |
+| **gawk**         | Yes       | GNU awk, also includes grcat and pwcat |
 | **gdbm**         | Yes       | |
 | **grep**         | Yes       | Also includes egrep and fgrep, has full perl regex support |
 | **gzip**         | Yes       | Also includes gunzip and gzexe |
@@ -89,7 +89,6 @@ The below table notes if the binary is compatible with android ndk. If static or
 * Aria2 and Curl have weird DNS error in Android Q and newer when not run as superuser (static compile only) - see notes on it below
 * Sqlite3 static compile still ends up dynamically linked somehow
 * Exa always statically compiles, limitation with rust
-* Pwcat and Grcat (part of gawk) seg fault when ndk is used, compile without it to use them
 * Iftop static compile segfaults
 * Nmap arm64 won't compile static - always ends up dynamic linked somehow 
 * [Known Curl bugs](https://curl.se/docs/knownbugs.html)
@@ -111,6 +110,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 
 ### Credits 
 
+* [Termux](https://github.com/termux/termux-packages)
 * [Jarun](https://github.com/jarun/advcpmv)
 * [Scopatz](https://github.com/scopatz/nanorc)
 * [Alexander Gromnitsky](https://github.com/gromnitsky/bash-on-android)

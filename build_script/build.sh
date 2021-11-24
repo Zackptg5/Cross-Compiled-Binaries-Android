@@ -34,6 +34,7 @@
 # 31) ffsl not present in ndk, use __builtin_ffsl instead
 # 32) time_t stops working after Jan 2038 error fix
 # 33) Remove __GNUC_PREREQ sections, not in ndk so not needed
+# 34) Fix bin path, pwcat segfaults, apply termux patches
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -44,7 +45,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, aria2-alt, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, boringssl, brotli, bzip2, c-ares, coreutils, cpio, curl, diffutils, ed, exa, findutils, gawk, gdbm, grep, gzip, htop, iftop, libexpat, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, zlib, zsh, zstd)"
   echo "           For aria, curl, and nmap dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -103,12 +104,13 @@ build_bin() {
   [ "$lapi" ] || lapi=$api
   # Set flags
   case $arch in
-    arm64|aarch64) arch=aarch64; target_host=aarch64-linux-android; osarch=android-arm64; barch=arm64-v8a;;
-    arm) arch=arm; target_host=arm-linux-androideabi; osarch=android-arm; barch=armeabi-v7a;;
-    x64|x86_64) arch=x86_64; target_host=x86_64-linux-android; osarch=android-x86_64; barch=x86_64;;
-    x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; barch=x86; flags="TIME_T_32_BIT_OK=yes ";;
+    arm64|aarch64) arch=aarch64; target_host=aarch64-linux-android; osarch=android-arm64; barch=arm64-v8a; GOARCH=arm64;;
+    arm) arch=arm; target_host=arm-linux-androideabi; osarch=android-arm; barch=armeabi-v7a; GOARCH=arm; GOARM=7;;
+    x64|x86_64) arch=x86_64; target_host=x86_64-linux-android; osarch=android-x86_64; barch=x86_64; GOARCH=amd64;;
+    x86|i686) arch=i686; target_host=i686-linux-android; osarch=android-x86; barch=x86; GOARCH=386; flags="TIME_T_32_BIT_OK=yes ";;
     *) echored "Invalid arch: $arch!"; exit 1;;
   esac
+  export GOOS=android
   export AR=$target_host-ar
   export AS=$target_host-as
   export LD=$target_host-ld
@@ -157,9 +159,10 @@ build_bin() {
     "openssl") ver="openssl-3.0.0"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.13"; url="https://github.com/NixOS/patchelf";;
-    "pcre") ext=gz; ver="8.45"; url="https://ftp.pcre.org/pub/pcre/pcre-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "pcre2") ext=gz; ver="10.37"; url="https://ftp.pcre.org/pub/pcre/pcre2-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
+    "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;; # No longer exists, will need to be local file
+    "pcre2") ver="pcre2-10.39"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
     "quiche") ver="0.10.0"; url="https://github.com/cloudflare/quiche";;
+    "rclone") ver="v1.57.0"; url="https://github.com/rclone/rclone";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="7f600c4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
@@ -193,7 +196,7 @@ build_bin() {
     "gnu")
       url="https://ftp.gnu.org/gnu/$bin/$bin-$ver.tar.$ext"
       ;;
-    "https://github.com/"*|*"googlesource.com"*) 
+    "https://github.com/"*|"https://gitlab.com/"*|*"googlesource.com"*) 
       if [ -d $bin ]; then
         cd $bin
       else
@@ -216,7 +219,7 @@ build_bin() {
   local origstatic=$static
   if $static; then
     local CFLAGS="-static -O2"
-    local LDFLAGS="-static"
+    local LDFLAGS="-static -s"
     [ "$prefix" ] || local prefix=$dir/build-static/$bin/$arch
     [ -f $dir/patches/ndk_static_patches/$bin.patch ] && patch_file $dir/patches/ndk_static_patches/$bin.patch
   else
@@ -343,7 +346,7 @@ build_bin() {
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/cdefs.h #3
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
       sed -i -e '/if (!num && negative)/d' -e "/return minus_zero/d" -e "/DOUBLE minus_zero = -0.0/d" lib/strtod.c #2
-      [ "$larch" == "i686" ] && flags="--disable-year2038 $flags" #32
+      [ "$arch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -429,10 +432,14 @@ build_bin() {
       $static || sed -i -e "/#ifndef HAVE_ENDGRENT/,/#endif/d" -e "/#ifndef HAVE_ENDPWENT/,/#endif/d" -e "/endpwent/d" -e "/endgrent/d" find/parser.c
       ;;
     "gawk")
-      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+      build_bin readline
+      cd $dir/$bin
+      patch_file $dir/patches/gawk.patch #34
+        ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
-        --disable-nls
+        --disable-nls \
+        --with-readline=$prefix
       ;;
     "gdbm")
         build_bin readline # Also builds ncurses which is required for this binary
@@ -454,7 +461,7 @@ build_bin() {
       ;;
     "gzip")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' lib/vasnprintf.c #1
-      [ "$larch" == "i686" ] && flags="--disable-year2038 $flags" #32
+      [ "$arch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
@@ -575,8 +582,7 @@ build_bin() {
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix \
-        --disable-nls
+        $flags--prefix=$prefix
       ;;
     "nano")
       build_bin libmagic
@@ -690,9 +696,12 @@ build_bin() {
       build_bin bzip2
       build_bin readline # comment out this and the libreadline flag to get rid of the minapi of 26 requirement
       cd $dir/$bin
+      ./autogen.sh
+      $static && flags="--disable-shared $flags"
       ./configure CFLAGS="-O2 -fPIE -fPIC -I$prefix/include" LDFLAGS="-O2 -s -L$prefix/lib" \
         --host=$target_host \
         $flags--prefix= \
+        --enable-unicode-properties \
         --enable-fuzz-support \
         --enable-jit \
         --enable-pcre2grep-libz \
@@ -711,6 +720,12 @@ build_bin() {
       cp -f target/$target_host/release/libquiche* $prefix/lib/
       cp -f target/release/quiche.pc $prefix/lib/pkgconfig/quiche.pc
       sed -i -e "s|=.*/quiche/include|=$prefix/include|" -e "s|=.*/quiche/target/.*|=$prefix/lib|" $prefix/lib/pkgconfig/quiche.pc
+      ;;
+    "rclone")
+      CGO_ENABLED=0 GOPATH=$prefix go build -buildmode=pie -tags="android" -trimpath -ldflags="-linkmode external -extldflags \"$LDFLAGS\""
+      mkdir -p $prefix/bin
+      cp -f rclone $prefix/bin/rclone
+      go clean
       ;;
     "readline")
       build_bin ncurses
@@ -860,7 +875,7 @@ build_bin() {
   esac
   [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
 
-  if [ "$bin" != "exa" ] && [ "$bin" != "quiche" ]; then
+  if [ "$bin" != "exa" ] && [ "$bin" != "rclone" ] && [ "$bin" != "quiche" ]; then
     case "$bin" in
       "boringssl") mkdir -p $prefix/lib
                    cp -f ssl/libssl.a crypto/libcrypto.a decrepit/libdecrepit.a $prefix/lib/
@@ -920,7 +935,7 @@ build_bin() {
       make clean
     fi
   fi
-  if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
+  if [[ "$url" == "https://github.com/"* ]] || [[ "$url" == "https://gitlab.com/"* ]] || [[ "$url" == *"googlesource.com"* ]]; then
     git clean -dxf 2>/dev/null
     git reset --hard 2>/dev/null
   fi
@@ -993,7 +1008,7 @@ done
 # Setup cargo for exa compile
 if [ -d ~/.cargo ]; then
   [ -f ~/.cargo/config.bak ] || cp -f ~/.cargo/config ~/.cargo/config.bak
-  cp -f $dir/patches/cargo_config ~/.cargo/config
+  [ $ndknum -ge 23 ] && cp -f $dir/patches/cargo_config ~/.cargo/config || cp -f $dir/patches/cargo_config_old ~/.cargo/config
   sed -i "s|<toolchain>|$toolchain|g" ~/.cargo/config 2>/dev/null
 fi
 
