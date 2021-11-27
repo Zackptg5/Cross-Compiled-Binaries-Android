@@ -1,3 +1,7 @@
+23 - 11.xx.2021
+* Change branch to be based on presence of file for compatibility between branches (so I can just pull request rather than do this all by hand)
+  Note that if not on master, you will need to switch back to your branch again after this update
+
 22 - 11.11.2021
 * Fixes for android 12
 

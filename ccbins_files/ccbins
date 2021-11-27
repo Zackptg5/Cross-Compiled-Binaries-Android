@@ -48,41 +48,22 @@ quit() {
   exit 0
 }
 
-scriptver=22
-branch=master
-# DNS workaround for static curl
-[ $API -ge 31 ] && dns=" --dns-servers 8.8.8.8" || dns=""
-# Doh workaround for dns poisoning
-[ -f $MODDIR/doh ] && { [ $API -ge 31 ] && dns=" --dns-servers 223.5.5.5"; flag=" --doh-url $(tail -n1 $MODDIR/doh)"; doh="$(head -n1 $MODDIR/doh)"; }
-# Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
-[ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs$flag" || alias curl="$MODDIR/curl -Ls$flag"
-unset flag
-# Make sure binaries are present
-for i in curl wg wg-quick; do
-  [ -f "$MODDIR/$i" ] && continue
-  [ "$i" == "curl" ] && { echo -e "Curl missing!\nReinstall ccbins or copy curl to root of ccbins module folder!"; quit; }
-  (curl -o $MODDIR/$i https://github.com/Magisk-Modules-Repo/ccbins/master/$i-$ARCH32 & e_spinner "Downloading $i") && echo " - OK" || { echo " - Error"; quit; }
-  set_perm $MODDIR/$i 0 0 755
-done
-# DNS resolution fix for wireguard tunnels - use wireguard dns servers if specified
-curlalias="$(alias | grep 'curl=' | sed -r "s/curl='(.*)'/\1/")"
-if [ "$(pm list packages com.wireguard.android)" ] && [ "$(wg show)" ]; then
-  wgint="$(wg show | grep 'interface' | sed 's/interface: //')"
-  # Initial log/output from starting a tunnel is only surefire way to get the dns addresses to my knowledge
-  for i in $wgint; do
-    wg-quick down $i >/dev/null; wg-quick up $i | tee $MODDIR/tmp >/dev/null
-    j="$(grep setResolverConfiguration $MODDIR/tmp | awk -F '[()]' '{print $2}' | cut -d '[' -f2 | cut -d ']' -f1 | sed 's/ //g')"
-    [ "$j" ] && dnsrvs="$dnsrvs,$j"
-    j="$(grep setResolverConfiguration $MODDIR/tmp | awk -F '[()]' '{print $2}' | cut -d '[' -f3 | cut -d ']' -f1 | sed 's/ //g')"
-    [ "$j" ] && dnsrvs="$dnsrvs,$j"
-  done
-  dnsrvs="$(echo "$dnsrvs" | sed 's/^,//')"
-  rm -f $MODDIR/tmp
-  [ "$dnsrvs" ] && dns=" --dns-servers $dnsrvs"
-  unset wgint dnsrvs
+scriptver=23
+[ -f $MODDIR/.branch ] && branch="$(cat $MODDIR/.branch)" || branch=master
+# Doh workaround for dns poisoning, DNS servers must be specified for Android Oreo+ and/or if wireguard tunnel active - just specify all the time cause I'm lazy
+[ -f $MODDIR/doh ] && mv -f $MODDIR/doh $MODDIR/.doh
+if [ -f $MODDIR/.doh ]; then
+  flag=" --doh-url $(tail -n1 $MODDIR/.doh)"
+  doh="$(head -n1 $MODDIR/.doh)"
+  [ "$doh" == "Cloudflare" ] && dns="1.1.1.1,1.0.0.1" || dns="223.5.5.5,223.6.6.6"
+else
+  dns="1.1.1.1,1.0.0.1"
 fi
-alias curl="$(echo "$curlalias$dns")"
-unset curlalias
+# Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
+[ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs --dns-servers $dns$flag" || alias curl="$MODDIR/curl -Ls --dns-servers $dns$flag"
+unset flag
+# Make sure curl binary is present
+[ -f $MODDIR/curl ] || { echo -e "Curl missing!\nReinstall ccbins or copy curl to root of ccbins module folder!"; quit; }
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
 [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)" || insloc=/system/bin
@@ -112,7 +93,7 @@ download_file() {
   if [ "$file" == "$MODDIR/.checksums" ]; then
     if [ ! -f "$file" ]; then
       echo "Checksums download failed!"
-      [ "$doh" ] && echo -e "Try deleting $MODDIR/doh\n    or disabling your vpn"
+      [ "$doh" ] && echo -e "Try deleting /data/adb/modules/ccbins/.doh\n    or disabling your vpn"
       quit
     elif [ "$(head -n1 "$file")" != "checksums.txt" ]; then
       echo "Checksums download failed!"
@@ -317,7 +298,7 @@ options_menu() {
     title_div "Options Menu"
     echo "$div"
     [ "$doh" ] && echo "Current DOH Server: $doh" || echo "Current DOH Server: None"
-    [ -f $MODDIR/doh ] && echo "Set DOH Server: $(head -n1 $MODDIR/doh)" || echo "Set DOH Server: None"
+    [ -f $MODDIR/.doh ] && echo "Set DOH Server: $(head -n1 $MODDIR/.doh)" || echo "Set DOH Server: None"
     echo "$div"
     echo "0: Go back to main menu"
     echo "1: Change install location"
@@ -342,7 +323,7 @@ options_menu() {
            echo "0: Go back to options menu"
            echo "1: None"
            echo "2: Cloudflare"
-           echo "3: Alibaba (recommended for Chinese users)"
+           echo "3: Alibaba"
            while true; do
              read -r choice?'--> '
              echo " "
@@ -354,9 +335,9 @@ options_menu() {
            done
            case $choice in
              0) break;;
-             1) rm -f $MODDIR/doh; break;;
-             2) echo -e "Cloudflare\nhttps://cloudflare-dns.com/dns-query" > $MODDIR/doh; break;;
-             3) echo -e "Alibaba\nhttps://dns.alidns.com/dns-query" > $MODDIR/doh; break;;
+             1) rm -f $MODDIR/.doh; break;;
+             2) echo -e "Cloudflare\nhttps://cloudflare-dns.com/dns-query" > $MODDIR/.doh; break;;
+             3) echo -e "Alibaba\nhttps://dns.alidns.com/dns-query" > $MODDIR/.doh; break;;
            esac
          done;;
     esac
@@ -648,6 +629,7 @@ hidden_menu() {
            esac
          done
          branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
+         echo "$branch" > $MODDIR/.branch
          echo "Switching branch to $branch"
          force_update
          ;;

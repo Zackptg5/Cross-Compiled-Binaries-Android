@@ -55,3 +55,5 @@ fi
 
 # Cleanup
 rm -f $MODPATH/busybox-* $MODPATH/curl-* $MODPATH/wg-quick-* $MODPATH/wg-arm $MODPATH/wg-x86 $MODPATH/functions.sh $MODPATH/install.sh $MODPATH/customize.sh $MODPATH/README.md
+
+# No longer needed with ccbins v9.0+. Will keep here for a few months for older ccbins zips

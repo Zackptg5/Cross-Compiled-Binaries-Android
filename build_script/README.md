@@ -7,7 +7,7 @@ Linux - Tested on Arch-based distro. You could try this on other distros but you
 
 ### Prereq Setup ###
 ```
-sudo pacman -S git libgit2 python-pip
+sudo pacman -S base-devel git libgit2 python-pip go
 pip install abimap
 git clone https://github.com/akhilnarang/scripts # Sets up build environment
 cd scripts
@@ -41,6 +41,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **c-ares**       | Yes       | |
 | **coreutils**    | Yes       | Advanced cp/mv (progress bar), Openssl support, Selinux Support |
 | **cpio**         | Yes       | Newer versions are bugged, stick with 2.12 for now |
+| **cunit**        | Yes       | |
 | **curl**         | Yes       | |
 | **diffutils**    | Yes       | Also includes cmp, diff, diff3, sdiff |
 | **ed**           | Yes       | |
@@ -48,11 +49,13 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **findutils**    | Yes       | Also includes find, locate, updatedb, xargs |
 | **gawk**         | Yes       | GNU awk, also includes grcat and pwcat |
 | **gdbm**         | Yes       | |
+| **gmp**          | Yes       | |
 | **grep**         | Yes       | Also includes egrep and fgrep, has full perl regex support |
 | **gzip**         | Yes       | Also includes gunzip and gzexe |
 | **htop**         | Yes       | |
 | **iftop**        | *Dynamic* | |
 | **libexpat**     | Yes       | |
+| **libhsts**      | Yes       | |
 | **libidn2**      | Yes       | |
 | **libmagic**     | Yes       | |
 | **libnl**        | Yes       | |
@@ -81,12 +84,14 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **tcpdump**      | Yes       | |
 | **vim**          | Yes       | |
 | **wavemon**      | Yes       | |
+| **wget2**        | *Dynamic* | |
 | **zlib**         | Yes       | |
 | **zsh**          | Yes       | |
 | **zstd**         | Yes       | |
 
 ## Issues
 * Aria2 and Curl have weird DNS error in Android Q and newer when not run as superuser (static compile only) - see notes on it below
+* Wget2 static doesn't resolve dns at all and no flags to change dns servers, likely related to aria2/curl problem
 * Sqlite3 static compile still ends up dynamically linked somehow
 * Exa always statically compiles, limitation with rust
 * Iftop static compile segfaults
