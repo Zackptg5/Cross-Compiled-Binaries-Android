@@ -31,7 +31,7 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 3e7455f52680a67cfe0f9b771a1068fc  brotli/brotli-x64
 59db770b99b630a9ca4354aedd38679b  brotli/brotli-x86
 41906dcd2e4d8e21c5cba251f7c02a4a  ccbins_files/ccbins
-c1a94bc48df16dce08a7fce431da7fd1  ccbins_files/changelog.txt
+52c5f055f8f5b457f7cc35f6bc3e2c02  ccbins_files/changelog.txt
 f6403cf87a66c0d97014f7d749268ca4  ccbins_files/includes-dynamic.txt
 8bab22aaa57bc8fee0ef25cc52ef9581  ccbins_files/includes.txt
 e92c7e90dfdee4012a33a1db35393340  ccbins_files/install.sh
