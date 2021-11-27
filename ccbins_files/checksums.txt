@@ -30,13 +30,13 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 941624adbdca4e5f52d04aaf7100f64c  brotli/brotli-arm64
 3e7455f52680a67cfe0f9b771a1068fc  brotli/brotli-x64
 59db770b99b630a9ca4354aedd38679b  brotli/brotli-x86
-118ff813c21eea7511e76b4992169344  ccbins_files/ccbins
+41906dcd2e4d8e21c5cba251f7c02a4a  ccbins_files/ccbins
 c1a94bc48df16dce08a7fce431da7fd1  ccbins_files/changelog.txt
 f6403cf87a66c0d97014f7d749268ca4  ccbins_files/includes-dynamic.txt
 8bab22aaa57bc8fee0ef25cc52ef9581  ccbins_files/includes.txt
-945dfa2f5474b700311f202d7df64695  ccbins_files/install.sh
+e92c7e90dfdee4012a33a1db35393340  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
-2851c0ac7cb9cd5f76461026b14333eb  ccbins_files/module.prop
+3f363f93704d9869ee501b23b47ff4ec  ccbins_files/module.prop
 1b7e19bdc149c92b08fd09a25e461f20  ccbins_files/service.sh
 a83e476c3e0466a7d2c8e6482655bee4  coreutils/coreutils-arm
 c42d101605a6ce498e5549487ca6b5e4  coreutils/coreutils-arm64
@@ -56,7 +56,7 @@ a8ee1790afb22f04898f5afdd7f371cd  curl/dynamic/install.sh
 a023d6d26e8f2c4592619404048554f9  curl/curl-arm64
 9eb869635c836552aaf656aa2c12c54d  curl/curl-x64
 f9c9c8000e51585b0f49809c034f66cc  curl/curl-x86
-aef6e046c38ed022ad2f2325b9573d84  curl/install.sh
+ff1119d7c0fbbc4a3b9a60eb75ea8af7  curl/install.sh
 4027cf3245456e0f7685d954c33f64b9  diffutils/cmp-arm
 956990f7a1cbb490671d8f0102dea7cb  diffutils/cmp-arm64
 a60f45c42ee88d2be9955d6f76891812  diffutils/cmp-x64
