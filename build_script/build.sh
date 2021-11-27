@@ -39,7 +39,8 @@
 # 36) Fix data home directory
 # 37) Openssl OCSP doesn't yet work, disable it for now
 # 38) Duplicate definition of time
-# 39 Fix htoprc path
+# 39) Fix htoprc path
+# 40) Missing libgcc rust workaround
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -1022,7 +1023,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r21e #LTS NDK
+ndk=r23b #LTS NDK
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
@@ -1068,12 +1069,11 @@ export PATH=$toolchain:$PATH
 # Create needed symlinks
 if [ $ndknum -ge 23 ]; then
   for i in aarch64-linux-android arm-linux-androideabi x86_64-linux-android i686-linux-android; do
+    echo 'INPUT(-lunwind)' > $toolchain/../sysroot/usr/lib/$i/libgcc.a #40
     ln -sf $toolchain/llvm-ar $toolchain/$i-ar
     ln -sf $toolchain/ld $toolchain/$i-ld
     ln -sf $toolchain/llvm-ranlib $toolchain/$i-ranlib
     ln -sf $toolchain/llvm-strip $toolchain/$i-strip
-    [ "$i" == "armv7a-linux-androideabi" ] && j="arm-linux-androideabi" || j=$i
-    # ln -sf $toolchain/$i-clang $toolchain/$i-as
   done
 fi
 for i in ar as ld ranlib strip clang gcc clang++ g++; do
