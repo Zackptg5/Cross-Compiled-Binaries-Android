@@ -194,7 +194,7 @@ c6dcc5322a00a9d5e65d7a53ff40e4fb  gzip/zless-x86
 504a3a6afb9cbba1f0b284299d76bbec  htop/htop-arm64
 0656a2aa7f03c4789f04864309a3245d  htop/htop-x64
 b4cf56b78d200678038ce4bf78531d9c  htop/htop-x86
-3fc210d23a92ccf66a75f0f205a12524  htop/install.sh
+251fd1d66f359e98f2bd5f1aded95bff  htop/install.sh
 fea2fe1fac42f83bad10022df45a48ce  iftop/dynamic/iftop-arm
 0aae97be45c28cb8a527ebf0dfe52d70  iftop/dynamic/iftop-arm64
 8b1dd35e0cee261d081c7d7addf97ff4  iftop/dynamic/iftop-x64
