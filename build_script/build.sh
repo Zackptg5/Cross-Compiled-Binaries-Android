@@ -86,8 +86,8 @@ gnu_patches() {
       break
     fi
   done
-  [ -d "$dir/patches/$bin\_patches" ] || return 0
-  for i in $dir/patches/$bin\_patches/*; do
+  [ -d "$dir/patches/$bin" ] || return 0
+  for i in $dir/patches/$bin/*; do
     local pfile=$(basename $i)
     cp -f $i $pfile
     sed -i "s/4.4/$ver/g" $pfile
@@ -1023,7 +1023,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r23b #LTS NDK
+ndk=r21e #LTS NDK
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
