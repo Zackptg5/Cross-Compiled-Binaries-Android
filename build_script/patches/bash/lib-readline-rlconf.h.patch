@@ -1,14 +1,7 @@
 --- ../bash-5.0/lib/readline/rlconf.h	Mon Jan 25 10:35:32 2016
 +++ lib/readline/rlconf.h	Fri Dec 14 09:26:29 2018
-@@ -40,10 +40,18 @@
- #define PREFIX_META_HACK
- 
- /* The next-to-last-ditch effort file name for a user-specific init file. */
-+#ifdef __ANDROID__
-+#define DEFAULT_INPUTRC "/sdcard/.inputrc"
-+#else
+@@ -43,7 +43,11 @@
  #define DEFAULT_INPUTRC "~/.inputrc"
-+#endif
  
  /* The ultimate last-ditch filename for an init file -- system-wide. */
 +#ifdef __ANDROID__

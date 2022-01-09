@@ -276,11 +276,9 @@ build_bin() {
         --with-ca-bundle='/system/etc/security/ca-certificates.crt'
       ;;
     "bash")
-      build_bin readline
-      cd $dir/$bin
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
       gnu_patches || exit 1
-      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
