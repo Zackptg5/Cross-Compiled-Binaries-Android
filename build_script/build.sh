@@ -30,7 +30,7 @@
 # 27) Quiche needs libdl and libmath libs specified and the configure arg pointed to the pkgconfig file location
 # 28) Openssl needs libdl during static compiles
 # 29) Replace deprecated (and removed since API 21) getdtablesize() with sysconf(_SC_OPEN_MAX). Strange because it's properly defined elsewhere
-# 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11)
+# 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11) - no longer needed as of v5.15
 # 31) ffsl not present in ndk, use __builtin_ffsl instead
 # 32) time_t stops working after Jan 2038 error fix
 # 33) Remove __GNUC_PREREQ sections, not in ndk so not needed
@@ -97,11 +97,11 @@ gnu_patches() {
   done
 }
 setup_ohmyzsh() {
-  [ -d $prefix/system/etc/zsh ] && return 0
-  mkdir -p $prefix/system/etc/zsh
-  git clone https://github.com/ohmyzsh/ohmyzsh.git $prefix/system/etc/zsh/.oh-my-zsh
-  cp $prefix/system/etc/zsh/.oh-my-zsh/templates/zshrc.zsh-template $prefix/system/etc/zsh/.zshrc
-  sed -i -e "s|PATH=.*|PATH=\$PATH|" -e "s|ZSH=.*|ZSH=/system/etc/zsh/.oh-my-zsh|" -e "s|ARCHFLAGS=.*|ARCHFLAGS=\"-arch $arch\"|" $prefix/system/etc/zsh/.zshrc
+  [ -d $prefix/etc/zsh ] && return 0
+  mkdir -p $prefix/etc/zsh
+  git clone https://github.com/ohmyzsh/ohmyzsh.git $prefix/etc/zsh/.oh-my-zsh
+  cp $prefix/etc/zsh/.oh-my-zsh/templates/zshrc.zsh-template $prefix/etc/zsh/.zshrc
+  sed -i -e "s|PATH=.*|PATH=\$PATH|" -e "s|ZSH=.*|ZSH=/system/etc/zsh/.oh-my-zsh|" -e "s|ARCHFLAGS=.*|ARCHFLAGS=\"-arch $arch\"|" $prefix/etc/zsh/.zshrc
 }
 build_bin() {
   # Versioning and overrides
@@ -137,17 +137,17 @@ build_bin() {
     "coreutils") ext=xz; ver="9.0"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_80_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_82_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.17"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
-    "findutils") ext=xz; ver="4.8.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
-    "gdbm") ext=gz; ver="1.22" url="gnu";;
+    "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
     "grep") ext=xz; ver="3.7"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.11"; url="gnu";;
-    "htop") ver="3.1.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
+    "htop") ver="3.1.2"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "libexpat") ver="R_2_4_1"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
@@ -159,33 +159,33 @@ build_bin() {
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.10.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
-    "nano") ext=xz; ver="5.9"; url="gnu";;
-    "ncurses"|"ncursesw") ext=gz; ver="6.2"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
+    "nano") ext=xz; ver="6.2"; url="gnu";;
+    "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.46.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.47.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="openssl-3.0.0"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="openssl-3.0.1"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
-    "patchelf") ver="0.13"; url="https://github.com/NixOS/patchelf";;
+    "patchelf") ver="0.14.5"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ver="pcre2-10.39"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.10.0"; url="https://github.com/cloudflare/quiche";;
+    "quiche") ver="0.12.0"; url="https://github.com/cloudflare/quiche";;
     "rclone") ver="v1.57.0"; url="https://github.com/rclone/rclone";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="7f600c4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3360000"; url="https://sqlite.org/2021/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.14"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "sqlite") ext=gz; ver="3380100"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v5.16"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
     "tcpdump") ver="tcpdump-4.99.1"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "wget2") ver="v2.0.0"; url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
+    "wget2") url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
     "zlib") ext="gz"; ver="1.2.11"; url="http://zlib.net/zlib-$ver.tar.$ext";;
-    "zsh") ext=xz; ver="5.8"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
-    "zstd") ver="v1.5.0"; url="https://github.com/facebook/zstd";;
+    "zsh") ext=xz; ver="5.8.1"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
+    "zstd") ver="v1.5.2"; url="https://github.com/facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
   esac
 
@@ -315,6 +315,7 @@ build_bin() {
       cmake -DANDROID_ABI=$barch \
         -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
         -DANDROID_NATIVE_API_LEVEL=$lapi \
+        -DANDROID_PLATFORM=$lapi \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=$prefix \
         -DBUILD_SHARED_LIBS=0 \
@@ -447,6 +448,7 @@ build_bin() {
       cp -f $dir/$bin/target/$target_host/release/exa $prefix/bin/exa
     ;;
     "findutils")
+      [ "$arch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=/system \
@@ -645,8 +647,8 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
-        --disable-stripping \
-        --enable-pc-files --with-pkg-config-libdir=$prefix/lib/pkgconfig
+        --disable-stripping #\
+        # --enable-pc-files --with-pkg-config-libdir=$prefix/lib/pkgconfig
       ;;
     "nethogs")
       build_bin libpcap
@@ -755,10 +757,10 @@ build_bin() {
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
       mkdir -p $prefix/include $prefix/lib/pkgconfig 2>/dev/null
       # cp -rf deps/boringssl/src/include $prefix/
-      cp -f include/quiche.h $prefix/include/quiche.h
+      cp -f quiche/include/quiche.h $prefix/include/quiche.h
       # cp -f $(find target/$target_host/release -name libcrypto.a -o -name libssl.a) target/$target_host/release/libquiche* $prefix/lib/
       cp -f target/$target_host/release/libquiche* $prefix/lib/
-      cp -f target/release/quiche.pc $prefix/lib/pkgconfig/quiche.pc
+      cp -f target/$target_host/release/quiche.pc $prefix/lib/pkgconfig/quiche.pc
       sed -i -e "s|=.*/quiche/include|=$prefix/include|" -e "s|=.*/quiche/target/.*|=$prefix/lib|" $prefix/lib/pkgconfig/quiche.pc
       ;;
     "rclone")
@@ -794,20 +796,19 @@ build_bin() {
       for i in $(find . -type f -name 'Makefile'); do sed -i '/PREFIX ?=/d' $i; done
       ;;
     "sqlite")
-      build_bin readline # Also builds ncurses which is required for this binary
+      build_bin ncurses
       cd $dir/$bin
       $static && flags="--disable-shared $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix \
-        --enable-readline
+        $flags--prefix=$prefix
       ;;
     "strace")
       [ "$arch" == "aarch64" ] && flags="ac_cv_prog_CC_FOR_M32=arm-linux-androideabi-clang $flags" #15
       ./bootstrap
       sed -i "/#  define static_assert(/i#  undef static_assert" src/static_assert.h #16
       sed -i '/#define RENAME_/d' bundled/linux/include/uapi/linux/fs.h #30
-      sed -i 's/__kernel_sockaddr_storage/sockaddr_storage/' bundled/linux/include/uapi/linux/socket.h #30
+      # sed -i 's/__kernel_sockaddr_storage/sockaddr_storage/' bundled/linux/include/uapi/linux/socket.h #30
       ./configure CFLAGS="$CFLAGS -Wno-error=unused-function" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -941,8 +942,18 @@ build_bin() {
         --sysconfdir=/system/etc
       ;;
     "zstd")
-      $static && [ ! "$(grep '#Zackptg5' programs/Makefile)" ] && { sed -i "s/CFLAGS   +=/CFLAGS   += -static/" programs/Makefile; echo "#Zackptg5" >> programs/Makefile; }
-      true # Needed for conditional below in dynamic builds where this returns false
+      cd build
+      $static && flags="-DCMAKE_EXE_LINKER_FLAGS='-static' "
+      cmake -DANDROID_ABI=$barch \
+        -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
+        -DANDROID_PLATFORM=android-$lapi \
+        -DANDROID_TOOLCHAIN=clang \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=$prefix \
+        -DZSTD_MULTITHREAD_SUPPORT=enabled \
+        -DZSTD_LEGACY_SUPPORT=1 \
+        $flags-G"Unix Makefiles" cmake
+      make -j$JOBS
       ;;
   esac
   [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
@@ -960,7 +971,7 @@ build_bin() {
                ;;
       "findutils") make install -j$jobs DESTDIR=$prefix
                     [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-                    sed -i -e "s|/usr/bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh|' $prefix/bin/updatedb
+                    sed -i -e "s|/usr/bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh"|' $prefix/bin/updatedb
                     mv -f $prefix/system/* $prefix
                     rm -rf $prefix/sdcard $prefix/system
                     ;;
@@ -996,7 +1007,7 @@ build_bin() {
              cp -rf $prefix/system/* $prefix/; rm -rf $prefix/system
              ! $static && [ "$arch" == "aarch64" -o "$arch" == "x86_64" ] && mv -f $dest/$arch/lib $dest/$arch/lib64
             ;;
-      "zstd") make install -j$jobs PREFIX=$prefix
+      "zstd") make install -j$jobs
               [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
               ;;
       *) make install -j$jobs
