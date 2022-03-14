@@ -4,30 +4,30 @@ Bc (v1.07.1) bc,dc
 Brotli (v1.0.9) brotli
 Coreutils (v9.0) coreutils
 Cpio (v2.12) cpio
-Curl (v7.80.0) curl
+Curl (v7.82.0) curl
 Diffutils (v3.8) cmp,diff3,diff,sdiff
 Ed (v1.17) ed,red
-Findutils (v4.8.0) find,frcode,locate,updatedb,xargs
+Findutils (v4.9.0) find,frcode,locate,updatedb,xargs
 Gawk (v5.1.0) gawk,grcat,pwcat
 Grep (v3.7) egrep,fgrep,grep
 Gzip (v1.11) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
-Htop (v3.1.1) htop
+Htop (v3.1.2) htop
 Iw (v5.9) iw
 Keycheck (v1.0) keycheck
-Nano (v6.0.0) nano etc,usr,rnano
+Nano (v6.2.0) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs
-Openssl (v3.0.0.0) openssl
+Openssl (v3.0.1.0) openssl
 Patch (v2.7.6) patch
-Patchelf (v0.13) patchelf
+Patchelf (v0.14.5) patchelf
 RClone (v1.57.0) rclone
 Sed (v4.8) sed
-Strace (v5.14) strace
+Strace (v5.16) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
-Vim (v8.2.3564) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Vim (v8.2.4564) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Wavemon (v0.9.3) wavemon
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd
 Zip (v3.0) zip
-Zsh (v5.8.0) zsh etc,usr
-Zstd (v1.5.0) zstd,zstdgrep,zstdless unzstd,zstdcat,zstdmt
+Zsh (v5.8.1) zsh etc,usr
+Zstd (v1.5.2) zstd,zstdgrep,zstdless unzstd,zstdcat,zstdmt
