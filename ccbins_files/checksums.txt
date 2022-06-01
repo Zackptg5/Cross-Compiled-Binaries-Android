@@ -102,10 +102,10 @@ d7d084b48bdecef581c598e1a16f5584  findutils/frcode-arm64
 7c0cec1633e51adab9561251bd1f8d92  findutils/locate-arm64
 b0b8972dc43f59859d195a88c745a080  findutils/locate-x64
 67470cf1a940c0bee41c1b19e9bf17e6  findutils/locate-x86
-15531ac4bf91a2269b3f4a854441ce1d  findutils/updatedb-arm
-15531ac4bf91a2269b3f4a854441ce1d  findutils/updatedb-arm64
-8cfc12077c94e0b33cd5e9a5e7c3e01c  findutils/updatedb-x64
-8cfc12077c94e0b33cd5e9a5e7c3e01c  findutils/updatedb-x86
+c1c350d8c33a0f100949cb0515407f8d  findutils/updatedb-arm
+c1c350d8c33a0f100949cb0515407f8d  findutils/updatedb-arm64
+8f35d7354b01c2490a627cf1ea563f18  findutils/updatedb-x64
+8f35d7354b01c2490a627cf1ea563f18  findutils/updatedb-x86
 fcfbcd3acbfd7be6466ef777441c89bb  findutils/xargs-arm
 34e86a2c0300fc0bc049da65ba46782f  findutils/xargs-arm64
 93d6c941ebacec7ca479a94285637f91  findutils/xargs-x64

@@ -971,9 +971,9 @@ build_bin() {
                ;;
       "findutils") make install -j$jobs DESTDIR=$prefix
                     [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-                    sed -i -e "s|/usr/bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh"|' $prefix/bin/updatedb
                     mv -f $prefix/system/* $prefix
                     rm -rf $prefix/sdcard $prefix/system
+                    sed -i -e "s|/usr/.*bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh"|' $prefix/bin/updatedb
                     ;;
       "libnl") make install # Using multiple cores causes weird font glitch in terminal
                [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
