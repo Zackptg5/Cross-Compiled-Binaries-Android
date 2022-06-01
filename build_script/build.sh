@@ -1032,7 +1032,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r21e #LTS NDK
+ndk=r23b #LTS NDK
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
