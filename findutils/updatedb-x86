@@ -108,11 +108,11 @@ esac
 
 if true
 then
-    sort="/usr/sbin/sort -z"
+    sort="/system/bin/sort -z"
     print_option="-print0"
     frcode_options="$frcode_options -0"
 else
-    sort="/usr/sbin/sort"
+    sort="/system/bin/sort"
     print_option="-print"
 fi
 
