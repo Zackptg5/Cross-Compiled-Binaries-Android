@@ -37,10 +37,10 @@
 # 34) Fix bin path, pwcat segfaults, apply termux patches
 # 35) Create missing file
 # 36) Fix data home directory
-# 37) Openssl OCSP doesn't yet work, disable it for now
-# 38) Duplicate definition of time
-# 39) Fix htoprc path
-# 40) Missing libgcc rust workaround
+# 37) Duplicate definition of time
+# 38) Fix htoprc path
+# 39) Missing libgcc rust workaround
+# 40) Fix cc not defined bug with v1.2.12. See comments here: https://github.com/madler/zlib/commit/e9a52aa129efe3834383e415580716a7c4027f8d
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -131,60 +131,59 @@ build_bin() {
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
-    "boringssl") ver="f1c7534"; url="https://boringssl.googlesource.com/boringssl";; # Keep consistent with quiche boringssl
+    "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
     "c-ares") ver="cares-1_18_1"; url="https://github.com/c-ares/c-ares";;
-    "coreutils") ext=xz; ver="9.0"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
+    "coreutils") ext=xz; ver="9.1"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_82_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_83_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
-    "ed") ext=lz; ver="1.17"; url="gnu";;
+    "ed") ext=lz; ver="1.18"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "gawk") ext=xz; ver="5.1.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
+    "gawk") ext=xz; ver="5.1.1"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
     "grep") ext=xz; ver="3.7"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "gzip") ext=xz; ver="1.11"; url="gnu";;
-    "htop") ver="3.1.2"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
+    "gzip") ext=xz; ver="1.12"; url="gnu";;
+    "htop") ver="3.2.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
-    "libexpat") ver="R_2_4_1"; url="https://github.com/libexpat/libexpat";;
+    "libexpat") ver="R_2_4_8"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
-    "libiconv") ext=gz; ver="1.16"; url="gnu";;
+    "libiconv") ext=gz; ver="1.17"; url="gnu";;
     "libidn2") ext=gz; ver="2.3.2"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "libmagic") ext=gz; ver="5.41"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "libpcap"|"libpcapnl") ver="1.10"; ver="c1cf421"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
+    "libpcap"|"libpcapnl") ver="1.10.1"; ver="2e03192"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.10.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
-    "libunistring") ext=gz; ver="0.9.10"; url="gnu";;
-    "nano") ext=xz; ver="6.2"; url="gnu";;
+    "libunistring") ext=gz; ver="1.0"; url="gnu";;
+    "nano") ext=xz; ver="6.3"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.47.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="openssl-3.0.1"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="openssl-3.0.3"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.14.5"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
-    "pcre2") ver="pcre2-10.39"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.12.0"; url="https://github.com/cloudflare/quiche";;
-    "rclone") ver="v1.57.0"; url="https://github.com/rclone/rclone";;
+    "pcre2") ver="pcre2-10.40"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
+    "quiche") ver="0.14.0"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "selinux") ver="7f600c4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3380100"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.16"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
+    "sqlite") ext=gz; ver="3380500"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v5.17"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
     "tcpdump") ver="tcpdump-4.99.1"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "wget2") url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
-    "zlib") ext="gz"; ver="1.2.11"; url="http://zlib.net/zlib-$ver.tar.$ext";;
-    "zsh") ext=xz; ver="5.8.1"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
+    "wget2") ver="v2.0.1"; url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
+    "zlib") ver="v1.2.12"; url="https://github.com/madler/zlib";;
+    "zsh") ext=xz; ver="5.9"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
     "zstd") ver="v1.5.2"; url="https://github.com/facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
   esac
@@ -286,6 +285,7 @@ build_bin() {
         --enable-largefile \
         --enable-alias \
         --enable-readline \
+        --enable-history \
         --enable-multibyte \
         --enable-job-control \
         --enable-array-variables \
@@ -455,7 +455,8 @@ build_bin() {
         --disable-nls \
         --sbindir=/system/bin \
         --libexecdir=/system/bin \
-        --datarootdir=/system/usr/share || { echored "Configure failed!"; exit 1; }
+        --datarootdir=/system/usr/share \
+        --localstatedir=/data/local/tmp || { echored "Configure failed!"; exit 1; }
       $static || sed -i -e "/#ifndef HAVE_ENDGRENT/,/#endif/d" -e "/#ifndef HAVE_ENDPWENT/,/#endif/d" -e "/endpwent/d" -e "/endgrent/d" find/parser.c
       ;;
     "gawk")
@@ -510,7 +511,7 @@ build_bin() {
         ac_cv_lib_ncursesw6_addnwstr=yes
       $static && sed -i "/rdynamic/d" Makefile.am #9
       sed -i 's/ ffsl/ __builtin_ffsl/' linux/LinuxProcessList.c #31
-      sed -i 's|/.config|/system/etc|g' Settings.c #39
+      sed -i 's|/.config|/system/etc|g' Settings.c #38
       ;;
     "iftop")
       build_bin libpcap
@@ -698,8 +699,8 @@ build_bin() {
     "openssl")
       cd $dir/$bin
       if $static; then
-        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/client.c #38
-        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/server.c #38
+        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/client.c #37
+        sed -i "/#if \!defined(_WIN32)/,/#endif/d" fuzz/server.c #37
         flags="-static threads $flags"
       else
         flags="shared $flags"
@@ -762,12 +763,6 @@ build_bin() {
       cp -f target/$target_host/release/libquiche* $prefix/lib/
       cp -f target/$target_host/release/quiche.pc $prefix/lib/pkgconfig/quiche.pc
       sed -i -e "s|=.*/quiche/include|=$prefix/include|" -e "s|=.*/quiche/target/.*|=$prefix/lib|" $prefix/lib/pkgconfig/quiche.pc
-      ;;
-    "rclone")
-      GOOS=android CGO_ENABLED=0 GOPATH=$prefix go build -buildmode=pie -tags="android" -trimpath -ldflags="-linkmode external -extldflags \"$LDFLAGS\""
-      mkdir -p $prefix/bin
-      cp -f rclone $prefix/bin/rclone
-      go clean
       ;;
     "readline")
       build_bin ncurses
@@ -886,7 +881,7 @@ build_bin() {
       flags="--disable-shared $flags"
       $static && LDFLAGS="$LDFLAGS -all-static" || rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
       sed -i 's|%s/.local/share|/sdcard|' src/options.c #36
-      sed -i 's|\[openssl/ocsp.h\]|\[openssl/ocsp2.h\]|' configure.ac #37
+      # Need --ca-certificate=<ca-certificates.crt from aria2> OR --ca-directory works if files in it processed to only have cert portion
       ./bootstrap
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
@@ -894,8 +889,7 @@ build_bin() {
         --disable-nls \
         --disable-doc \
         --enable-threads=posix \
-        --without-libidn \
-        --without-libpcre \
+        --with-bzip2 \
         --without-libmicrohttpd \
         --without-lzma \
         --without-gpgme \
@@ -905,6 +899,7 @@ build_bin() {
       ;;
     "zlib")
       $static && flags="--static " || flags=""
+      git cherry-pick 05796d3d8d5546cf1b4dfe2cd72ab746afae505d #40
       ./configure $flags--prefix=$prefix
       ;;
     "zsh")
@@ -958,7 +953,7 @@ build_bin() {
   esac
   [ $? -eq 0 ] || { echored "Configure failed!"; exit 1; }
 
-  if [ "$bin" != "exa" ] && [ "$bin" != "rclone" ] && [ "$bin" != "quiche" ]; then
+  if [ "$bin" != "exa" ] && [ "$bin" != "quiche" ]; then
     case "$bin" in
       "boringssl") mkdir -p $prefix/lib
                    cp -f ssl/libssl.a crypto/libcrypto.a decrepit/libdecrepit.a $prefix/lib/
@@ -1032,7 +1027,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r23b #LTS NDK
+ndk=r23c #LTS NDK
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
@@ -1078,7 +1073,7 @@ export PATH=$toolchain:$PATH
 # Create needed symlinks
 if [ $ndknum -ge 23 ]; then
   for i in aarch64-linux-android arm-linux-androideabi x86_64-linux-android i686-linux-android; do
-    echo 'INPUT(-lunwind)' > $toolchain/../sysroot/usr/lib/$i/libgcc.a #40
+    echo 'INPUT(-lunwind)' > $toolchain/../sysroot/usr/lib/$i/libgcc.a #39
     ln -sf $toolchain/llvm-ar $toolchain/$i-ar
     ln -sf $toolchain/ld $toolchain/$i-ld
     ln -sf $toolchain/llvm-ranlib $toolchain/$i-ranlib
