@@ -9,7 +9,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Bash (v5.1.16)
-* Bc (v1.07.1)
+* Bc (v5.25.5) - Gavin Howard posix Bc with GNU extensions
 * Brotli (v1.0.9)
 * Coreutils (v9.1) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
@@ -57,6 +57,7 @@ These are binaries that will be left "as is". I will not be updating them anymor
 ## Credits
 * [Aria2](https://github.com/aria2/aria2)
 * [Daniel Stenberg](https://curl.haxx.se)
+* [Gavin Howard](https://github.com/gavinhoward/bc)
 * [GNU](https://www.gnu.org/software)
 * [Google](https://github.com/google/brotli)
 * [Gordon Lyon](https://nmap.org)

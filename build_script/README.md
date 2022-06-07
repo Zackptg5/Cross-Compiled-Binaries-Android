@@ -35,6 +35,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **aria2**        | Yes       | |
 | **bash**         | *Static*  | |
 | **bc**           | Yes       | Also includes dc |
+| **bc-gh**        | Yes       | Also includes dc (make symlink to bc) |
 | **bzip2**        | Yes       | |
 | **boringssl**    | *Static*  | Static libs still work fine with dynamic linked binaries |
 | **brotli**       | Yes       | |

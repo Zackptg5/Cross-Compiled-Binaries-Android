@@ -18,14 +18,10 @@ bb0f69f5976079d3d8b736a62c6ce432  bash/bash-arm64
 8f91f5d57c05bb8e2647791b144e744f  bash/bash-x64
 adff63f8ffaec17dbdabb480e1b139f5  bash/bash-x86
 bda5c728017792976f8538cc47a66c27  bash/etc.zip
-8bbc85b02f58d017130877786ccb3915  bc/bc-arm
-3a6d957c7b58574e8093290c8d07f270  bc/bc-arm64
-979d9c2181b653b50ec375cc36d7c30a  bc/bc-x64
-c2738096e47c70a721ef1c2eae530a02  bc/bc-x86
-b45f8e4849241e8ebf1e681a304d513b  bc/dc-arm
-d58c0c3f59e34e91da348ecca85e5ac4  bc/dc-arm64
-25211d7112a85cc674e1b71817c8b1a5  bc/dc-x64
-bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
+433e4b0034ee0ff819dbfe6a065596a7  bc/bc-arm
+7788b9d290ebef1772cfd18d4e98bbf3  bc/bc-arm64
+1078da7127149eb131987d4192803642  bc/bc-x64
+47c4f19d98cc5aeea040513d771b04bc  bc/bc-x86
 99603931b6d34d54e8af17f1be369dd2  brotli/brotli-arm
 941624adbdca4e5f52d04aaf7100f64c  brotli/brotli-arm64
 3e7455f52680a67cfe0f9b771a1068fc  brotli/brotli-x64
@@ -33,7 +29,7 @@ bcd240736b4a2014891c8ab44c2ae559  bc/dc-x86
 41906dcd2e4d8e21c5cba251f7c02a4a  ccbins_files/ccbins
 52c5f055f8f5b457f7cc35f6bc3e2c02  ccbins_files/changelog.txt
 99359ab591ad1e1521fb5de1387b7a92  ccbins_files/includes-dynamic.txt
-0af6cc2e3ea62fc3168fa61e542d587a  ccbins_files/includes.txt
+d2c30562c3235c4c74e44e4a10219532  ccbins_files/includes.txt
 e92c7e90dfdee4012a33a1db35393340  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 9087f5d646000aa7ee3a71db6776cf30  ccbins_files/module.prop
