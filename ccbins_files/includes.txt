@@ -1,6 +1,6 @@
 Aria2 (v1.36.0) aria2c,aria2c.bin
 Bash (v5.1.16) bash etc
-Bc (v1.07.1) bc,dc
+Bc (v5.2.5) bc dc
 Brotli (v1.0.9) brotli
 Coreutils (v9.1) coreutils
 Cpio (v2.12) cpio
