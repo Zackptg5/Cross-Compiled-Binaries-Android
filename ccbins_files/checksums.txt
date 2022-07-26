@@ -29,7 +29,7 @@ bda5c728017792976f8538cc47a66c27  bash/etc.zip
 41906dcd2e4d8e21c5cba251f7c02a4a  ccbins_files/ccbins
 52c5f055f8f5b457f7cc35f6bc3e2c02  ccbins_files/changelog.txt
 99359ab591ad1e1521fb5de1387b7a92  ccbins_files/includes-dynamic.txt
-d2c30562c3235c4c74e44e4a10219532  ccbins_files/includes.txt
+4c48f2e9c376b16a9a11b5c72abc52dc  ccbins_files/includes.txt
 e92c7e90dfdee4012a33a1db35393340  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 9087f5d646000aa7ee3a71db6776cf30  ccbins_files/module.prop
@@ -204,6 +204,10 @@ b2df37f8489e22b304a39a0c20ec3f83  iftop/dynamic/lib-x64.zip
 f4e33e1dab442ed9ee2d2656ce754636  iw/iw-arm64
 b09ec5a6d4cda6869cbfb581f3efcad1  iw/iw-x64
 758877bb3296709036a95e9d1e72f86d  iw/iw-x86 
+8c2735d5f134c6da550ab7ff623d209e  jq/jq-arm
+ec7288cd9e827a8715689b669239740b  jq/jq-arm64
+193194678101114ee3ff4c2671421d01  jq/jq-x64
+f20e603e1dc4e331900116a133c97f19  jq/jq-x86
 c48fb7ae93b2d14744f465ffa15d95d3  keycheck/keycheck-arm
 c3c4899297a8c03b3b5010348c409927  keycheck/keycheck-arm64
 801b406a50eda6ac67d4207362f2f665  keycheck/keycheck-x64
