@@ -13,6 +13,7 @@ Grep (v3.7) egrep,fgrep,grep
 Gzip (v1.12) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v3.2.1) htop
 Iw (v5.9) iw
+Jq (v1.6) jq
 Keycheck (v1.0) keycheck
 Nano (v6.3.0) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs

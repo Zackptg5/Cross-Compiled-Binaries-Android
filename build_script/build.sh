@@ -51,7 +51,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -150,6 +150,7 @@ build_bin() {
     "gzip") ext=xz; ver="1.12"; url="gnu";;
     "htop") ver="3.2.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
+    "jq") ver="jq-1.6"; url="https://github.com/stedolan/jq";;
     "libexpat") ver="R_2_4_8"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.17"; url="gnu";;
@@ -538,6 +539,15 @@ build_bin() {
         --with-libpcap=$prefix \
         --with-resolver=netdb
       ;;
+    "jq")
+      $static && LDFLAGS="$LDFLAGS -all-static"
+      git submodule update --init
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-oniguruma=builtin
+    ;;
     "libexpat")
       cd expat
       ./buildconf.sh
