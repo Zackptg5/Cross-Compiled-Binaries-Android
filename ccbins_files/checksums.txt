@@ -17,7 +17,7 @@ d8bd0c0abaf672bc1098229b5fcc7e9f  aria2/aria2c.bin-x86
 bb0f69f5976079d3d8b736a62c6ce432  bash/bash-arm64
 8f91f5d57c05bb8e2647791b144e744f  bash/bash-x64
 adff63f8ffaec17dbdabb480e1b139f5  bash/bash-x86
-bda5c728017792976f8538cc47a66c27  bash/etc.zip
+d6d0aa4fc4499f2a6aaa3c537d6c6ba4  bash/etc.zip
 925b07ad014caf43f79abd358b0f511e  bc/bc-arm
 7cbcee277ae7d617fa10baeb28cc076c  bc/bc-arm64
 c343d4809fe8a2edc9aa5bddf9833470  bc/bc-x64
