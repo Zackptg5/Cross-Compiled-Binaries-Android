@@ -1,10 +1,10 @@
 Aria2 (v1.36.0) aria2c,aria2c.bin
 Bash (v5.1.16) bash etc
-Bc (v5.2.5) bc dc
+Bc (v5.3.3) bc dc
 Brotli (v1.0.9) brotli
 Coreutils (v9.1) coreutils
 Cpio (v2.12) cpio
-Curl (v7.83.1) curl
+Curl (v7.84.0) curl
 Diffutils (v3.8) cmp,diff3,diff,sdiff
 Ed (v1.18) ed,red
 Findutils (v4.9.0) find,frcode,locate,updatedb,xargs
@@ -17,15 +17,15 @@ Jq (v1.6) jq
 Keycheck (v1.0) keycheck
 Nano (v6.4.0) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs
-Openssl (v3.0.3.0) openssl
+Openssl (v3.0.5.0) openssl
 Patch (v2.7.6) patch
-Patchelf (v0.14.5) patchelf
-RClone (v1.58.1) rclone
+Patchelf (v0.15.0) patchelf
+RClone (v1.59.0) rclone
 Sed (v4.8) sed
-Strace (v5.17) strace
+Strace (v5.18) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
-Vim (v8.2.5054) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Vim (v9.0.0140) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Wavemon (v0.9.3) wavemon
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd
