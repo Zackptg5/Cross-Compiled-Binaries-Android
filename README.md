@@ -26,7 +26,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Htop (v3.2.1)
 * Iw (v5.9)
 * Keycheck
-* Nano (v6.3)
+* Nano (v6.4)
 * Nethogs (v0.8.6)
 * Ncursesw (v6.3) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.92) - dynamic only

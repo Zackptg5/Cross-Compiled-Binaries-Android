@@ -15,7 +15,7 @@ Htop (v3.2.1) htop
 Iw (v5.9) iw
 Jq (v1.6) jq
 Keycheck (v1.0) keycheck
-Nano (v6.3.0) nano etc,usr,rnano
+Nano (v6.4.0) nano etc,usr,rnano
 Nethogs (v0.8.6) nethogs
 Openssl (v3.0.3.0) openssl
 Patch (v2.7.6) patch
