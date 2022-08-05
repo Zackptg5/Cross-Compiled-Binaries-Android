@@ -130,7 +130,7 @@ build_bin() {
     "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
-    "bc-gh") ver="5.2.5"; url="https://github.com/gavinhoward/bc bc-gh";;
+    "bc-gh") ver="5.3.3"; url="https://github.com/gavinhoward/bc bc-gh";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
@@ -138,7 +138,7 @@ build_bin() {
     "coreutils") ext=xz; ver="9.1"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_83_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_84_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.18"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -154,29 +154,29 @@ build_bin() {
     "libexpat") ver="R_2_4_8"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.17"; url="gnu";;
-    "libidn2") ext=gz; ver="2.3.2"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "libmagic") ext=gz; ver="5.41"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
+    "libidn2") ext=gz; ver="2.3.3"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "libmagic") ext=gz; ver="5.42"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10.1"; ver="2e03192"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.10.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="1.0"; url="gnu";;
-    "nano") ext=xz; ver="6.3"; url="gnu";;
+    "nano") ext=xz; ver="6.4"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.47.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.48.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="openssl-3.0.3"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="openssl-3.0.5"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
-    "patchelf") ver="0.14.5"; url="https://github.com/NixOS/patchelf";;
+    "patchelf") ver="0.15.0"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ver="pcre2-10.40"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
     "quiche") ver="0.14.0"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3380500"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.17"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "sqlite") ext=gz; ver="3390200"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v5.18"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
@@ -655,7 +655,7 @@ build_bin() {
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
-        --disable-nls || { echored "Configure failed!"; exit 1; }
+        --disable-nls --enable-altrcname="/system/etc/nanorc" || { echored "Configure failed!"; exit 1; }
       sed -i '/#if defined(HAVE_NCURSESW_NCURSES_H)/i#define HAVE_NCURSESW_NCURSES_H' src/definitions.h #10
       ;;
     "ncurses")

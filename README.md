@@ -9,11 +9,11 @@ You can find the build script for these in the [build_scripts folder](build_scri
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Bash (v5.1.16)
-* Bc (v5.25.5) - Gavin Howard posix Bc with GNU extensions
+* Bc (v5.3.3) - Gavin Howard posix Bc with GNU extensions
 * Brotli (v1.0.9)
 * Coreutils (v9.1) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
-* Curl (v7.83.1) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v7.84.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Diffutils (v3.8)
@@ -26,19 +26,19 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Htop (v3.2.1)
 * Iw (v5.9)
 * Keycheck
-* Nano (v6.3)
+* Nano (v6.4)
 * Nethogs (v0.8.6)
 * Ncursesw (v6.3) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.92) - dynamic only
-* Openssl (v3.0.3)
+* Openssl (v3.0.5)
 * Patch (v2.7.6)
-* Patchelf (v0.14.5)
+* Patchelf (v0.15.0)
 * Sed (v4.8)
-* Sqlite3 (v3.38.5) - dynamic only
-* Strace (v5.17)
+* Sqlite3 (v3.39.2) - dynamic only
+* Strace (v5.18)
 * Tar (v1.34)
 * Tcpdump (v4.99.1)
-* Vim (v8.2.5054)
+* Vim (v9.0.0140)
 * Wget2 (v2.0.1) - dynamic only
 * Xmlstarlet
 * Xxd (v1.10)
@@ -47,7 +47,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Zstd (v1.5.2)
 
 ## Pulled from Offical Sources
-* RClone (v1.58.1)
+* RClone (v1.59.0)
 
 ## Deprecated:
 These are binaries that will be left "as is". I will not be updating them anymore
