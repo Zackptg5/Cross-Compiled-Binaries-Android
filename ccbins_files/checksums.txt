@@ -32,7 +32,7 @@ cf5582873037ac1733651f54acf13288  ccbins_files/includes-dynamic.txt
 ee498e015c0706d2e3274528c8b36e68  ccbins_files/includes.txt
 e92c7e90dfdee4012a33a1db35393340  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
-9087f5d646000aa7ee3a71db6776cf30  ccbins_files/module.prop
+bdada4cd974179794029c51d38ee0046  ccbins_files/module.prop
 c6ab7fd69025695e3fecf94a18fda39b  ccbins_files/service.sh
 e19edb33763c076b747214b115d3518b  coreutils/coreutils-arm
 de6ea4cf31608749b04048dff0c3a8df  coreutils/coreutils-arm64
