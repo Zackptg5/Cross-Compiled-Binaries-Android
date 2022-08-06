@@ -288,12 +288,12 @@ ad6d7e70073479c64322973ff31a0159  tcpdump/tcpdump-arm
 8d925270143bf60752cc186bff16fccb  vim/usr.zip
 70c61aac773479d262d1d0b26a0099dd  vim/vim-arm
 a6bd6efa61d9869f89160b79191874a6  vim/vim-arm64
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-arm
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-arm64
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-x64
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-x86
 d12a35a2e01570f61a10f69e84e15e23  vim/vim-x64
 befebeba85bb6699b747446943036ecd  vim/vim-x86
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-arm
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-arm64
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-x64
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-x86
 01a7b569ab48f5c2908bf7c2dee011e8  wavemon/wavemon-arm
 685095a817f3438e96312dc72e295bff  wavemon/wavemon-arm64
 7a8f9ea1a3f666b216b36bd12d5130d4  wavemon/wavemon-x64
