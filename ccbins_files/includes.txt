@@ -25,7 +25,7 @@ Sed (v4.8) sed
 Strace (v5.18) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
-Vim (v9.0.0161) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
+Vim (v9.0.0177) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
 Wavemon (v0.9.3) wavemon
 Xmlstarlet (v1.0) xmlstarlet
 Xxd (v1.10) xxd

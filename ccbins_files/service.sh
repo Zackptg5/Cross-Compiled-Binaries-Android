@@ -1,7 +1,7 @@
 # This script will be executed in late_start service mode
 # More info in the main Magisk thread
 MODPATH=${0%/*}
-filever=9
+filever=10
 (
 until [ "$(getprop sys.boot_completed)" == "1" ] && [ -d /storage/emulated/0/Android ]; do
   sleep 1
@@ -21,12 +21,6 @@ if [ "$(grep 'Findutils' $MODPATH/.installed)" ]; then # Needs to be set to new 
   echo "alias updatedb='updatedb --prunepaths=\"/proc $(magisk --path)/.magisk/mirror\"'" >> /storage/emulated/0/.aliases
 else
   sed -i '/updatedb/d' /storage/emulated/0/.aliases
-fi
-if [ "$(grep 'Vim' $MODPATH/.installed)" ]; then
-  grep -q 'export VIM=' /storage/emulated/0/.aliases 2>/dev/null || echo "export VIM=/system/usr/share/vim" >> /storage/emulated/0/.aliases
-  grep -q 'export VIMRUNTIME=' /storage/emulated/0/.aliases 2>/dev/null || echo "export VIMRUNTIME=/system/usr/share/vim/vim90" >> /storage/emulated/0/.aliases
-else
-  sed -i -e '/VIM=/d' -e '/VIMRUNTIME=/d' /storage/emulated/0/.aliases
 fi
 
 if [ -f $MODPATH/system/etc/zsh/.zshrc ] && [ ! -f /storage/emulated/0/.zsh/.zshrc ]; then

@@ -38,7 +38,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Strace (v5.18)
 * Tar (v1.34)
 * Tcpdump (v4.99.1)
-* Vim (v9.0.0161)
+* Vim (v9.0.0177)
 * Wget2 (v2.0.1) - dynamic only
 * Xmlstarlet
 * Xxd (v1.10)

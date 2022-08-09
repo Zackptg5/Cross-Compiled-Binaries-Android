@@ -857,6 +857,7 @@ build_bin() {
         --enable-gui=no \
         --enable-multibyte \
         --enable-terminal \
+        remove_size \
         ac_cv_sizeof_int=4 \
         vim_cv_getcwd_broken=no \
         vim_cv_memmove_handles_overlap=yes \
@@ -1018,6 +1019,10 @@ build_bin() {
                   cp -rf $prefix/share $prefix/usr/; rm -rf $prefix/share
                   mv -f $prefix/sbin/* $prefix/bin/; rm -rf $prefix/sbin
                   ;;
+      "vim") make VIMRCLOC=/system/usr/share/vim VIMRUNTIMEDIR=/system/usr/share/vim/vim90 -j$jobs
+             make install -j$jobs
+             [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+             ;;
       "zsh") make install -j$jobs DESTDIR=$prefix
              [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
              cp -rf $prefix/system/* $prefix/; rm -rf $prefix/system
