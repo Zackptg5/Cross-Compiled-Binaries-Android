@@ -17,7 +17,7 @@ d8bd0c0abaf672bc1098229b5fcc7e9f  aria2/aria2c.bin-x86
 bb0f69f5976079d3d8b736a62c6ce432  bash/bash-arm64
 8f91f5d57c05bb8e2647791b144e744f  bash/bash-x64
 adff63f8ffaec17dbdabb480e1b139f5  bash/bash-x86
-5fd84679cefc48c60d589d31ccc938bd  bash/etc.zip
+d374efde33218bf4f077b117cd59672e  bash/etc.zip
 925b07ad014caf43f79abd358b0f511e  bc/bc-arm
 7cbcee277ae7d617fa10baeb28cc076c  bc/bc-arm64
 c343d4809fe8a2edc9aa5bddf9833470  bc/bc-x64
@@ -32,7 +32,7 @@ cf5582873037ac1733651f54acf13288  ccbins_files/includes-dynamic.txt
 ee498e015c0706d2e3274528c8b36e68  ccbins_files/includes.txt
 e92c7e90dfdee4012a33a1db35393340  ccbins_files/install.sh
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
-9087f5d646000aa7ee3a71db6776cf30  ccbins_files/module.prop
+bdada4cd974179794029c51d38ee0046  ccbins_files/module.prop
 c6ab7fd69025695e3fecf94a18fda39b  ccbins_files/service.sh
 e19edb33763c076b747214b115d3518b  coreutils/coreutils-arm
 de6ea4cf31608749b04048dff0c3a8df  coreutils/coreutils-arm64
@@ -288,12 +288,12 @@ ad6d7e70073479c64322973ff31a0159  tcpdump/tcpdump-arm
 8d925270143bf60752cc186bff16fccb  vim/usr.zip
 70c61aac773479d262d1d0b26a0099dd  vim/vim-arm
 a6bd6efa61d9869f89160b79191874a6  vim/vim-arm64
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-arm
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-arm64
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-x64
+118dcd8667f430f446c67607e1ae1f13  vim/vimtutor-x86
 d12a35a2e01570f61a10f69e84e15e23  vim/vim-x64
 befebeba85bb6699b747446943036ecd  vim/vim-x86
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-arm
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-arm64
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-x64
-d0aec096d7cd7733992fdf96d67ffbf7  vim/vimtutor-x86
 01a7b569ab48f5c2908bf7c2dee011e8  wavemon/wavemon-arm
 685095a817f3438e96312dc72e295bff  wavemon/wavemon-arm64
 7a8f9ea1a3f666b216b36bd12d5130d4  wavemon/wavemon-x64
