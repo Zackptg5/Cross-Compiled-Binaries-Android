@@ -694,7 +694,7 @@ build_bin() {
       cd $dir/$bin
       static=$origstatic
       flags="--disable-shared $flags"
-      $static || LDFLAGS="$LDFLAGS -static-libstdc++"
+      $static && flags="--enable-static $flags" || LDFLAGS="$LDFLAGS -static-libstdc++"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LIBS="-ldl" \
         --host=$target_host \
         $flags--prefix=/system \
