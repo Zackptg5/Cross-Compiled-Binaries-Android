@@ -1,0 +1,38 @@
+--- defines.h-orig	2022-08-11 15:56:22.091394500 -0400
++++ defines.h	2022-08-27 13:46:43.962528400 -0400
+@@ -432,7 +432,7 @@
+ /* Paths */
+ 
+ #ifndef _PATH_BSHELL
+-# define _PATH_BSHELL "/bin/sh"
++# define _PATH_BSHELL "/system/bin/sh"
+ #endif
+ 
+ #ifdef USER_PATH
+@@ -443,7 +443,7 @@
+ #endif
+ 
+ #ifndef _PATH_STDPATH
+-# define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin"
++# define _PATH_STDPATH "/sbin:/product/bin:/system_ext/bin:/system/bin:/system/xbin:/vendor/bin:/vendor/xbin"
+ #endif
+ 
+ #ifndef SUPERUSER_PATH
+@@ -464,7 +464,7 @@
+ #endif
+ 
+ #ifndef _PATH_NOLOGIN
+-# define _PATH_NOLOGIN "/etc/nologin"
++# define _PATH_NOLOGIN "/system/etc/nologin"
+ #endif
+ 
+ /* Define this to be the path of the xauth program. */
+@@ -477,7 +477,7 @@
+ #  ifdef __hpux
+ #    define X_UNIX_PATH "/var/spool/sockets/X11/%u"
+ #  else
+-#    define X_UNIX_PATH "/tmp/.X11-unix/X%u"
++#    define X_UNIX_PATH "/data/local/tmp/.X11-unix/X%u"
+ #  endif
+ #endif /* X_UNIX_PATH */
+ #define _PATH_UNIX_X X_UNIX_PATH

@@ -1,0 +1,18 @@
+--- sshpty.c-orig	2022-08-26 12:41:27.645690200 -0400
++++ sshpty.c	2022-08-27 13:55:52.343760500 -0400
+@@ -204,6 +204,7 @@
+ 		}
+ 	}
+ 
++#ifndef __ANDROID__
+ 	if ((st.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) != mode) {
+ 		if (chmod(tty, mode) == -1) {
+ 			if (errno == EROFS &&
+@@ -215,6 +216,7 @@
+ 				    tty, (u_int)mode, strerror(errno));
+ 		}
+ 	}
++#endif
+ }
+ 
+ /* Disconnect from the controlling tty. */

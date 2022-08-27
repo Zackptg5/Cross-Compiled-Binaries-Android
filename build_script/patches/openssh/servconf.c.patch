@@ -1,0 +1,17 @@
+--- servconf.c-orig	2022-08-11 15:56:22.151394500 -0400
++++ servconf.c	2022-08-27 14:00:41.744154700 -0400
+@@ -444,9 +444,13 @@
+ 
+ 	assemble_algorithms(options);
+ 
+-	/* Turn privilege separation and sandboxing on by default */
+ 	if (use_privsep == -1)
++#ifdef __ANDROID__
++		use_privsep = PRIVSEP_OFF;
++#else
++		/* Turn privilege separation and sandboxing on by default */	
+ 		use_privsep = PRIVSEP_ON;
++#endif
+ 
+ #define CLEAR_ON_NONE(v) \
+ 	do { \

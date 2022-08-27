@@ -1,0 +1,50 @@
+--- session.c-orig	2022-08-26 12:41:27.635690200 -0400
++++ session.c	2022-08-27 14:03:36.228586700 -0400
+@@ -196,7 +196,7 @@
+ 	temporarily_use_uid(pw);
+ 
+ 	/* Allocate a buffer for the socket name, and format the name. */
+-	auth_sock_dir = xstrdup("/tmp/ssh-XXXXXXXXXX");
++	auth_sock_dir = xstrdup("/data/local/tmp/ssh-XXXXXXXXXX");
+ 
+ 	/* Create private directory for socket */
+ 	if (mkdtemp(auth_sock_dir) == NULL) {
+@@ -266,7 +266,7 @@
+ 		return;
+ 
+ 	temporarily_use_uid(pw);
+-	auth_info_file = xstrdup("/tmp/sshauth.XXXXXXXXXXXXXXX");
++	auth_info_file = xstrdup("/data/local/tmp/sshauth.XXXXXXXXXXXXXXX");
+ 	if ((fd = mkstemp(auth_info_file)) == -1) {
+ 		error_f("mkstemp: %s", strerror(errno));
+ 		goto out;
+@@ -1051,11 +1051,13 @@
+ # endif /* HAVE_CYGWIN */
+ #endif /* HAVE_LOGIN_CAP */
+ 
++#ifdef _PATH_MAILDIR
+ 	if (!options.use_pam) {
+ 		snprintf(buf, sizeof buf, "%.200s/%.50s",
+ 		    _PATH_MAILDIR, pw->pw_name);
+ 		child_set_env(&env, &envsize, "MAIL", buf);
+ 	}
++#endif
+ 
+ 	/* Normal systems set SHELL by default. */
+ 	child_set_env(&env, &envsize, "SHELL", shell);
+@@ -1099,6 +1101,15 @@
+ 		    auth_sock_name);
+ 
+ 
++#ifdef __ANDROID__
++	char const* envs_to_keep[] = {"ANDROID_ART_ROOT", "ANDROID_DATA", "ANDROID_I18N_ROOT", "ANDROID_ROOT", "ANDROID_RUNTIME_ROOT", "ANDROID_TZDATA_ROOT", "BOOTCLASSPATH", "DEX2OATBOOTCLASSPATH", "EXTERNAL_STORAGE", "LANG", "LD_LIBRARY_PATH", "PATH", "PREFIX", "TMPDIR"};
++	for (i = 0; i < (sizeof(envs_to_keep) / sizeof(envs_to_keep[0])); i++) {
++		char const* env_to_keep_name = envs_to_keep[i];
++		char const* env_to_keep_value = getenv(env_to_keep_name);
++		if (env_to_keep_value) child_set_env(&env, &envsize, env_to_keep_name, env_to_keep_value);
++	}
++#endif
++
+ 	/* Set custom environment options from pubkey authentication. */
+ 	if (options.permit_user_env) {
+ 		for (n = 0 ; n < auth_opts->nenv; n++) {

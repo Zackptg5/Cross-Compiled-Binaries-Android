@@ -1,0 +1,33 @@
+--- mux.c-orig	2022-08-26 12:41:27.675690200 -0400
++++ mux.c	2022-08-27 14:01:58.222814900 -0400
+@@ -1310,6 +1310,22 @@
+ 	}
+ 
+ 	/* Now atomically "move" the mux socket into position */
++#ifdef __ANDROID__
++	/* Android does not support hard links, so use a non-atomic
++	   check-then-rename for now. */
++	if (access(orig_control_path, F_OK) == 0) {
++		error("ControlSocket %s already exists, disabling multiplexing",
++		    orig_control_path);
++		unlink(options.control_path);
++		goto disable_mux_master;
++	} else {
++		if (rename(options.control_path, orig_control_path) == -1) {
++			fatal("%s: link mux listener %s => %s: %s", __func__, 
++			    options.control_path, orig_control_path,
++			    strerror(errno));
++		}
++	}
++#else	
+ 	if (link(options.control_path, orig_control_path) != 0) {
+ 		if (errno != EEXIST) {
+ 			fatal_f("link mux listener %s => %s: %s",
+@@ -1322,6 +1338,7 @@
+ 		goto disable_mux_master;
+ 	}
+ 	unlink(options.control_path);
++#endif
+ 	free(options.control_path);
+ 	options.control_path = orig_control_path;
+ 

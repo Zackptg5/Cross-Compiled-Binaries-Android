@@ -1,6 +1,7 @@
 __MACOSX
 .DS_Store
 build_script/*
+!build_script/patches
 !build_script/build.sh
 !build_script/ca-certificate.crt_gen.sh
 !build_script/README.md

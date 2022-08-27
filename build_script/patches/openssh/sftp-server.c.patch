@@ -1,0 +1,36 @@
+--- sftp-server.c-orig	2022-08-26 12:41:27.675690200 -0400
++++ sftp-server.c	2022-08-27 13:57:35.270756400 -0400
+@@ -1271,7 +1271,9 @@
+ 	if (lstat(oldpath, &sb) == -1)
+ 		status = errno_to_portable(errno);
+ 	else if (S_ISREG(sb.st_mode)) {
++#ifndef __ANDROID__
+ 		/* Race-free rename of regular files */
++		/* Do not try this for Android which does not support links */
+ 		if (link(oldpath, newpath) == -1) {
+ 			if (errno == EOPNOTSUPP || errno == ENOSYS
+ #ifdef EXDEV
+@@ -1281,6 +1283,7 @@
+ 			    || errno == LINK_OPNOTSUPP_ERRNO
+ #endif
+ 			    ) {
++#endif
+ 				struct stat st;
+ 
+ 				/*
+@@ -1294,6 +1297,7 @@
+ 					else
+ 						status = SSH2_FX_OK;
+ 				}
++#ifndef __ANDROID__
+ 			} else {
+ 				status = errno_to_portable(errno);
+ 			}
+@@ -1303,6 +1307,7 @@
+ 			unlink(newpath);
+ 		} else
+ 			status = SSH2_FX_OK;
++#endif
+ 	} else if (stat(newpath, &sb) == -1) {
+ 		if (rename(oldpath, newpath) == -1)
+ 			status = errno_to_portable(errno);

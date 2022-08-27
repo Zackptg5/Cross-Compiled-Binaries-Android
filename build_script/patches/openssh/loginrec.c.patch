@@ -1,0 +1,12 @@
+--- loginrec.c-orig	2022-08-26 12:41:27.615690200 -0400
++++ loginrec.c	2022-08-27 13:53:41.137815100 -0400
+@@ -439,6 +439,9 @@
+ int
+ login_write(struct logininfo *li)
+ {
++#ifdef __ANDROID__
++	return 1;
++#endif
+ #ifndef HAVE_CYGWIN
+ 	if (geteuid() != 0) {
+ 		logit("Attempt to write login records by non-root user (aborting)");

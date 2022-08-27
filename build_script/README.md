@@ -72,6 +72,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **nghttp2**      | Yes       | Lib only |
 | **nmap**         | Yes       | |
 | **openssl**      | Yes       | |
+| **openssh**      | Yes       | |
 | **patch**        | Yes       | |
 | **patchelf**     | Yes       | |
 | **pcre**         | Yes       | |

@@ -19,7 +19,7 @@
 # 16) Use strace's static_assert macro, ndk's is different
 # 17) Out of date automake in coreutils, update it here
 # 18) Need to use host 'file' binary for test step
-# 19) Remove uneeded stesp from Makefile, either won't work since we're cross compiling or not worth the effort of hacking it to work currently
+# 19) Remove uneeded step from Makefile, either won't work since we're cross compiling or not worth the effort of hacking it to work currently
 # 20) Force pcre2 - compile doesn't do this for some reason
 # 21) Remove reference to non-essential (I hope lol) macro that doesn't exist in ndk
 # 22) Renameat2 was added in ndk 21, multiple definition with existing files/macro in patch. Either use an older ndk (like r20b) or ignore the errors
@@ -41,6 +41,7 @@
 # 38) Fix htoprc path
 # 39) Missing libgcc rust workaround
 # 40) Fix cc not defined bug with v1.2.12. See comments here: https://github.com/madler/zlib/commit/e9a52aa129efe3834383e415580716a7c4027f8d
+# 41) Apply termux patches, --disable-strip to prevent host "install" command to use "-s", which won't work for target binaries
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -51,7 +52,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssh, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -74,6 +75,17 @@ patch_file() {
   [ $? -ne 0 ] && { echored "Patching failed! Did you verify line numbers? See README for more info"; exit 1; }
   return 0
 }
+apply_patches() {
+  [ -d "$dir/patches/$bin" ] || return 0
+  for i in $dir/patches/$bin/*; do
+    local pfile=$(basename $i)
+    cp -f $i $pfile
+    [ "$bin" == "bash" ] && sed -i "s/4.4/$ver/g" $pfile
+    patch -p0 -i $pfile
+    [ $? -ne 0 ] && { echored "Patching failed!"; return 1; }
+    rm -f $pfile
+  done
+}
 gnu_patches() {
   echogreen "Applying patches"
   local pver=$(echo $ver | sed 's/\.//') url="$(dirname $url)/$bin-$ver-patches"
@@ -86,15 +98,7 @@ gnu_patches() {
       break
     fi
   done
-  [ -d "$dir/patches/$bin" ] || return 0
-  for i in $dir/patches/$bin/*; do
-    local pfile=$(basename $i)
-    cp -f $i $pfile
-    sed -i "s/4.4/$ver/g" $pfile
-    patch -p0 -i $pfile
-    [ $? -ne 0 ] && { echored "Patching failed!"; return 1; }
-    rm -f $pfile
-  done
+  apply_patches
 }
 setup_ohmyzsh() {
   [ -d $prefix/etc/zsh ] && return 0
@@ -151,6 +155,7 @@ build_bin() {
     "htop") ver="3.2.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "jq") ver="jq-1.6"; url="https://github.com/stedolan/jq";;
+    "ldns") ext=gz; ver="1.8.3"; url="https://www.nlnetlabs.nl/downloads/ldns/ldns-$ver.tar.$ext";;
     "libexpat") ver="R_2_4_8"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.17"; url="gnu";;
@@ -166,6 +171,8 @@ build_bin() {
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.48.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
+    # "openssh") ver="android-12.1.0_r26"; url="https://android.googlesource.com/platform/external/openssh";;
+    "openssh") ver="V_9_0_P1"; url="https://github.com/openssh/openssh-portable openssh";;
     "openssl") ver="openssl-3.0.5"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.15.0"; url="https://github.com/NixOS/patchelf";;
@@ -279,6 +286,7 @@ build_bin() {
     "bash")
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
       gnu_patches || exit 1
+      apply_patches || exit 1
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -548,6 +556,14 @@ build_bin() {
         $flags--prefix=$prefix \
         --with-oniguruma=builtin
     ;;
+    "ldns")
+      build_bin openssl
+      cd $dir/$bin
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-ssl=$prefix
+    ;;
     "libexpat")
       cd expat
       ./buildconf.sh
@@ -665,7 +681,8 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
-        --disable-stripping #\
+        --disable-stripping \
+        --without-manpages
         # --enable-pc-files --with-pkg-config-libdir=$prefix/lib/pkgconfig
       ;;
     "nethogs")
@@ -712,6 +729,39 @@ build_bin() {
         --with-libdnet=included \
         --with-liblua=included \
         --with-liblinear=included
+      ;;
+    "openssh")
+      build_bin zlib
+      build_bin ldns # also builds openssl
+      cd $dir/$bin
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS -I$prefix/include -DHAVE_ATTRIBUTE__SENTINEL__=1 -DBROKEN_SETRESGID -Dfd_mask=int -DMISSING_FD_MASK=1 -DMISSING_HOWMANY=1" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,--allow-multiple-definition" \
+        LIBS="-lz -lcrypto -lssl -lldns" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-pie \
+        --with-ldns=$prefix \
+        --disable-etc-default-login \
+        --disable-lastlog \
+        --disable-libutil \
+        --disable-pututline \
+        --disable-pututxline \
+        --disable-strip \
+        --disable-utmp \
+        --disable-utmpx \
+        --disable-wtmp \
+        --disable-wtmpx \
+        --with-xauth=/system/bin/xauth \
+        --without-stackprotect \
+        ac_cv_func_endgrent=yes \
+        ac_cv_func_fmt_scaled=no \
+        ac_cv_func_getlastlogxbyname=no \
+        ac_cv_func_readpassphrase=no \
+        ac_cv_func_strnvis=no \
+        ac_cv_header_sys_un_h=yes \
+        ac_cv_search_getrrsetbyname=no \
+        ac_cv_func_bzero=yes
+      apply_patches || exit 1
       ;;
     "openssl")
       cd $dir/$bin
@@ -1009,6 +1059,10 @@ build_bin() {
                   [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                   make install_sw -j$jobs
                   ;;
+      "openssh") make -j$jobs
+                 [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+                 make install-nokeys
+                 ;;
       "pcre"|"pcre2") make install -j$jobs DESTDIR=$prefix
                       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; };;
       "selinux") make install -j$jobs DESTDIR=$prefix prefix= \
@@ -1053,7 +1107,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r23c #LTS NDK
+ndk=r25 #LTS
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
@@ -1069,8 +1123,8 @@ IFS=$OIFS
 [ -z "$arch" -o "$arch" == "all" ] && arch="arm arm64 x86 x64"
 
 case $api in
-  21|22|23|24|26|27|28|29|30) ;;
-  *) $static && api=30 || api=21
+  21|22|23|24|26|27|28|29|30|31|32|33) ;;
+  *) $static && api=32 || api=21
      echogreen "Setting api to $api";;
 esac
 
