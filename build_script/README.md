@@ -99,6 +99,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 * Exa always statically compiles, limitation with rust
 * Iftop static compile segfaults
 * [Known Curl bugs](https://curl.se/docs/knownbugs.html)
+* Nethogs garbage collection is removed due to quad_t not existing in ndk
 
 ### DNS Issues
 * Starting with oreo, new restrictions were placed on the net.dns# props.

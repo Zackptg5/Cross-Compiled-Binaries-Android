@@ -29,7 +29,7 @@ deb56d00ebec0c433c6970b34be84725  bc/bc-arm64
 41906dcd2e4d8e21c5cba251f7c02a4a  ccbins_files/ccbins
 52c5f055f8f5b457f7cc35f6bc3e2c02  ccbins_files/changelog.txt
 db0483da7b9b10b149c67deb616e89ca  ccbins_files/includes-dynamic.txt
-0300ed3134e3e83fe7f19e53a0e5661c  ccbins_files/includes.txt
+9817c619cff4270a0dc950733b7add8b  ccbins_files/includes.txt
 9087f5d646000aa7ee3a71db6776cf30  ccbins_files/module.prop
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 590c7d0fefe61d8b4c26249b810449e7  ccbins_files/service.sh
@@ -222,10 +222,10 @@ c0e651952c940c0f930a99aada60cee3  nano/usr.zip
 4ab2d79cb979913450d7435baa643957  ncursesw/ncursesw-x64.zip
 8c0308eb900e15a86b9d5359d370bc72  ncursesw/ncursesw-x86.zip
 b83f79ee4c56df548cbba7f349d0a40b  ncursesw/version.txt
-e64a42dcd178bca230a32fa882462e64  nethogs/nethogs-arm
-f7e8d295079cd9d8a59518f4e0aa7534  nethogs/nethogs-arm64
-0d9f5ec0e6b035fad000e6e97e0ce7f5  nethogs/nethogs-x64
-6b23c29aabecc7e95fff7e872e61a513  nethogs/nethogs-x86
+66e3842e4db3af8a31ef31b276da5433  nethogs/nethogs-arm
+417c3be3bca2b93fc7bc11e5bd9af6e5  nethogs/nethogs-arm64
+dd08e3ac0f87aaf4425c1cddaa902310  nethogs/nethogs-x64
+1f53ca7a042b4accd1a83836968de16e  nethogs/nethogs-x86
 8edcf0450941f49e3e25d69992a737b7  nmap/install.sh
 566051d0294eb5295092d4ae01555e60  nmap/ncat-arm
 5eb649632aafa4e2dcb0beae983ae595  nmap/ncat-arm64

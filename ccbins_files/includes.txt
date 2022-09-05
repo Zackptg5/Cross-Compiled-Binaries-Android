@@ -16,7 +16,7 @@ Iw (v5.9) iw
 Jq (v1.6) jq
 Keycheck (v1.0) keycheck
 Nano (v6.4.0) nano etc,usr,rnano
-Nethogs (v0.8.6) nethogs
+Nethogs (v0.8.7) nethogs
 Nmap (v7.93) ncat,nmap,nping usr-$ARCH
 Openssl (v3.0.5.0) openssl
 Patch (v2.7.6) patch

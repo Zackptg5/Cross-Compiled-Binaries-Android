@@ -43,6 +43,7 @@
 # 40) Fix cc not defined bug with v1.2.12. See comments here: https://github.com/madler/zlib/commit/e9a52aa129efe3834383e415580716a7c4027f8d
 # 41) Apply termux patches, --disable-strip to prevent host "install" command to use "-s", which won't work for target binaries
 # 42) Commit for next version of quiche, not current 0.14 release. Revert for now
+# 43) Legacy Index doesn't exist in ndk, switch to strchr. Remove garbage collection - quad_t doesn't exists in ndk. See https://github.com/raboof/nethogs/issues/227
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -169,7 +170,7 @@ build_bin() {
     "libunistring") ext=gz; ver="1.0"; url="gnu";;
     "nano") ext=xz; ver="6.4"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
-    "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
+    "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.49.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     # "openssh") ver="android-12.1.0_r26"; url="https://android.googlesource.com/platform/external/openssh";;
@@ -692,8 +693,8 @@ build_bin() {
       build_bin ncurses
       cd $dir/$bin
       echo '#include <ncurses/curses.h>' > $prefix/include/ncurses.h #6
-      sed -i "1aexport PREFIX := $prefix\nexport CFLAGS := $CFLAGS -I$prefix/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$prefix/lib" Makefile
-      sed -i "s/decpcap_test test/decpcap_test/g" Makefile # 19
+      sed -i -e "s/decpcap_test test/decpcap_test/g" -e "1aexport PREFIX := $prefix\nexport CFLAGS := $CFLAGS -I$prefix/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$prefix/lib" Makefile # 19
+      patch_file $dir/patches/nethogs.patch #43
       ;;
     "nghttp2")
       build_bin cunit
