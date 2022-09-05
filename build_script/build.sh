@@ -16,7 +16,7 @@
 # 13) pthread_create not detected for some reason, just force it through
 # 14) Fix libnl/libm order (libnl should be before libm)
 # 15) Specify arm ndk clang for m32 support
-# 16) Use strace's static_assert macro, ndk's is different
+# 16) Use ndk's static_assert macro, strace's is different
 # 17) Out of date automake in coreutils, update it here
 # 18) Need to use host 'file' binary for test step
 # 19) Remove uneeded step from Makefile, either won't work since we're cross compiling or not worth the effort of hacking it to work currently
@@ -30,7 +30,7 @@
 # 27) Quiche needs libdl and libmath libs specified and the configure arg pointed to the pkgconfig file location
 # 28) Openssl needs libdl during static compiles
 # 29) Replace deprecated (and removed since API 21) getdtablesize() with sysconf(_SC_OPEN_MAX). Strange because it's properly defined elsewhere
-# 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11) - no longer needed as of v5.15
+# 30) Remove duplicate definitions
 # 31) ffsl not present in ndk, use __builtin_ffsl instead
 # 32) time_t stops working after Jan 2038 error fix
 # 33) Remove __GNUC_PREREQ sections, not in ndk so not needed
@@ -184,7 +184,7 @@ build_bin() {
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
     "sqlite") ext=gz; ver="3390300"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.18"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "strace") ver="v5.19"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
@@ -871,14 +871,11 @@ build_bin() {
     "strace")
       [ "$arch" == "aarch64" ] && flags="ac_cv_prog_CC_FOR_M32=arm-linux-androideabi-clang $flags" #15
       ./bootstrap
-      sed -i "/#  define static_assert(/i#  undef static_assert" src/static_assert.h #16
-      sed -i '/#define RENAME_/d' bundled/linux/include/uapi/linux/fs.h #30
-      # sed -i 's/__kernel_sockaddr_storage/sockaddr_storage/' bundled/linux/include/uapi/linux/socket.h #30
-      ./configure CFLAGS="$CFLAGS -Wno-error=unused-function" LDFLAGS="$LDFLAGS" \
+      patch_file $dir/patches/strace.patch #16, #30
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
-        --enable-mpers=m32 \
-        st_cv_have_static_assert=no #16
+        --enable-mpers=m32
       ;;
     "tar")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' gnu/vasnprintf.c #1

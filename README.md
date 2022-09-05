@@ -35,7 +35,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Patchelf (v0.15.0)
 * Sed (v4.8)
 * Sqlite3 (v3.39.3) - dynamic only
-* Strace (v5.18)
+* Strace (v5.19)
 * Tar (v1.34)
 * Tcpdump (v4.99.1)
 * Vim (v9.0.0177)

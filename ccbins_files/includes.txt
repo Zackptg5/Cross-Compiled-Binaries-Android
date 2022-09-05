@@ -23,7 +23,7 @@ Patch (v2.7.6) patch
 Patchelf (v0.15.0) patchelf
 RClone (v1.59.0) rclone
 Sed (v4.8) sed
-Strace (v5.18) strace
+Strace (v5.19) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
 Vim (v9.0.0177) vim,vimtutor usr,ex,rview,rvim,view,vimdiff
