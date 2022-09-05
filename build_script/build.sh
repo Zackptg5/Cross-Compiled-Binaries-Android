@@ -42,6 +42,7 @@
 # 39) Missing libgcc rust workaround
 # 40) Fix cc not defined bug with v1.2.12. See comments here: https://github.com/madler/zlib/commit/e9a52aa129efe3834383e415580716a7c4027f8d
 # 41) Apply termux patches, --disable-strip to prevent host "install" command to use "-s", which won't work for target binaries
+# 42) Commit for next version of quiche, not current 0.14 release. Revert for now
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -134,7 +135,7 @@ build_bin() {
     "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
-    "bc-gh") ver="5.3.3"; url="https://github.com/gavinhoward/bc bc-gh";;
+    "bc-gh") ver="6.0.2"; url="https://github.com/gavinhoward/bc bc-gh";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
@@ -142,15 +143,15 @@ build_bin() {
     "coreutils") ext=xz; ver="9.1"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_84_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_85_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.18"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "gawk") ext=xz; ver="5.1.1"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
+    "gawk") ext=xz; ver="5.2.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
-    "grep") ext=xz; ver="3.7"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "grep") ext=xz; ver="3.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.12"; url="gnu";;
     "htop") ver="3.2.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
@@ -169,8 +170,8 @@ build_bin() {
     "nano") ext=xz; ver="6.4"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.48.0"; url="https://github.com/nghttp2/nghttp2";;
-    "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
+    "nghttp2") ver="v1.49.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     # "openssh") ver="android-12.1.0_r26"; url="https://android.googlesource.com/platform/external/openssh";;
     "openssh") ver="V_9_0_P1"; url="https://github.com/openssh/openssh-portable openssh";;
     "openssl") ver="openssl-3.0.5"; url="https://github.com/openssl/openssl";;
@@ -182,7 +183,7 @@ build_bin() {
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3390200"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "sqlite") ext=gz; ver="3390300"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
     "strace") ver="v5.18"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
@@ -245,7 +246,7 @@ build_bin() {
     [ "$prefix" ] || local prefix=$dir/build-dynamic/$bin/$arch
   fi
 
-  $first && { [ -d "$prefix" ] && { echogreen "$bin already built! Skipping !"; return 0; }; } || first=false
+  # $first && { [ -d "$prefix" ] && { echogreen "$bin already built! Skipping !"; return 0; }; } || first=false
 
   echogreen "Compiling $bin version $ver for $arch api $lapi"
   case $bin in
@@ -419,6 +420,7 @@ build_bin() {
       [ $lapi -lt 28 ] && LIBS="-lidn2 -lunistring -liconv -ldl -lm" || LIBS="-lidn2 -lunistring -ldl -lm" #27
       flags="--disable-shared $flags"
       $static && { LDFLAGS="$LDFLAGS -all-static"; flags="--enable-ares=$prefix $flags"; } || rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
+      git revert -n 2086b69 #42
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
       autoreconf -fi
@@ -431,7 +433,7 @@ build_bin() {
         --enable-threaded-resolver \
         --enable-alt-svc \
         --enable-hsts \
-        --with-ssl=$prefix \
+        --with-openssl=$prefix \
         --with-brotli=$prefix \
         --with-zstd=$prefix \
         --with-ca-path=/system/etc/security/cacerts \
@@ -500,7 +502,7 @@ build_bin() {
         $flags--prefix=$prefix
       ;;
     "grep")
-      build_bin pcre
+      build_bin pcre2
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
@@ -638,7 +640,7 @@ build_bin() {
       cd $dir/$bin
       patch_file $dir/patches/$bin.patch #26
       sed -i '/m4_undefine/d' configure.ac #24
-      ./buildconf
+      autoreconf -fi
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -712,6 +714,7 @@ build_bin() {
       static=$origstatic
       flags="--disable-shared $flags"
       $static && flags="--enable-static $flags" || LDFLAGS="$LDFLAGS -static-libstdc++"
+      [ "$arch" == "i686" ] && LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LIBS="-ldl" \
         --host=$target_host \
         $flags--prefix=/system \
@@ -860,7 +863,7 @@ build_bin() {
     "sqlite")
       build_bin ncurses
       cd $dir/$bin
-      $static && flags="--disable-shared $flags"
+      $static && flags="--disable-shared --enable-static-shell $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
@@ -1107,7 +1110,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r25 #LTS
+ndk=r25b #LTS
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
