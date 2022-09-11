@@ -29,7 +29,7 @@ deb56d00ebec0c433c6970b34be84725  bc/bc-arm64
 41906dcd2e4d8e21c5cba251f7c02a4a  ccbins_files/ccbins
 52c5f055f8f5b457f7cc35f6bc3e2c02  ccbins_files/changelog.txt
 db0483da7b9b10b149c67deb616e89ca  ccbins_files/includes-dynamic.txt
-9817c619cff4270a0dc950733b7add8b  ccbins_files/includes.txt
+640c6c81a4aed0ad8eaeac566a85890f  ccbins_files/includes.txt
 9087f5d646000aa7ee3a71db6776cf30  ccbins_files/module.prop
 963b505462234b1966ab972143fc3899  ccbins_files/mod-util.sh
 590c7d0fefe61d8b4c26249b810449e7  ccbins_files/service.sh
@@ -243,6 +243,10 @@ ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-arm64.zip
 ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-arm.zip
 ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-x64.zip
 ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-x86.zip
+793c858fdb44ba9453094e2f86747d81  openssh/sshd-arm
+fa175ea8d1bf130185570c8adf083fa8  openssh/sshd-arm64
+698f79634c2fe8de6d331d77e2612800  openssh/sshd-x64
+4111ea15cc366d337a254b0bdd5e415a  openssh/sshd-x86
 4acaffe42e621789b21b77a1a5387489  openssl/openssl-arm
 e7930cf5ab838bcab030b6e0bf76dbfc  openssl/openssl-arm64
 e7c57ed9c2cbda44dae51b36ed195a16  openssl/openssl-x64
