@@ -174,7 +174,6 @@ build_bin() {
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.49.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    # "openssh") ver="android-12.1.0_r26"; url="https://android.googlesource.com/platform/external/openssh";;
     "openssh") ver="V_9_0_P1"; url="https://github.com/openssh/openssh-portable openssh";;
     "openssl") ver="openssl-3.0.5"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
@@ -559,7 +558,7 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --with-oniguruma=builtin
-    ;;
+      ;;
     "ldns")
       build_bin openssl
       cd $dir/$bin
@@ -567,7 +566,7 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --with-ssl=$prefix
-    ;;
+      ;;
     "libedit")
       build_bin ncursesw
       cd $dir/$bin
@@ -1014,6 +1013,7 @@ build_bin() {
         --enable-zlogout=/system/etc/zsh/zlogout \
         --enable-multibyte \
         --enable-pcre \
+        --enable-gdbm \
         --enable-site-fndir=/system/usr/share/zsh/functions \
         --enable-fndir=/system/usr/share/zsh/functions \
         --enable-function-subdirs \
