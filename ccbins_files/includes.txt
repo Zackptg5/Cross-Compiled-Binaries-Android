@@ -1,29 +1,29 @@
 Aria2 (v1.36.0) aria2c,aria2c.bin
 Bash (v5.1.16) bash etc
-Bc (v5.3.3) bc dc
+Bc (v6.0.2) bc dc
 Brotli (v1.0.9) brotli
 Coreutils (v9.1) coreutils
 Cpio (v2.12) cpio
-Curl (v7.84.0) curl
+Curl (v7.85.0) curl
 Diffutils (v3.8) cmp,diff3,diff,sdiff
 Ed (v1.18) ed,red
 Findutils (v4.9.0) find,frcode,locate,updatedb,xargs
-Gawk (v5.1.1) gawk,grcat,pwcat
-Grep (v3.7) egrep,fgrep,grep
+Gawk (v5.2.0) gawk,grcat,pwcat
+Grep (v3.8) egrep,fgrep,grep
 Gzip (v1.12) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v3.2.1) htop
 Iw (v5.9) iw
 Jq (v1.6) jq
 Keycheck (v1.0) keycheck
 Nano (v6.4.0) nano etc,usr,rnano
-Nethogs (v0.8.6) nethogs
-Nmap (v7.92) ncat,nmap,nping usr-$ARCH
+Nethogs (v0.8.7) nethogs
+Nmap (v7.93) ncat,nmap,nping usr-$ARCH
 Openssl (v3.0.5.0) openssl
 Patch (v2.7.6) patch
 Patchelf (v0.15.0) patchelf
 RClone (v1.59.0) rclone
 Sed (v4.8) sed
-Strace (v5.18) strace
+Strace (v5.19) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.1) tcpdump
 Vim (v9.0.0177) vim,vimtutor usr,ex,rview,rvim,view,vimdiff

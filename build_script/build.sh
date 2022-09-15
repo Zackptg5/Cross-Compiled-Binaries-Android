@@ -16,10 +16,10 @@
 # 13) pthread_create not detected for some reason, just force it through
 # 14) Fix libnl/libm order (libnl should be before libm)
 # 15) Specify arm ndk clang for m32 support
-# 16) Use strace's static_assert macro, ndk's is different
+# 16) Use ndk's static_assert macro, strace's is different
 # 17) Out of date automake in coreutils, update it here
 # 18) Need to use host 'file' binary for test step
-# 19) Remove uneeded stesp from Makefile, either won't work since we're cross compiling or not worth the effort of hacking it to work currently
+# 19) Remove uneeded step from Makefile, either won't work since we're cross compiling or not worth the effort of hacking it to work currently
 # 20) Force pcre2 - compile doesn't do this for some reason
 # 21) Remove reference to non-essential (I hope lol) macro that doesn't exist in ndk
 # 22) Renameat2 was added in ndk 21, multiple definition with existing files/macro in patch. Either use an older ndk (like r20b) or ignore the errors
@@ -30,7 +30,7 @@
 # 27) Quiche needs libdl and libmath libs specified and the configure arg pointed to the pkgconfig file location
 # 28) Openssl needs libdl during static compiles
 # 29) Replace deprecated (and removed since API 21) getdtablesize() with sysconf(_SC_OPEN_MAX). Strange because it's properly defined elsewhere
-# 30) Remove duplicate definitions, fix "field has incomplete type 'struct sockaddr_storage'" error (already in ndk - added to strace in v5.11) - no longer needed as of v5.15
+# 30) Remove duplicate definitions
 # 31) ffsl not present in ndk, use __builtin_ffsl instead
 # 32) time_t stops working after Jan 2038 error fix
 # 33) Remove __GNUC_PREREQ sections, not in ndk so not needed
@@ -41,6 +41,9 @@
 # 38) Fix htoprc path
 # 39) Missing libgcc rust workaround
 # 40) Fix cc not defined bug with v1.2.12. See comments here: https://github.com/madler/zlib/commit/e9a52aa129efe3834383e415580716a7c4027f8d
+# 41) Apply termux patches, --disable-strip to prevent host "install" command to use "-s", which won't work for target binaries
+# 42) Commit for next version of quiche, not current 0.14 release. Revert for now
+# 43) Legacy Index doesn't exist in ndk, switch to strchr. Remove garbage collection - quad_t doesn't exists in ndk. See https://github.com/raboof/nethogs/issues/227
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -51,7 +54,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssh, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -74,6 +77,17 @@ patch_file() {
   [ $? -ne 0 ] && { echored "Patching failed! Did you verify line numbers? See README for more info"; exit 1; }
   return 0
 }
+apply_patches() {
+  [ -d "$dir/patches/$bin" ] || return 0
+  for i in $dir/patches/$bin/*; do
+    local pfile=$(basename $i)
+    cp -f $i $pfile
+    [ "$bin" == "bash" ] && sed -i "s/4.4/$ver/g" $pfile
+    patch -p0 -i $pfile
+    [ $? -ne 0 ] && { echored "Patching failed!"; return 1; }
+    rm -f $pfile
+  done
+}
 gnu_patches() {
   echogreen "Applying patches"
   local pver=$(echo $ver | sed 's/\.//') url="$(dirname $url)/$bin-$ver-patches"
@@ -86,15 +100,7 @@ gnu_patches() {
       break
     fi
   done
-  [ -d "$dir/patches/$bin" ] || return 0
-  for i in $dir/patches/$bin/*; do
-    local pfile=$(basename $i)
-    cp -f $i $pfile
-    sed -i "s/4.4/$ver/g" $pfile
-    patch -p0 -i $pfile
-    [ $? -ne 0 ] && { echored "Patching failed!"; return 1; }
-    rm -f $pfile
-  done
+  apply_patches
 }
 setup_ohmyzsh() {
   [ -d $prefix/etc/zsh ] && return 0
@@ -130,7 +136,7 @@ build_bin() {
     "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.1"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
-    "bc-gh") ver="5.3.3"; url="https://github.com/gavinhoward/bc bc-gh";;
+    "bc-gh") ver="6.0.2"; url="https://github.com/gavinhoward/bc bc-gh";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
@@ -138,19 +144,21 @@ build_bin() {
     "coreutils") ext=xz; ver="9.1"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_84_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_85_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.18"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "gawk") ext=xz; ver="5.1.1"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
+    "gawk") ext=xz; ver="5.2.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
-    "grep") ext=xz; ver="3.7"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "grep") ext=xz; ver="3.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.12"; url="gnu";;
     "htop") ver="3.2.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "jq") ver="jq-1.6"; url="https://github.com/stedolan/jq";;
+    "ldns") ext=gz; ver="1.8.3"; url="https://www.nlnetlabs.nl/downloads/ldns/ldns-$ver.tar.$ext";;
+    "libedit") ext=gz; ver="20210910-3.1"; url="https://thrysoee.dk/editline/libedit-$ver.tar.$ext";;
     "libexpat") ver="R_2_4_8"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.17"; url="gnu";;
@@ -163,9 +171,10 @@ build_bin() {
     "libunistring") ext=gz; ver="1.0"; url="gnu";;
     "nano") ext=xz; ver="6.4"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
-    "nethogs") ver="v0.8.6"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.48.0"; url="https://github.com/nghttp2/nghttp2";;
-    "nmap") ext="tgz"; ver="7.92"; url="https://nmap.org/dist/nmap-$ver.$ext";;
+    "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
+    "nghttp2") ver="v1.49.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
+    "openssh") ver="V_9_0_P1"; url="https://github.com/openssh/openssh-portable openssh";;
     "openssl") ver="openssl-3.0.5"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.15.0"; url="https://github.com/NixOS/patchelf";;
@@ -175,8 +184,8 @@ build_bin() {
     "readline") ext=gz; ver="8.1"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3390200"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.18"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
+    "sqlite") ext=gz; ver="3390300"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v5.19"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
             # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
               ;;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
@@ -238,7 +247,7 @@ build_bin() {
     [ "$prefix" ] || local prefix=$dir/build-dynamic/$bin/$arch
   fi
 
-  $first && { [ -d "$prefix" ] && { echogreen "$bin already built! Skipping !"; return 0; }; } || first=false
+  # $first && { [ -d "$prefix" ] && { echogreen "$bin already built! Skipping !"; return 0; }; } || first=false
 
   echogreen "Compiling $bin version $ver for $arch api $lapi"
   case $bin in
@@ -411,6 +420,7 @@ build_bin() {
       [ $lapi -lt 28 ] && LIBS="-lidn2 -lunistring -liconv -ldl -lm" || LIBS="-lidn2 -lunistring -ldl -lm" #27
       flags="--disable-shared $flags"
       $static && { LDFLAGS="$LDFLAGS -all-static"; flags="--enable-ares=$prefix $flags"; } || rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
+      git revert -n 2086b69 #42
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
       autoreconf -fi
@@ -423,7 +433,7 @@ build_bin() {
         --enable-threaded-resolver \
         --enable-alt-svc \
         --enable-hsts \
-        --with-ssl=$prefix \
+        --with-openssl=$prefix \
         --with-brotli=$prefix \
         --with-zstd=$prefix \
         --with-ca-path=/system/etc/security/cacerts \
@@ -454,7 +464,7 @@ build_bin() {
       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
       mkdir -p $prefix/bin
       cp -f $dir/$bin/target/$target_host/release/exa $prefix/bin/exa
-    ;;
+      ;;
     "findutils")
       [ "$arch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
@@ -492,7 +502,7 @@ build_bin() {
         $flags--prefix=$prefix
       ;;
     "grep")
-      build_bin pcre
+      build_bin pcre2
       cd $dir/$bin
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
@@ -547,7 +557,30 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --with-oniguruma=builtin
-    ;;
+      ;;
+    "ldns")
+      build_bin openssl
+      cd $dir/$bin
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-ssl=$prefix
+      ;;
+    "libedit")
+      build_bin ncursesw
+      cd $dir/$bin
+      echo '#include <ncursesw/curses.h>' > $prefix/include/ncurses.h #6
+      for i in form menu ncurses ncurses++ panel; do
+        cp -f $prefix/lib/lib$i\w.a $prefix/lib/lib$i.a 2>/dev/null
+        cp -f $prefix/lib/lib$i\w_g.a $prefix/lib/lib$i\_g.a 2>/dev/null
+        cp -f $prefix/lib/lib$i\w*.so $prefix/lib/lib$i.so 2>/dev/null
+        cp -f $prefix/lib/lib$i\w_g.so $prefix/lib/lib$i\_g.so 2>/dev/null
+      done
+      ./configure CFLAGS="$CFLAGS -I$prefix/include -D__STDC_ISO_10646__=201103L -DNBBY=CHAR_BIT" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix
+      patch_file $dir/patches/libedit.patch
+      ;;
     "libexpat")
       cd expat
       ./buildconf.sh
@@ -622,7 +655,7 @@ build_bin() {
       cd $dir/$bin
       patch_file $dir/patches/$bin.patch #26
       sed -i '/m4_undefine/d' configure.ac #24
-      ./buildconf
+      autoreconf -fi
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -665,7 +698,8 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
-        --disable-stripping #\
+        --disable-stripping \
+        --without-manpages
         # --enable-pc-files --with-pkg-config-libdir=$prefix/lib/pkgconfig
       ;;
     "nethogs")
@@ -673,8 +707,8 @@ build_bin() {
       build_bin ncurses
       cd $dir/$bin
       echo '#include <ncurses/curses.h>' > $prefix/include/ncurses.h #6
-      sed -i "1aexport PREFIX := $prefix\nexport CFLAGS := $CFLAGS -I$prefix/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$prefix/lib" Makefile
-      sed -i "s/decpcap_test test/decpcap_test/g" Makefile # 19
+      sed -i -e "s/decpcap_test test/decpcap_test/g" -e "1aexport PREFIX := $prefix\nexport CFLAGS := $CFLAGS -I$prefix/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$prefix/lib" Makefile # 19
+      patch_file $dir/patches/nethogs.patch #43
       ;;
     "nghttp2")
       build_bin cunit
@@ -695,6 +729,7 @@ build_bin() {
       static=$origstatic
       flags="--disable-shared $flags"
       $static && flags="--enable-static $flags" || LDFLAGS="$LDFLAGS -static-libstdc++"
+      [ "$arch" == "i686" ] && LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition"
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" LIBS="-ldl" \
         --host=$target_host \
         $flags--prefix=/system \
@@ -712,6 +747,42 @@ build_bin() {
         --with-libdnet=included \
         --with-liblua=included \
         --with-liblinear=included
+      ;;
+    "openssh")
+      build_bin zlib
+      build_bin libedit
+      build_bin ldns # also builds openssl
+      cd $dir/$bin
+      sed -i "s/-ledit -lcurses/-ledit -lncurses/" configure.ac
+      autoreconf -fi
+      ./configure CFLAGS="$CFLAGS -I$prefix/include -DHAVE_ATTRIBUTE__SENTINEL__=1 -DBROKEN_SETRESGID -Dfd_mask=int -DMISSING_FD_MASK=1 -DMISSING_HOWMANY=1" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,--allow-multiple-definition" \
+        LIBS="-lz -lcrypto -lssl -lldns -lncurses" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --with-pie \
+        --with-ldns=$prefix \
+        --with-libedit=$prefix \
+        --disable-etc-default-login \
+        --disable-lastlog \
+        --disable-libutil \
+        --disable-pututline \
+        --disable-pututxline \
+        --disable-strip \
+        --disable-utmp \
+        --disable-utmpx \
+        --disable-wtmp \
+        --disable-wtmpx \
+        --with-xauth=/system/bin/xauth \
+        --without-stackprotect \
+        ac_cv_func_endgrent=yes \
+        ac_cv_func_fmt_scaled=no \
+        ac_cv_func_getlastlogxbyname=no \
+        ac_cv_func_readpassphrase=no \
+        ac_cv_func_strnvis=no \
+        ac_cv_header_sys_un_h=yes \
+        ac_cv_search_getrrsetbyname=no \
+        ac_cv_func_bzero=yes
+      apply_patches || exit 1
       ;;
     "openssl")
       cd $dir/$bin
@@ -810,7 +881,7 @@ build_bin() {
     "sqlite")
       build_bin ncurses
       cd $dir/$bin
-      $static && flags="--disable-shared $flags"
+      $static && flags="--disable-shared --enable-static-shell $flags"
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix
@@ -818,14 +889,11 @@ build_bin() {
     "strace")
       [ "$arch" == "aarch64" ] && flags="ac_cv_prog_CC_FOR_M32=arm-linux-androideabi-clang $flags" #15
       ./bootstrap
-      sed -i "/#  define static_assert(/i#  undef static_assert" src/static_assert.h #16
-      sed -i '/#define RENAME_/d' bundled/linux/include/uapi/linux/fs.h #30
-      # sed -i 's/__kernel_sockaddr_storage/sockaddr_storage/' bundled/linux/include/uapi/linux/socket.h #30
-      ./configure CFLAGS="$CFLAGS -Wno-error=unused-function" LDFLAGS="$LDFLAGS" \
+      patch_file $dir/patches/strace.patch #16, #30
+      ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
-        --enable-mpers=m32 \
-        st_cv_have_static_assert=no #16
+        --enable-mpers=m32
       ;;
     "tar")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' gnu/vasnprintf.c #1
@@ -944,6 +1012,7 @@ build_bin() {
         --enable-zlogout=/system/etc/zsh/zlogout \
         --enable-multibyte \
         --enable-pcre \
+        --enable-gdbm \
         --enable-site-fndir=/system/usr/share/zsh/functions \
         --enable-fndir=/system/usr/share/zsh/functions \
         --enable-function-subdirs \
@@ -1009,6 +1078,10 @@ build_bin() {
                   [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                   make install_sw -j$jobs
                   ;;
+      "openssh") make -j$jobs
+                 [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+                 make install-nokeys
+                 ;;
       "pcre"|"pcre2") make install -j$jobs DESTDIR=$prefix
                       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; };;
       "selinux") make install -j$jobs DESTDIR=$prefix prefix= \
@@ -1053,7 +1126,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r23c #LTS NDK
+ndk=r25b #LTS
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
@@ -1069,8 +1142,8 @@ IFS=$OIFS
 [ -z "$arch" -o "$arch" == "all" ] && arch="arm arm64 x86 x64"
 
 case $api in
-  21|22|23|24|26|27|28|29|30) ;;
-  *) $static && api=30 || api=21
+  21|22|23|24|26|27|28|29|30|31|32|33) ;;
+  *) $static && api=32 || api=21
      echogreen "Setting api to $api";;
 esac
 

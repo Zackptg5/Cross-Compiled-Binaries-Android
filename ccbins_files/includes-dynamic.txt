@@ -1,6 +1,6 @@
 Aria2-26 (v1.36.0) aria2c
-Curl-26 (v7.84.0) curl
+Curl-26 (v7.85.0) curl
 Exa-24 (v0.10.1) exa lib-$ARCH
 Iftop-28 (v1.0.4) iftop lib-$ARCH
-Sqlite3- (v3.39.2) sqlite3 lib-$ARCH
+Sqlite3- (v3.39.3) sqlite3 lib-$ARCH
 Wget2-28 (v2.0.1) wget2,wget2.bin

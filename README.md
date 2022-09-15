@@ -9,19 +9,19 @@ You can find the build script for these in the [build_scripts folder](build_scri
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Bash (v5.1.16)
-* Bc (v5.3.3) - Gavin Howard posix Bc with GNU extensions
+* Bc (v6.0.2) - Gavin Howard posix Bc with GNU extensions
 * Brotli (v1.0.9)
 * Coreutils (v9.1) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
-* Curl (v7.84.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v7.85.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Diffutils (v3.8)
 * Ed (v1.18)
 * Exa (v0.10.1) - dynamic only
 * Findutils (v4.9.0)
-* Gawk (Awk) (v5.1.1)
-* Grep (v3.7)
+* Gawk (Awk) (v5.2.0)
+* Grep (v3.8)
 * Gzip (v1.12)
 * Htop (v3.2.1)
 * Iw (v5.9)
@@ -29,13 +29,13 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Nano (v6.4)
 * Nethogs (v0.8.6)
 * Ncursesw (v6.3) - only terminfo files - needed for some binaries such as htop
-* Nmap (v7.92) - dynamic only
+* Nmap (v7.93) - dynamic only
 * Openssl (v3.0.5)
 * Patch (v2.7.6)
 * Patchelf (v0.15.0)
 * Sed (v4.8)
-* Sqlite3 (v3.39.2) - dynamic only
-* Strace (v5.18)
+* Sqlite3 (v3.39.3) - dynamic only
+* Strace (v5.19)
 * Tar (v1.34)
 * Tcpdump (v4.99.1)
 * Vim (v9.0.0177)
