@@ -239,8 +239,8 @@ f8cbfbcb972066ee417037b05594075c  nmap/nping-arm
 e60f9140131c7fcd2c3aef84c7f8701a  nmap/nping-arm64
 e2d69a0ba84905fd6600395cc7107b3c  nmap/nping-x64
 b064e7b70e1f80001f0a8b022c9b06b3  nmap/nping-x86
-ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-arm64.zip
 ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-arm.zip
+ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-arm64.zip
 ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-x64.zip
 ee9735cac7b9a7bfaa73ee9fdffc9318  nmap/usr-x86.zip
 793c858fdb44ba9453094e2f86747d81  openssh/sshd-arm
