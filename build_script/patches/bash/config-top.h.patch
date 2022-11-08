@@ -15,7 +15,7 @@
  
  /* If you want to unconditionally set a value for PATH in every restricted
     shell, set this. */
-@@ -73,12 +78,17 @@
+@@ -73,9 +78,14 @@
  /* The value for PATH when invoking `command -p'.  This is only used when
     the Posix.2 confstr () function, or CS_PATH define are not present. */
  #ifndef STANDARD_UTILS_PATH
@@ -28,13 +28,18 @@
  #endif
 +#endif
  
+ /* The default path for enable -f */
+ #ifndef DEFAULT_LOADABLE_BUILTINS_PATH
+@@ -84,7 +94,7 @@
+ #endif
+ 
  /* Default primary and secondary prompt strings. */
 -#define PPROMPT "\\s-\\v\\$ "
 +#define PPROMPT "\\u@\\h:\\w $ "
  #define SPROMPT "> "
  
  /* Undefine this if you don't want the ksh-compatible behavior of reprinting
-@@ -88,13 +98,21 @@
+@@ -94,13 +104,21 @@
  #define KSH_COMPATIBLE_SELECT
  
  /* Default interactive shell startup file. */

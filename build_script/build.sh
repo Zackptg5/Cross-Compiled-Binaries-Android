@@ -40,10 +40,11 @@
 # 37) Duplicate definition of time
 # 38) Fix htoprc path
 # 39) Missing libgcc rust workaround
-# 40) Fix cc not defined bug with v1.2.12. See comments here: https://github.com/madler/zlib/commit/e9a52aa129efe3834383e415580716a7c4027f8d
+# 40) Legacy Index doesn't exist in ndk, switch to strchr. Remove garbage collection - quad_t doesn't exists in ndk. See https://github.com/raboof/nethogs/issues/227
 # 41) Apply termux patches, --disable-strip to prevent host "install" command to use "-s", which won't work for target binaries
-# 42) Commit for next version of quiche, not current 0.14 release. Revert for now
-# 43) Legacy Index doesn't exist in ndk, switch to strchr. Remove garbage collection - quad_t doesn't exists in ndk. See https://github.com/raboof/nethogs/issues/227
+# 42) Use ndk strtoimax, remove bash's strtoimax - ndk r25b+
+# 43) Fix for syntax error
+# 44) Remove duplicate definition, needed in ndk r25b+
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -62,7 +63,7 @@ usage () {
   echogreen "arch=     (Default: all) (all, arm, arm64, x86, x64)"
   echo "          Don't type this or set it to all to compile for all arches"
   echogreen "static=   (Default: true) (true, false)"
-  echogreen "api=      (Default: 21 for dynamic, 30 for static) (21, 22, 23, 24, 26, 27, 28, 29, 30)"
+  echogreen "api=      (Default: 21 for dynamic, 30 for static) (21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33)"
   echo " "
   echored "Coreutils Specific Options:"
   echogreen "sep=      (Default: false) (true, false) - Determines if coreutils builds as a single busybox-like binary or as separate binaries"
@@ -134,9 +135,9 @@ build_bin() {
 
   case $bin in
     "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
-    "bash") ext=gz; ver="5.1"; url="gnu";;
+    "bash") ext=gz; ver="5.2"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
-    "bc-gh") ver="6.0.2"; url="https://github.com/gavinhoward/bc bc-gh";;
+    "bc-gh") ver="6.1.1"; url="https://github.com/gavinhoward/bc bc-gh";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
@@ -144,7 +145,7 @@ build_bin() {
     "coreutils") ext=xz; ver="9.1"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_85_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-7_86_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.8"; url="gnu";;
     "ed") ext=lz; ver="1.18"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -158,42 +159,40 @@ build_bin() {
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "jq") ver="jq-1.6"; url="https://github.com/stedolan/jq";;
     "ldns") ext=gz; ver="1.8.3"; url="https://www.nlnetlabs.nl/downloads/ldns/ldns-$ver.tar.$ext";;
-    "libedit") ext=gz; ver="20210910-3.1"; url="https://thrysoee.dk/editline/libedit-$ver.tar.$ext";;
-    "libexpat") ver="R_2_4_8"; url="https://github.com/libexpat/libexpat";;
+    "libedit") ext=gz; ver="20221030-3.1"; url="https://thrysoee.dk/editline/libedit-$ver.tar.$ext";;
+    "libexpat") ver="R_2_5_0"; url="https://github.com/libexpat/libexpat";;
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.17"; url="gnu";;
-    "libidn2") ext=gz; ver="2.3.3"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "libmagic") ext=gz; ver="5.42"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
+    "libidn2") ext=gz; ver="2.3.4"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "libmagic") ext=gz; ver="5.43"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
     "libpcap"|"libpcapnl") ver="1.10.1"; ver="2e03192"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
     "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.10.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
-    "libunistring") ext=gz; ver="1.0"; url="gnu";;
+    "libunistring") ext=gz; ver="1.1"; url="gnu";;
     "nano") ext=xz; ver="6.4"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.49.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.50.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssh") ver="V_9_0_P1"; url="https://github.com/openssh/openssh-portable openssh";;
-    "openssl") ver="openssl-3.0.5"; url="https://github.com/openssl/openssl";;
+    "openssh") ver="V_9_1_P1"; url="https://github.com/openssh/openssh-portable openssh";;
+    "openssl") ver="openssl-3.0.7"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
-    "patchelf") ver="0.15.0"; url="https://github.com/NixOS/patchelf";;
+    "patchelf") ver="0.16.1"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ver="pcre2-10.40"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.14.0"; url="https://github.com/cloudflare/quiche";;
-    "readline") ext=gz; ver="8.1"; url="gnu";;
+    "quiche") ver="0.16.0"; url="https://github.com/cloudflare/quiche";;
+    "readline") ext=gz; ver="8.2"; url="gnu";;
     "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3390300"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v5.19"; url="https://github.com/strace/strace" # Note that the hacks for this aren't needed with versions <= 5.5
-            # ver=""; url="https://android.googlesource.com/platform/external/strace" # Android version compiles without any hacks but is v4.25
-              ;;
+    "sqlite") ext=gz; ver="3390400"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v6.0"; url="https://github.com/strace/strace";;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
     "tcpdump") ver="tcpdump-4.99.1"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "wget2") ver="v2.0.1"; url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
-    "zlib") ver="v1.2.12"; url="https://github.com/madler/zlib";;
+    "zlib") ver="v1.2.13"; url="https://github.com/madler/zlib";;
     "zsh") ext=xz; ver="5.9"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
     "zstd") ver="v1.5.2"; url="https://github.com/facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
@@ -271,7 +270,7 @@ build_bin() {
         flags="--disable-shared $flags"
         rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
       fi
-      autoreconf -fi
+      autoreconf -fi || autoreconf -fi # fails the first time for some reason
       ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS -g -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
@@ -287,6 +286,10 @@ build_bin() {
       ;;
     "bash")
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
+      sed -i '/strtoimax/Id' configure.ac #42
+      sed -i '/strtoimax/d' Makefile.in #42
+      sed -i -e 's/strtoimax.c strtoumax.c/strtoumax.c/' -e '/strtoimax/d' lib/sh/Makefile.in #42
+      rm -f m4/strtoimax.m4 lib/sh/strtoimax.c #42
       gnu_patches || exit 1
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
@@ -307,6 +310,7 @@ build_bin() {
         bash_cv_func_sigsetjmp=present \
         bash_cv_unusable_rtsigs=no \
         ac_cv_func_mbsnrtowcs=no # bash_cv args from termux: https://github.com/termux/termux-packages/blob/master/packages/bash/build.sh
+    sed -i 's/${LIBOBJDIR}mbschr$U.o ${LIBOBJDIR}strtoimax$U.o/${LIBOBJDIR}mbschr$U.o/' lib/sh/Makefile #42
       ;;
     "bc")
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
@@ -386,6 +390,7 @@ build_bin() {
         --with-linux-crypto \
         --enable-no-install-program=stdbuf || { echored "Configure failed!"; exit 1; }
       sed -i "1iLDFLAGS += -Wl,--unresolved-symbols=ignore-in-object-files" src/local.mk #5
+      sed -i "/## begin gnulib module copy-file-range/,/## end   gnulib module copy-file-range/d" lib/gnulib.mk #44
       ;;
     "cpio")
       sed -i 's/!defined __UCLIBC__)/!defined __UCLIBC__) || defined __ANDROID__/' gnu/vasnprintf.c #1
@@ -420,7 +425,6 @@ build_bin() {
       [ $lapi -lt 28 ] && LIBS="-lidn2 -lunistring -liconv -ldl -lm" || LIBS="-lidn2 -lunistring -ldl -lm" #27
       flags="--disable-shared $flags"
       $static && { LDFLAGS="$LDFLAGS -all-static"; flags="--enable-ares=$prefix $flags"; } || rm -f $prefix/lib/lib*.so $prefix/lib/lib*.so.[0-9]*
-      git revert -n 2086b69 #42
       sed -i "s/\[unreleased\]/$(date +"%Y-%m-%d")/" include/curl/curlver.h
       sed -i "s/Release-Date/Build-Date/g" src/tool_help.c
       autoreconf -fi
@@ -590,6 +594,7 @@ build_bin() {
         $flags--prefix=$prefix
       ;;
     "libhsts")
+      sed -i '/AX_CHECK_COMPILE_FLAG/d' configure.ac #43
       autoreconf -fi
       ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
         --host=$target_host --target=$target_host \
@@ -708,7 +713,7 @@ build_bin() {
       cd $dir/$bin
       echo '#include <ncurses/curses.h>' > $prefix/include/ncurses.h #6
       sed -i -e "s/decpcap_test test/decpcap_test/g" -e "1aexport PREFIX := $prefix\nexport CFLAGS := $CFLAGS -I$prefix/include\nexport CXXFLAGS := \${CFLAGS}\nexport LDFLAGS := $LDFLAGS -L$prefix/lib" Makefile # 19
-      patch_file $dir/patches/nethogs.patch #43
+      patch_file $dir/patches/nethogs.patch #40
       ;;
     "nghttp2")
       build_bin cunit
@@ -985,7 +990,6 @@ build_bin() {
       ;;
     "zlib")
       $static && flags="--static " || flags=""
-      git cherry-pick 05796d3d8d5546cf1b4dfe2cd72ab746afae505d #40
       ./configure $flags--prefix=$prefix
       ;;
     "zsh")
