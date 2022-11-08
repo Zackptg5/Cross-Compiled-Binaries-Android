@@ -1,0 +1,16 @@
+--- auth.c-orig	2022-08-26 12:41:27.665690200 -0400
++++ auth.c	2022-08-27 13:44:19.022238700 -0400
+@@ -542,7 +542,12 @@
+ 	aix_setauthdb(user);
+ #endif
+ 
+-	pw = getpwnam(user);
++#ifdef __ANDROID__
++	/* Effectively a single-user system, use current user no matter supplied user */
++	pw = getpwuid(getuid());
++#else
++ 	pw = getpwnam(user);
++#endif
+ 
+ #if defined(_AIX) && defined(HAVE_SETAUTHDB)
+ 	aix_restoreauthdb();

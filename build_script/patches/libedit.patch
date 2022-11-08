@@ -1,0 +1,40 @@
+--- src/readline.c	2021-09-10 12:39:30.000000000 -0400
++++ src/readline.c	2022-09-11 14:38:56.669995711 -0400
+@@ -1254,7 +1254,7 @@
+ 	return max_input_history != INT_MAX;
+ }
+ 
+-static const char _history_tmp_template[] = "/tmp/.historyXXXXXX";
++static const char _history_tmp_template[] = "/data/local/tmp/.historyXXXXXX";
+ 
+ int
+ history_truncate_file (const char *filename, int nlines)
+@@ -1859,6 +1859,9 @@
+ char *
+ username_completion_function(const char *text, int state)
+ {
++#ifdef __ANDROID__
++	return NULL;
++#else
+ 	struct passwd *pass = NULL;
+ 
+ 	if (text[0] == '\0')
+@@ -1881,6 +1884,7 @@
+ 		return NULL;
+ 	}
+ 	return strdup(pass->pw_name);
++#endif
+ }
+ 
+ 
+--- src/vi.c	2021-09-10 12:39:30.000000000 -0400
++++ src/vi.c	2022-09-11 14:37:18.426662386 -0400
+@@ -1004,7 +1004,7 @@
+ 	pid_t pid;
+ 	ssize_t st;
+ 	int status;
+-	char tempfile[] = "/tmp/histedit.XXXXXXXXXX";
++	char tempfile[] = "/data/local/tmp/histedit.XXXXXXXXXX";
+ 	char *cp = NULL;
+ 	size_t len;
+ 	wchar_t *line = NULL;

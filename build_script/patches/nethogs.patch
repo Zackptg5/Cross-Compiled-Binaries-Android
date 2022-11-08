@@ -1,0 +1,180 @@
+--- src/inode2prog.cpp	2022-09-05 18:59:47.566665000 -0400
++++ src/inode2prog.cpp	2022-09-05 19:06:31.729999106 -0400
+@@ -226,73 +226,6 @@
+   closedir(dir);
+ }
+ 
+-static quad_t get_ms() {
+-  struct timespec ts;
+-  clock_gettime(CLOCK_MONOTONIC, &ts);
+-  return static_cast<quad_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+-}
+-
+-static void get_pids(std::set<pid_t> *pids) {
+-  DIR *proc = opendir("/proc");
+-  if (proc == 0) {
+-    std::cerr << "Error reading /proc, needed to get pid set" << std::endl;
+-    exit(1);
+-  }
+-  dirent *entry;
+-
+-  while ((entry = readdir(proc))) {
+-    if (entry->d_type != DT_DIR)
+-      continue;
+-
+-    if (!is_number(entry->d_name))
+-      continue;
+-
+-    pids->insert(str2int(entry->d_name));
+-  }
+-  closedir(proc);
+-}
+-
+-void garbage_collect_inodeproc() {
+-  static quad_t last_ms = 0;
+-  quad_t start_ms = 0;
+-  if (bughuntmode) {
+-    start_ms = get_ms();
+-    if (last_ms) {
+-      std::cout << "PERF: GC interval: " << start_ms - last_ms << "[ms]"
+-                << std::endl;
+-    }
+-  }
+-
+-  std::set<pid_t> pids;
+-  get_pids(&pids);
+-  if (pids.size() == 0) {
+-    return;
+-  }
+-
+-  for (std::map<unsigned long, prg_node *>::iterator it = inodeproc.begin();
+-       it != inodeproc.end();) {
+-    if (!it->second || pids.find(it->second->pid) != pids.end()) {
+-      ++it;
+-      continue;
+-    }
+-
+-    if (bughuntmode) {
+-      std::cout << "GC prg_node (inode=" << it->first
+-                << ", pid=" << it->second->pid
+-                << ", cmdline=" << it->second->cmdline.c_str() << ")"
+-                << std::endl;
+-    }
+-    delete it->second;
+-    inodeproc.erase(it++);
+-  }
+-
+-  if (bughuntmode) {
+-    last_ms = get_ms();
+-    std::cout << "PERF: GC proctime: " << last_ms - start_ms << "[ms]"
+-              << std::endl;
+-  }
+-}
+-
+ /* updates the `inodeproc' inode-to-prg_node mapping
+  * for all processes in /proc */
+ void reread_mapping() {
+--- src/inode2prog.h	2022-09-05 18:54:22.796665000 -0400
++++ src/inode2prog.h	2022-09-05 19:02:16.979999175 -0400
+@@ -41,6 +41,4 @@
+ // reread the inode-to-prg_node-mapping
+ void reread_mapping();
+ 
+-void garbage_collect_inodeproc();
+-
+ #endif
+--- src/main.cpp	2022-09-05 18:59:47.566665000 -0400
++++ src/main.cpp	2022-09-05 19:05:13.306665785 -0400
+@@ -49,8 +49,6 @@
+   output << "		-a : monitor all devices, even loopback/stopped "
+             "ones.\n";
+   output << "		-C : capture TCP and UDP.\n";
+-  output << "		-g : garbage collection period in number of refresh. "
+-            "default is 50.\n";
+   output << "		-b : Short program name. Displays only the program name.\n";
+   output << "		-f : EXPERIMENTAL: specify string pcap filter (like "
+             "tcpdump)."
+@@ -148,11 +146,10 @@
+   int promisc = 0;
+   bool all = false;
+   char *filter = NULL;
+-  int garbage_collection_period = 50;
+ 
+ 
+   int opt;
+-  while ((opt = getopt(argc, argv, "Vhxtpsd:v:c:laf:Cbg:P:")) != -1) {
++  while ((opt = getopt(argc, argv, "Vhxtpsd:v:c:laf:Cb:P:")) != -1) {
+     switch (opt) {
+     case 'V':
+       versiondisplay();
+@@ -197,9 +194,6 @@
+     case 'b':
+       showBasename = true;
+       break;
+-    case 'g':
+-      garbage_collection_period = (time_t)atoi(optarg);
+-      break;
+     case 'P':
+       pidsToWatch.insert((pid_t) atoi(optarg));
+       break;
+@@ -332,10 +326,6 @@
+       do_refresh();
+       ++refresh_count;
+ 
+-      if ((garbage_collection_period > 0) &&
+-          (refresh_count % garbage_collection_period == 0)) {
+-        garbage_collect_processes();
+-      }
+     }
+ 
+     // if not packets, do a select() until next packet
+--- doc/nethogs.8	2022-09-05 18:59:47.563332000 -0400
++++ doc/nethogs.8	2022-09-05 19:02:32.433332501 -0400
+@@ -20,7 +20,6 @@
+ .RB [ "\-f filter" ]
+ .RB [ "\-C" ]
+ .RB [ "\-b" ]
+-.RB [ "\-g period" ]
+ .RB [ "\-P pid" ]
+ .RI [device(s)]
+ .SH DESCRIPTION
+@@ -67,9 +66,6 @@
+ \fB-b\fP
+ Display the program basename.
+ .TP
+-\fB-g\fP
+-garbage collection period in number of refresh. default is 50.
+-.TP
+ \fB-P\fP
+ Show only processes with the specified pid(s).
+ .TP
+--- src/process.cpp	2022-09-05 18:22:48.916666000 -0400
++++ src/process.cpp	2022-09-05 19:01:25.473332526 -0400
+@@ -423,5 +423,3 @@
+     previousproc = curproc;
+   }
+ }
+-
+-void garbage_collect_processes() { garbage_collect_inodeproc(); }
+--- src/process.h	2022-09-05 18:22:48.916666000 -0400
++++ src/process.h	2022-09-05 19:01:17.633332528 -0400
+@@ -142,6 +142,4 @@
+ 
+ void remove_timed_out_processes();
+ 
+-void garbage_collect_processes();
+-
+ #endif
+--- src/cui.cpp	2022-09-05 19:21:12.169998881 -0400
++++ src/cui.cpp	2022-09-05 19:26:11.376665490 -0400
+@@ -157,8 +157,8 @@
+                                       const char *cmdline,
+                                       std::size_t max_len) {
+   if (showBasename) {
+-    if (index(progname, FILE_SEPARATOR) != NULL) {
+-      progname = rindex(progname, FILE_SEPARATOR) + 1;
++    if (strchr(progname, FILE_SEPARATOR) != NULL) {
++      progname = strrchr(progname, FILE_SEPARATOR) + 1;
+     } 
+   }                                      
+ 

@@ -1,0 +1,117 @@
+--- pathnames.h-orig	2022-08-11 15:56:22.101394500 -0400
++++ pathnames.h	2022-08-27 14:09:15.112705200 -0400
+@@ -12,7 +12,12 @@
+  * called by a name other than "ssh" or "Secure Shell".
+  */
+ 
++#ifdef __ANDROID__
++#define ETCDIR				"/system/etc"
++#undef SSHDIR
++#else
+ #define ETCDIR				"/etc"
++#endif
+ 
+ #ifndef SSHDIR
+ #define SSHDIR				ETCDIR "/ssh"
+@@ -44,7 +49,7 @@
+ #define _PATH_DH_MODULI			SSHDIR "/moduli"
+ 
+ #ifndef _PATH_SSH_PROGRAM
+-#define _PATH_SSH_PROGRAM		"/usr/bin/ssh"
++#define _PATH_SSH_PROGRAM		"/system/bin/ssh"
+ #endif
+ 
+ /*
+@@ -96,10 +101,19 @@
+  * may need to be world-readable.  (This file is read by the daemon which is
+  * running as root.)
+  */
+-#define _PATH_SSH_USER_PERMITTED_KEYS	_PATH_SSH_USER_DIR "/authorized_keys"
++#ifdef __ANDROID__
++
++#define _PATH_SSH_USER_PERMITTED_KEYS   ETCDIR SSHDIR "/authorized_keys"
++#define _PATH_SSH_USER_PERMITTED_KEYS2  _PATH_SSH_USER_DIR "/authorized_keys"
++
++#else
++
++#define _PATH_SSH_USER_PERMITTED_KEYS	ETCDIR SSHDIR "/authorized_keys"
+ 
+ /* backward compat for protocol v2 */
+-#define _PATH_SSH_USER_PERMITTED_KEYS2	_PATH_SSH_USER_DIR "/authorized_keys2"
++#define _PATH_SSH_USER_PERMITTED_KEYS2	_PATH_SSH_USER_DIR "/authorized_keys"
++
++#endif
+ 
+ /*
+  * Per-user and system-wide ssh "rc" files.  These files are executed with
+@@ -115,38 +129,38 @@
+  * ~/.rhosts and /etc/hosts.equiv if rhosts authentication is enabled.
+  */
+ #define _PATH_SSH_HOSTS_EQUIV		SSHDIR "/shosts.equiv"
+-#define _PATH_RHOSTS_EQUIV		"/etc/hosts.equiv"
++#define _PATH_RHOSTS_EQUIV		"/system/etc/hosts.equiv"
+ 
+ /*
+  * Default location of askpass
+  */
+ #ifndef _PATH_SSH_ASKPASS_DEFAULT
+-#define _PATH_SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
++#define _PATH_SSH_ASKPASS_DEFAULT	"/system/bin/ssh-askpass"
+ #endif
+ 
+ /* Location of ssh-keysign for hostbased authentication */
+ #ifndef _PATH_SSH_KEY_SIGN
+-#define _PATH_SSH_KEY_SIGN		"/usr/libexec/ssh-keysign"
++#define _PATH_SSH_KEY_SIGN		"/system/bin/ssh-keysign"
+ #endif
+ 
+ /* Location of ssh-pkcs11-helper to support keys in tokens */
+ #ifndef _PATH_SSH_PKCS11_HELPER
+-#define _PATH_SSH_PKCS11_HELPER		"/usr/libexec/ssh-pkcs11-helper"
++#define _PATH_SSH_PKCS11_HELPER		"/system/bin/ssh-pkcs11-helper"
+ #endif
+ 
+ /* Location of ssh-sk-helper to support keys in security keys */
+ #ifndef _PATH_SSH_SK_HELPER
+-#define _PATH_SSH_SK_HELPER		"/usr/libexec/ssh-sk-helper"
++#define _PATH_SSH_SK_HELPER		"/system/bin/ssh-sk-helper"
+ #endif
+ 
+ /* xauth for X11 forwarding */
+ #ifndef _PATH_XAUTH
+-#define _PATH_XAUTH			"/usr/X11R6/bin/xauth"
++#define _PATH_XAUTH			"/system/bin/xauth"
+ #endif
+ 
+ /* UNIX domain socket for X11 server; displaynum will replace %u */
+ #ifndef _PATH_UNIX_X
+-#define _PATH_UNIX_X "/tmp/.X11-unix/X%u"
++#define _PATH_UNIX_X "/data/local/tmp/.X11-unix/X%u"
+ #endif
+ 
+ /* for scp */
+@@ -156,7 +170,7 @@
+ 
+ /* for sftp */
+ #ifndef _PATH_SFTP_SERVER
+-#define _PATH_SFTP_SERVER		"/usr/libexec/sftp-server"
++#define _PATH_SFTP_SERVER		"/system/bin/sftp-server"
+ #endif
+ 
+ /* chroot directory for unprivileged user when UsePrivilegeSeparation=yes */
+@@ -166,7 +180,7 @@
+ 
+ /* for passwd change */
+ #ifndef _PATH_PASSWD_PROG
+-#define _PATH_PASSWD_PROG             "/usr/bin/passwd"
++#define _PATH_PASSWD_PROG             "/system/bin/passwd"
+ #endif
+ 
+ #ifndef _PATH_LS
+@@ -175,5 +189,5 @@
+ 
+ /* Askpass program define */
+ #ifndef ASKPASS_PROGRAM
+-#define ASKPASS_PROGRAM         "/usr/lib/ssh/ssh-askpass"
++#define ASKPASS_PROGRAM         "/system/lib/ssh/ssh-askpass"
+ #endif /* ASKPASS_PROGRAM */

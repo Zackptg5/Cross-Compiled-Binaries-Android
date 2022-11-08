@@ -1,0 +1,11 @@
+--- misc.c-orig	2022-08-11 15:56:22.151394500 -0400
++++ misc.c	2022-08-27 14:14:29.751199400 -0400
+@@ -1789,7 +1789,7 @@
+ 		if (r > 0 && (size_t)r < len)
+ 			return;
+ 	}
+-	r = snprintf(s, len, "/tmp/ssh-XXXXXXXXXXXX");
++	r = snprintf(s, len, "/data/local/tmp/ssh-XXXXXXXXXXXX");
+ 	if (r < 0 || (size_t)r >= len)
+ 		fatal_f("template string too short");
+ }

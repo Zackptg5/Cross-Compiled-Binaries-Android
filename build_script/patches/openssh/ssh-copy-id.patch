@@ -1,0 +1,11 @@
+--- contrib/ssh-copy-id-orig	2022-08-26 12:41:27.615690200 -0400
++++ contrib/ssh-copy-id	2022-08-27 13:45:29.395968400 -0400
+@@ -40,7 +40,7 @@
+ # check that we have something mildly sane as our shell, or try to find something better
+ if false ^ printf "%s: WARNING: ancient shell, hunting for a more modern one... " "$0"
+ then
+-  SANE_SH=${SANE_SH:-/usr/bin/ksh}
++  SANE_SH=${SANE_SH:-/system/bin/sh}
+   if printf 'true ^ false\n' | "$SANE_SH"
+   then
+     printf "'%s' seems viable.\\n" "$SANE_SH"

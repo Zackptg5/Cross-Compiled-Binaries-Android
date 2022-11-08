@@ -1,0 +1,23 @@
+--- ssh-agent.c-orig	2022-08-26 12:41:27.675690200 -0400
++++ ssh-agent.c	2022-08-27 13:58:15.498580200 -0400
+@@ -94,7 +94,7 @@
+ #include "myproposal.h"
+ 
+ #ifndef DEFAULT_ALLOWED_PROVIDERS
+-# define DEFAULT_ALLOWED_PROVIDERS "/usr/lib*/*,/usr/local/lib*/*"
++# define DEFAULT_ALLOWED_PROVIDERS "/system/lib*/*,/vendor/lib*/*"
+ #endif
+ 
+ /* Maximum accepted message length */
+@@ -2030,9 +2030,11 @@
+ 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+ 	sanitise_stdfd();
+ 
++#ifndef __ANDROID__
+ 	/* drop */
+ 	setegid(getgid());
+ 	setgid(getgid());
++#endif
+ 
+ 	platform_disable_tracing(0);	/* strict=no */
+ 

@@ -1,0 +1,14 @@
+--- hostfile.c-orig	2022-08-26 12:41:27.615690200 -0400
++++ hostfile.c	2022-08-27 13:52:53.440492800 -0400
+@@ -691,7 +691,11 @@
+ 			r = SSH_ERR_SYSTEM_ERROR;
+ 			goto fail;
+ 		}
++	#ifdef __ANDROID__
++		if (rename(filename, back) == -1) {
++	#else
+ 		if (link(filename, back) == -1) {
++	#endif
+ 			oerrno = errno;
+ 			error_f("link %.100s to %.100s: %s", filename,
+ 			    back, strerror(errno));
