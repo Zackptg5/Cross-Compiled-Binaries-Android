@@ -55,7 +55,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssh, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -175,7 +175,6 @@ build_bin() {
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.50.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssh") ver="V_9_1_P1"; url="https://github.com/openssh/openssh-portable openssh";;
     "openssl") ver="openssl-3.0.7"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.16.1"; url="https://github.com/NixOS/patchelf";;
@@ -753,42 +752,6 @@ build_bin() {
         --with-liblua=included \
         --with-liblinear=included
       ;;
-    "openssh")
-      build_bin zlib
-      build_bin libedit
-      build_bin ldns # also builds openssl
-      cd $dir/$bin
-      sed -i "s/-ledit -lcurses/-ledit -lncurses/" configure.ac
-      autoreconf -fi
-      ./configure CFLAGS="$CFLAGS -I$prefix/include -DHAVE_ATTRIBUTE__SENTINEL__=1 -DBROKEN_SETRESGID -Dfd_mask=int -DMISSING_FD_MASK=1 -DMISSING_HOWMANY=1" LDFLAGS="$LDFLAGS -L$prefix/lib -Wl,--allow-multiple-definition" \
-        LIBS="-lz -lcrypto -lssl -lldns -lncurses" \
-        --host=$target_host --target=$target_host \
-        $flags--prefix=$prefix \
-        --with-pie \
-        --with-ldns=$prefix \
-        --with-libedit=$prefix \
-        --disable-etc-default-login \
-        --disable-lastlog \
-        --disable-libutil \
-        --disable-pututline \
-        --disable-pututxline \
-        --disable-strip \
-        --disable-utmp \
-        --disable-utmpx \
-        --disable-wtmp \
-        --disable-wtmpx \
-        --with-xauth=/system/bin/xauth \
-        --without-stackprotect \
-        ac_cv_func_endgrent=yes \
-        ac_cv_func_fmt_scaled=no \
-        ac_cv_func_getlastlogxbyname=no \
-        ac_cv_func_readpassphrase=no \
-        ac_cv_func_strnvis=no \
-        ac_cv_header_sys_un_h=yes \
-        ac_cv_search_getrrsetbyname=no \
-        ac_cv_func_bzero=yes
-      apply_patches || exit 1
-      ;;
     "openssl")
       cd $dir/$bin
       if $static; then
@@ -1082,10 +1045,6 @@ build_bin() {
                   [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                   make install_sw -j$jobs
                   ;;
-      "openssh") make -j$jobs
-                 [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
-                 make install-nokeys
-                 ;;
       "pcre"|"pcre2") make install -j$jobs DESTDIR=$prefix
                       [ $? -eq 0 ] || { echored "Build failed!"; exit 1; };;
       "selinux") make install -j$jobs DESTDIR=$prefix prefix= \
