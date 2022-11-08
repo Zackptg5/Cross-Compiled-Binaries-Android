@@ -7,7 +7,7 @@ Linux - Tested on Arch-based distro. You could try this on other distros but you
 
 ### Prereq Setup ###
 ```
-sudo pacman -S base-devel git libgit2 python-pip go
+sudo pacman -S base-devel git libgit2 python-pip go lzip
 pip install abimap
 git clone https://github.com/akhilnarang/scripts # Sets up build environment
 cd scripts
