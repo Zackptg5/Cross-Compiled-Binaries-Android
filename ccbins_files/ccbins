@@ -371,7 +371,7 @@ remove_file() {
 
 add_file() {
   local file="$1"
-  mktouch $file
+  mktouch $file 2>/dev/null
   mount -o bind $MOUNTDIR$file $file
 }
 
