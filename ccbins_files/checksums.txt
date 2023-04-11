@@ -30,7 +30,7 @@ d220af23f7b9f5390f3b4b5ac6030ea5  ccbins_files/legacy/ccbins
 9b0a2892ba064b6ee05d8bcbb85e61fb  ccbins_files/legacy/module.prop
 963b505462234b1966ab972143fc3899  ccbins_files/legacy/mod-util.sh
 590c7d0fefe61d8b4c26249b810449e7  ccbins_files/legacy/service.sh
-42a21db0f0e10fe2754056e085f38184  ccbins_files/ccbins
+2092a222b21910cb2ad2de153a3253be  ccbins_files/ccbins
 46ce41ac9325fc94a127568a5be4e0f5  ccbins_files/changelog.txt
 51a09c223ff8112fe3e7d6193049c759  ccbins_files/includes-dynamic.txt
 50dadbeda10a633199185ed574697426  ccbins_files/includes.txt
