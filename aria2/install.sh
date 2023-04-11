@@ -1,3 +1,4 @@
+[ -z "$MODDIR" ] && MODDIR=$MODPATH #legacy variable
 # Generates ca-certificate.crt file from .0 files present on device
 mkdir -p $MODDIR/system/etc/security
 if [ -f "$(dirname $MOUNTPATH)/mirror/system/etc/security/ca-certificates.crt" ]; then

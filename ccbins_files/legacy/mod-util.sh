@@ -7,7 +7,7 @@
 
 # Versions
 MODUTILVER=v2.6
-MODUTILVCODE=263
+MODUTILVCODE=262
 
 # Check A/B slot
 if [ -d /system_root ]; then
@@ -72,6 +72,7 @@ set_perm() {
   chmod $4 $1 || return 1
   (if [ -z $5 ]; then
     case $1 in
+      *"/bin/"*) chcon 'u:object_r:system_file:s0' $1;;
       *"system/vendor/app/"*) chcon 'u:object_r:vendor_app_file:s0' $1;;
       *"system/vendor/etc/"*) chcon 'u:object_r:vendor_configs_file:s0' $1;;
       *"system/vendor/overlay/"*) chcon 'u:object_r:vendor_overlay_file:s0' $1;;
@@ -141,13 +142,13 @@ if [ "$ABILONG" = "arm64-v8a" ]; then ARCH=arm64; ARCH32=arm; IS64BIT=true; fi;
 if [ "$ABILONG" = "x86_64" ]; then ARCH=x64; ARCH32=x86; IS64BIT=true; fi;
   
 # Version Number
-VER=$(grep_prop version $MODPATH/module.prop)
+VER=$(grep_prop version $MODDIR/module.prop)
 # Version Code
-REL=$(grep_prop versionCode $MODPATH/module.prop)
+REL=$(grep_prop versionCode $MODDIR/module.prop)
 # Author
-AUTHOR=$(grep_prop author $MODPATH/module.prop)
+AUTHOR=$(grep_prop author $MODDIR/module.prop)
 # Mod Name/Title
-MODTITLE=$(grep_prop name $MODPATH/module.prop)
+MODTITLE=$(grep_prop name $MODDIR/module.prop)
 
 # Colors
 G='\e[01;32m'		# GREEN TEXT

@@ -13,16 +13,20 @@ ID="ccbins"
 _name=$(basename $0)
 ls /data >/dev/null 2>&1 || { echo "$ID needs to run as root!"; echo "type 'su' then '$_name'"; exit 1; }
 
-# Magisk Mod Directory
-[ -d "/sbin/.magisk" ] && MOUNTPATH="/sbin/.magisk/modules" || MOUNTPATH="$(find /dev -mindepth 2 -maxdepth 2 -type d -name ".magisk")/modules"
-MODDIR="$MOUNTPATH/$ID"
-[ ! -d $MODDIR ] && { echo "Module not detected!"; exit 1; }
+# Magisk Version
+MAGISK_VER_CODE=$(magisk -V)
+
+# Magisk Mod Directories
+MODPATH=/data/adb/modules/$ID
+MOUNTPATH="$(magisk --path)/.magisk/modules"
+MOUNTDIR="$MOUNTPATH/$ID"
+[ ! -d $MOUNTDIR ] && { echo "Module not detected!"; exit 1; }
 
 # Set path to your busybox if applicable
-_bb=$MODDIR/busybox
+_bb=$MODPATH/busybox
 
 # Load mod-util.sh
-. $MODDIR/mod-util.sh || exit $?
+. $MODPATH/mod-util.sh || exit $?
 
 # Set Log Files
 mount -o remount,rw /cache 2>/dev/null
@@ -43,30 +47,31 @@ set -x 2>$VERLOG
 # > You can add functions, variables & etc.
 # > Rather than editing the default vars above.
 quit() {
-  rm -f $MODDIR/tmp $MODDIR/dlerror
+  remount ro
+  rm -f $MODPATH/tmp $MODPATH/dlerror
   kill -10 $proc
   exit 0
 }
 
-scriptver=23
-[ -f $MODDIR/.branch ] && branch="$(cat $MODDIR/.branch)" || branch=master
+scriptver=24
+[ -f $MODPATH/.branch ] && branch="$(cat $MODPATH/.branch)" || branch=master
 # Doh workaround for dns poisoning, DNS servers must be specified for Android Oreo+ and/or if wireguard tunnel active - just specify all the time cause I'm lazy
-[ -f $MODDIR/doh ] && mv -f $MODDIR/doh $MODDIR/.doh
-if [ -f $MODDIR/.doh ]; then
-  flag=" --doh-url $(tail -n1 $MODDIR/.doh)"
-  doh="$(head -n1 $MODDIR/.doh)"
+[ -f $MODPATH/doh ] && mv -f $MODPATH/doh $MODPATH/.doh
+if [ -f $MODPATH/.doh ]; then
+  flag=" --doh-url $(tail -n1 $MODPATH/.doh)"
+  doh="$(head -n1 $MODPATH/.doh)"
   [ "$doh" == "Cloudflare" ] && dns="1.1.1.1,1.0.0.1" || dns="223.5.5.5,223.6.6.6"
 else
   dns="1.1.1.1,1.0.0.1"
 fi
 # Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
-[ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs --dns-servers $dns$flag" || alias curl="$MODDIR/curl -Ls --dns-servers $dns$flag"
+[ $API -lt 23 ] && alias curl="$MODPATH/curl -kLs --dns-servers $dns$flag" || alias curl="$MODPATH/curl -Ls --dns-servers $dns$flag"
 unset flag
 # Make sure curl binary is present
-[ -f $MODDIR/curl ] || { echo -e "Curl missing!\nReinstall ccbins or copy curl to root of ccbins module folder!"; quit; }
+[ -f $MODPATH/curl ] || { echo -e "Curl missing!\nReinstall ccbins or copy curl to root of ccbins module folder!"; quit; }
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
-[ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)" || insloc=/system/bin
+[ -f $MODPATH/.loc ] && insloc="$(cat $MODPATH/.loc)" || insloc=/system/bin
 
 # redefined with curl
 test_connection() {
@@ -87,20 +92,20 @@ print_pause() {
 }
 
 download_file() {
-  rm -f $MODDIR/dlerror
+  rm -f $MODPATH/dlerror
   local file="$1" url="$2"
   curl -o "$file" "$url"
-  if [ "$file" == "$MODDIR/.checksums" ]; then
+  if [ "$file" == "$MODPATH/.checksums" ]; then
     if [ ! -f "$file" ]; then
       echo "Checksums download failed!"
-      [ "$doh" ] && echo -e "Try deleting /data/adb/modules/ccbins/.doh\n    or disabling your vpn"
+      [ "$doh" ] && echo -e "Try deleting $MODPATH/.doh\n    or disabling your vpn"
       quit
     elif [ "$(head -n1 "$file")" != "checksums.txt" ]; then
       echo "Checksums download failed!"
       quit
     fi
   else
-    [ -f "$file" ] && grep -Fwq "`md5sum "$file" | awk '{print $1}'`" $MODDIR/.checksums || { rm -f "$file"; touch $MODDIR/dlerror; echo "Download error for $file!"; }
+    [ -f "$file" ] && grep -Fwq "`md5sum "$file" | awk '{print $1}'`" $MODPATH/.checksums || { rm -f "$file"; touch $MODPATH/dlerror; echo "Download error for $file!"; }
   fi
 }
 
@@ -121,9 +126,9 @@ reset_mod() {
   local newloc=/data/adb/modules_update/$ID
   rm -rf $newloc
   mkdir -p /data/adb/modules_update/$ID/system/bin 2>/dev/null
-  cp -pf $MODDIR/system/bin/ccbins $newloc/system/bin/ccbins
-  cp -pf $MODDIR/* $newloc 2>/dev/null
-  touch $MODDIR/update
+  cp -pf $MODPATH/system/bin/ccbins $newloc/system/bin/ccbins
+  cp -pf $MODPATH/* $newloc 2>/dev/null
+  touch $MODPATH/update
   rm -f $newloc/update $newloc/tmp
   echo -e "CCbins reset!\nReboot to apply it!\n"
   sleep 2
@@ -131,31 +136,31 @@ reset_mod() {
 
 check_updates() {
   echo -e "\nChecking for mod updates"
-  rm -f $MODDIR/.updated $MODDIR/.updatedfiles
-  download_file $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
+  rm -f $MODPATH/.updated $MODPATH/.updatedfiles
+  download_file $MODPATH/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
   for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver service.sh,filever module.prop,versionCode; do
     local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
-    if [ `curl -o - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODDIR/$file | cut -d = -f2` ]; then
-      echo "$scriptver" > $MODDIR/.updated
-      echo "$(basename $file)" >> $MODDIR/.updatedfiles
-      download_file $MODDIR/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file)
-      [ "$file" == "system/bin/ccbins" ] && { umount -l /$file; mount -o bind $MODDIR/$file /$file; }
+    if [ `curl -o - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODPATH/$file | cut -d = -f2` ]; then
+      echo "$scriptver" > $MODPATH/.updated
+      echo "$(basename $file)" >> $MODPATH/.updatedfiles
+      download_file $MODPATH/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file)
+      [ "$file" == "system/bin/ccbins" ] && { umount -l /$file; mount -o bind $MOUNTDIR/$file /$file; }
     fi
   done
 }
 
 find_conflicts() {
   echo -e "\nChecking for conflicting modules"
-  rm -f $MODDIR/tmp
-  [ -s $MODDIR/.installed ] || return 0
-  local locs="$(awk '{print $3}' $MODDIR/.installed | xargs -n1 | sort -u)" binaries="$(awk '{print $1}' $MODDIR/.installed | xargs -n1 | sort -u)"
+  rm -f $MODPATH/tmp
+  [ -s $MODPATH/.installed ] || return 0
+  local locs="$(awk '{print $3}' $MODPATH/.installed | xargs -n1 | sort -u)" binaries="$(awk '{print $1}' $MODPATH/.installed | xargs -n1 | sort -u)"
   [ -z "$binaries" ] && return 0
   for bin in $binaries; do
-    local bins="$(grep -w $bin $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g") $bins"
+    local bins="$(grep -w $bin $MODPATH/.binaries | awk '{print $3}' | sed "s/,/ /g") $bins"
   done
   for loc in $locs; do
     for bin in $bins; do
-      find $MOUNTPATH/*$loc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" -name $bin 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system|  \1: system|" >> $MODDIR/tmp
+      find $MOUNTPATH/*$loc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" -name $bin 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system|  \1: system|" >> $MODPATH/tmp
     done
   done
 }
@@ -166,17 +171,17 @@ list_installed() {
   title_div "Installed Binaries:"
   echo "$div"
   local curlocs
-  sort -k3 $MODDIR/.installed > $MODDIR/tmp
-  sed -i 's/dynamic/(dynamic)/g' $MODDIR/tmp
+  sort -k3 $MODPATH/.installed > $MODPATH/tmp
+  sed -i 's/dynamic/(dynamic)/g' $MODPATH/tmp
   for i in $locs; do
-    [ "$(grep -w $i $MODDIR/.installed)" ] && curlocs="$i $curlocs"
+    [ "$(grep -w $i $MODPATH/.installed)" ] && curlocs="$i $curlocs"
   done
   curlocs="$(echo $curlocs | tr ' ' '\n' | tac | tr '\n' ' ')"
   for i in $curlocs; do
     echo "$div"
     title_div "$i"
     echo "$div"
-    grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2,4
+    grep -w $i $MODPATH/tmp | cut -d ' ' -f1-2,4
   done
   echo -e "\nPress 0 to continue"
   while true; do
@@ -217,18 +222,18 @@ info() {
 }
 
 list_locs() {
-  rm -f $MODDIR/tmp
+  rm -f $MODPATH/tmp
   local num=0
   echo "0: Go back to options menu"
   for i in $locs; do
     [ -d "$i" ] || continue
     num=$((num+1))
-    echo "$num: $i" | tee -a $MODDIR/tmp;
+    echo "$num: $i" | tee -a $MODPATH/tmp;
   done
 }
 
 change_loc() {
-  [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)"
+  [ -f $MODPATH/.loc ] && insloc="$(cat $MODPATH/.loc)"
   while true; do
     clear
     echo "$div"
@@ -241,16 +246,16 @@ change_loc() {
     while true; do
       read -r choice?'--> '
       echo " "
-      [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break
+      [ "$(grep -w "$choice:" $MODPATH/tmp 2>/dev/null)" ] && break
       case $choice in
         0) break 2;;
         q) quit;;
         *) echo "Invalid option! Try again";;
       esac
     done
-    insloc="$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null | awk '{print $2}')"
-    mkdir $MODDIR$insloc 2>/dev/null
-    echo $insloc > $MODDIR/.loc
+    insloc="$(grep -w "$choice:" $MODPATH/tmp 2>/dev/null | awk '{print $2}')"
+    mkdir $MODPATH$insloc 2>/dev/null
+    echo $insloc > $MODPATH/.loc
     echo -e "Install location has been changed to $insloc\n"
     break
   done
@@ -280,12 +285,12 @@ binary_update_menu() {
     done
     case $choice in
       0) break;;
-      1) $autoupdate && { touch $MODDIR/.disable_autoupdate; autoupdate=false; } || { rm -f $MODDIR/.disable_autoupdate; autoupdate=true; };;
+      1) $autoupdate && { touch $MODPATH/.disable_autoupdate; autoupdate=false; } || { rm -f $MODPATH/.disable_autoupdate; autoupdate=true; };;
       2) if $autoupdate || ! $online; then
            echo "Invalid option! Try again"
          else
            check_bin_updates & e_spinner
-           [ -f $MODDIR/tmp ] && echo -e " - Done\n" || echo -e " - Binaries are up to date\n"
+           [ -f $MODPATH/tmp ] && echo -e " - Done\n" || echo -e " - Binaries are up to date\n"
          fi;;
     esac
   done
@@ -298,7 +303,7 @@ options_menu() {
     title_div "Options Menu"
     echo "$div"
     [ "$doh" ] && echo "Current DOH Server: $doh" || echo "Current DOH Server: None"
-    [ -f $MODDIR/.doh ] && echo "Set DOH Server: $(head -n1 $MODDIR/.doh)" || echo "Set DOH Server: None"
+    [ -f $MODPATH/.doh ] && echo "Set DOH Server: $(head -n1 $MODPATH/.doh)" || echo "Set DOH Server: None"
     echo "$div"
     echo "0: Go back to main menu"
     echo "1: Change install location"
@@ -335,9 +340,9 @@ options_menu() {
            done
            case $choice in
              0) break;;
-             1) rm -f $MODDIR/.doh; break;;
-             2) echo -e "Cloudflare\nhttps://cloudflare-dns.com/dns-query" > $MODDIR/.doh; break;;
-             3) echo -e "Alibaba\nhttps://dns.alidns.com/dns-query" > $MODDIR/.doh; break;;
+             1) rm -f $MODPATH/.doh; break;;
+             2) echo -e "Cloudflare\nhttps://cloudflare-dns.com/dns-query" > $MODPATH/.doh; break;;
+             3) echo -e "Alibaba\nhttps://dns.alidns.com/dns-query" > $MODPATH/.doh; break;;
            esac
          done;;
     esac
@@ -345,85 +350,105 @@ options_menu() {
 }
 
 check_conflicts() {
-  find $MOUNTPATH/*$insloc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" \( -name $i \) 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system/.*|\1|" > $MODDIR/tmp2
-  [ -s $MODDIR/tmp2 ] && echo -e "  Conflict ($insloc/$i) found in: $(cat $MODDIR/tmp2)!"
-  rm -f $MODDIR/tmp2
+  find $MOUNTPATH/*$insloc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" \( -name $i \) 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system/.*|\1|" > $MODPATH/tmp2
+  [ -s $MODPATH/tmp2 ] && echo -e "  Conflict ($insloc/$i) found in: $(cat $MODPATH/tmp2)!"
+  rm -f $MODPATH/tmp2
+}
+
+remount() {
+  local arg="$1"
+  $IS64BIT && local libloc="/system/lib64" || local libloc="/system/lib"
+  for i in /system/bin /system/etc /system/usr /system/usr/share $libloc; do
+    is_mounted $i && mount -o $arg,remount $i
+  done
+}
+
+remove_file() {
+  local file="$1"
+  umount -f $file 2>/dev/null
+  rm -f $file $MODPATH$file 2>/dev/null
+}
+
+add_file() {
+  local file="$1"
+  mktouch $file
+  mount -o bind $MOUNTDIR$file $file
 }
 
 remove_binary() {
-  [ "$1" == "-f" ] && local force=true || force=false
-  for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
-    $force || umount -f $insloc/$i 2>/dev/null
-    rm -f $MODDIR$insloc/$i
+  for i in $(grep -w $binary $MODPATH/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
+    remove_file $insloc/$i
   done
-  if [ -f $MODDIR/.$ibinary ]; then
+  if [ -f $MODPATH/.$ibinary ]; then
     while read -r line; do
-      $force || umount -f /system/$line 2>/dev/null
-      rm -f $MODDIR/system/$line
-    done < $MODDIR/.$ibinary
-    rm -f $MODDIR/.$ibinary
+      remove_file $line
+    done < $MODPATH/.$ibinary
+    rm -f $MODPATH/.$ibinary
   fi
 }
 
 install_binary() {
   [ "$1" == "-s" ] && local spin=true || spin=false
-  [ "$file" == "$MODDIR/.binaries" ] && local url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$ibinary" || local url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$ibinary/dynamic"
+  [ "$file" == "$MODPATH/.binaries" ] && local url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$ibinary" || local url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$ibinary/dynamic"
   for i in $(grep -w $binary $file | awk '{print $3}' | sed "s/,/ /g"); do
     check_conflicts
-    $spin && { download_file $MODDIR$insloc/$i $url/$i-$ARCH & e_spinner; } || download_file $MODDIR$insloc/$i $url/$i-$ARCH
-    [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
-    set_perm $MODDIR$insloc/$i 0 2000 0755
+    $spin && { download_file $MODPATH$insloc/$i $url/$i-$ARCH & e_spinner; } || download_file $MODPATH$insloc/$i $url/$i-$ARCH
+    [ -f $MODPATH/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODPATH/.installed; remove_binary; return 1; }
+    set_perm $MODPATH$insloc/$i 0 2000 0755
+    add_file $insloc/$i
   done
-  if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
+  if [ "$extras" ] && [ ! -f $MODPATH/.$ibinary ]; then
     for i in $(echo $extras | sed "s|,| |g"); do
       if curl -I --connect-timeout 3 $url/$i.zip | grep -q 'HTTP/.* 200'; then
-        $spin && { download_file $MODDIR/$i.zip $url/$i.zip & e_spinner; } || download_file $MODDIR/$i.zip $url/$i.zip
-        [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
-        unzip -qod $MODDIR/system $MODDIR/$i.zip
-        for j in $(unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d'); do
-          echo $j >> $MODDIR/.$ibinary
-          set_perm $MODDIR/system/$j 0 2000 0644
+        $spin && { download_file $MODPATH/$i.zip $url/$i.zip & e_spinner; } || download_file $MODPATH/$i.zip $url/$i.zip
+        [ -f $MODPATH/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODPATH/.installed; remove_binary; return 1; }
+        unzip -qod $MODPATH/system $MODPATH/$i.zip
+        for j in $(unzip -l $MODPATH/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d'); do
+          echo /system/$j >> $MODPATH/.$ibinary
+          set_perm $MODPATH/system/$j 0 2000 0644
+          add_file /system/$j
         done
-        rm -f $MODDIR/$i.zip
+        rm -f $MODPATH/$i.zip
       else
-        cd $MODDIR$insloc
+        cd $MODPATH$insloc
         ln -sf $ibinary $i
-        echo "$(echo $insloc | cut -d / -f3-)/$i" >> $MODDIR/.$ibinary
+        add_file $insloc/$i
+        echo "$(echo $insloc | cut -d / -f3-)/$i" >> $MODPATH/.$ibinary
         cd $dir
       fi
     done
   fi
   if curl -I --connect-timeout 3 $url/install.sh | grep -q 'HTTP/.* 200'; then
-    $spin && { download_file $MODDIR/install.sh $url/install.sh & e_spinner; } || download_file $MODDIR/install.sh $url/install.sh
-    [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
-    . $MODDIR/install.sh
-    rm -f $MODDIR/install.sh
+    $spin && { download_file $MODPATH/install.sh $url/install.sh & e_spinner; } || download_file $MODPATH/install.sh $url/install.sh
+    [ -f $MODPATH/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODPATH/.installed; remove_binary; return 1; }
+    . $MODPATH/install.sh
+    rm -f $MODPATH/install.sh
   fi
 }
 
 install_ncursesw() {
   [ "$1" == "-u" ] && local update=true || local update=false
-  $update && echo " - Updating NCursesw (`cat $MODDIR/.ncursesver` -> `cat $MODDIR/tmp`)" || echo " - Installing NCursesw v`cat $MODDIR/tmp`"
-  mv -f $MODDIR/tmp $MODDIR/.ncursesver
-  download_file $MODDIR/system/ncursesw.zip https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ncursesw/ncursesw-$ARCH.zip
-  if [ ! -f $MODDIR/dlerror ]; then
-    unzip -qod $MODDIR/system $MODDIR/system/ncursesw.zip
-    rm -f $MODDIR/system/ncursesw.zip
+  $update && echo " - Updating NCursesw (`cat $MODPATH/.ncursesver` -> `cat $MODPATH/tmp`)" || echo " - Installing NCursesw v`cat $MODPATH/tmp`"
+  mv -f $MODPATH/tmp $MODPATH/.ncursesver
+  download_file $MODPATH/system/ncursesw.zip https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ncursesw/ncursesw-$ARCH.zip
+  if [ ! -f $MODPATH/dlerror ]; then
+    unzip -qod $MODPATH/system $MODPATH/system/ncursesw.zip
+    rm -f $MODPATH/system/ncursesw.zip
     $update && echo " - NCursesw has been updated!" || echo " - NCursesw has been installed!"
   else
-    rm -f $MODDIR/system/ncursesw.zip
+    rm -f $MODPATH/system/ncursesw.zip
     $update && echo " - NCursesw update failed!" || echo " - NCursesw install failed!"
   fi
 }
 
 check_bin_updates() {
   echo -e "\nChecking for binary updates"
-  download_file $MODDIR/tmp https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ncursesw/version.txt
-  [ -f $MODDIR/dlerror ] && { echo "Binary update check failed!"; return 0; }
-  if [ ! -f $MODDIR/.ncursesver ]; then
+  download_file $MODPATH/tmp https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ncursesw/version.txt
+  [ -f $MODPATH/dlerror ] && { echo "Binary update check failed!"; return 0; }
+  if [ ! -f $MODPATH/.ncursesver ]; then
     install_ncursesw 
   else
-    local insver="$(cat $MODDIR/.ncursesver | awk '{print substr($2, 3, length($2) - 3)}')" newver="$(cat $MODDIR/tmp | awk '{print substr($2, 3, length($2) - 3)}')"
+    local insver="$(cat $MODPATH/.ncursesver | awk '{print substr($2, 3, length($2) - 3)}')" newver="$(cat $MODPATH/tmp | awk '{print substr($2, 3, length($2) - 3)}')"
     # Add 0 before final number if single digit or compare won't work
     for i in insver newver; do
       local beg=$(echo $(eval echo \$$i) | sed -r "s/(.*)\..*/\1./")
@@ -433,9 +458,9 @@ check_bin_updates() {
     done
     [ $(echo "$decnewver $decinsver" | awk '{printf "%d", ($1 > $2)}') -eq 1 ] && install_ncursesw -u
   fi
-  [ -s $MODDIR/.installed ] || return 0
+  [ -s $MODPATH/.installed ] || return 0
   while read -r line; do
-    [ "$(echo "$line" | awk '{print $4}')" == "dynamic" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
+    [ "$(echo "$line" | awk '{print $4}')" == "dynamic" ] && local file=$MODPATH/.binaries-dynamic || local file=$MODPATH/.binaries
     local binloc="$(echo "$line" | awk '{print $3}')" binary="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')"
     local insloc="$binloc" newver="$(grep -w $binary $file | awk '{print substr($2, 3, length($2) - 3)}')" ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $file | awk '{print $4}')"
     [ "$insver" == "/a" ] && insver="0.0"
@@ -447,43 +472,42 @@ check_bin_updates() {
       local dec$i=$beg$end
     done
     [ $(echo "$decnewver $decinsver" | awk '{printf "%d", ($1 > $2)}') -eq 1 ] || continue
-    touch $MODDIR/tmp
+    touch $MODPATH/tmp
     echo " - Updating $binloc: $binary ($insver -> $newver)"
-    sed -i "\|$binary.*$binloc| s/$insver/$newver/" $MODDIR/.installed
-    remove_binary -f
+    sed -i "\|$binary.*$binloc| s/$insver/$newver/" $MODPATH/.installed
+    remove_binary
     install_binary
     [ $? -eq 0 ] && echo " - $binary has been updated!" || echo " - $binary update failed!"
-  done < $MODDIR/.installed
+  done < $MODPATH/.installed
 }
 
 remove_binary_menu() {
   clear
   while true; do
-    grep -w "$insloc" $MODDIR/.installed | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
-    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Remove all binaries listed below" $MODDIR/tmp || { print_pause "No binaries are installed to $insloc!\n"; break; }
+    grep -w "$insloc" $MODPATH/.installed | awk '{print FNR + 1 ": " $1 " " $2}' > $MODPATH/tmp
+    [ -s $MODPATH/tmp ] && sed -i "1i0: None, go back to main menu\n1: Remove all binaries listed below" $MODPATH/tmp || { print_pause "No binaries are installed to $insloc!\n"; break; }
     echo "$div"
     title_div "Remove which binary?"
     echo "$div"
-    cat $MODDIR/tmp
+    cat $MODPATH/tmp
     while true; do
       read -r choice?'--> '
       echo " "
       for i in $choice; do
         case $i in
           0) break 3;;
-          1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"; break 2;;
+          1) choice="$(awk '{print $1}' $MODPATH/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"; break 2;;
           q) quit;;
-          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+          *) [ "$(grep -w "$i:" $MODPATH/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
         esac
       done
     done
     for ichoice in $choice; do
-      local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
-      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
-      sed -i "\|$binary.*$insloc|d" $MODDIR/.installed
-      is_mounted $insloc/$ibinary && local unmount=true || local unmount=false
+      local binary=$(grep -w "$ichoice:" $MODPATH/tmp | awk '{print $2}')
+      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODPATH/.binaries | awk '{print $4}')"
+      sed -i "\|$binary.*$insloc|d" $MODPATH/.installed
       remove_binary
-      toybox find $MODDIR/system -type d -empty -delete >/dev/null 2>&1
+      toybox find $MODPATH/system -type d -empty -delete >/dev/null 2>&1
       echo -e "$binary has been removed!\n"
     done
   done
@@ -491,56 +515,56 @@ remove_binary_menu() {
 }
 
 install_binary_menu() {
-[ "$1" == "-d" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
+[ "$1" == "-d" ] && local file=$MODPATH/.binaries-dynamic || local file=$MODPATH/.binaries
   clear
   while true; do
-    if [ -s $MODDIR/.installed ]; then
-      local curbins="$(grep -w "$insloc" $MODDIR/.installed | awk '{print $1}')"
+    if [ -s $MODPATH/.installed ]; then
+      local curbins="$(grep -w "$insloc" $MODPATH/.installed | awk '{print $1}')"
       curbins="$(echo $curbins | sed 's| |\||g')"
     fi
-    if [ -z "$curbins" ] || [ ! -s $MODDIR/.installed ]; then
-      cat $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    if [ -z "$curbins" ] || [ ! -s $MODPATH/.installed ]; then
+      cat $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODPATH/tmp
     else
-      grep -Ewv "$curbins" $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+      grep -Ewv "$curbins" $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODPATH/tmp
     fi
-    if [ "$file" == "$MODDIR/.binaries-dynamic" ]; then
+    if [ "$file" == "$MODPATH/.binaries-dynamic" ]; then
       while read -r line; do
         local fapi="$(echo $line | awk '{print $2}' | sed 's/.*-//')"
         [ "$fapi" ] || fapi=21
-        [ $API -lt $fapi ] && { sed -i "/$line/d" $MODDIR/tmp; continue; }
+        [ $API -lt $fapi ] && { sed -i "/$line/d" $MODPATH/tmp; continue; }
         fapi="$(echo $line | awk '{print $2}' | sed 's/-.*//')"
-        [ "$fapi" ] && sed -i "s/$(echo $line | awk '{print $2}')/$fapi/" $MODDIR/tmp
+        [ "$fapi" ] && sed -i "s/$(echo $line | awk '{print $2}')/$fapi/" $MODPATH/tmp
         unset fapi
-      done < $MODDIR/tmp
+      done < $MODPATH/tmp
     fi
-    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Install all binaries listed below" $MODDIR/tmp || { print_pause "All binaries are installed!\n"; break; }
+    [ -s $MODPATH/tmp ] && sed -i "1i0: None, go back to main menu\n1: Install all binaries listed below" $MODPATH/tmp || { print_pause "All binaries are installed!\n"; break; }
     echo "$div"
     title_div "Install which binary?"
     echo "$div"
     title_div "Current install location:"
     title_div "$insloc"
     echo "$div"
-    cat $MODDIR/tmp
+    cat $MODPATH/tmp
     while true; do
       read -r choice?'--> '
       echo " "
       for i in $choice; do
         case $i in
           0) break 3;;
-          1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"
+          1) choice="$(awk '{print $1}' $MODPATH/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"
              break 2;;
           q) quit;;
-          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+          *) [ "$(grep -w "$i:" $MODPATH/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
         esac
       done
     done
     for ichoice in $choice; do
-      echo "$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")$(basename "$file" | sed -e 's/.binaries-/ /' -e 's/.binaries//')" >> $MODDIR/.installed
-      local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
+      echo "$(grep -w "$ichoice:" $MODPATH/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")$(basename "$file" | sed -e 's/.binaries-/ /' -e 's/.binaries//')" >> $MODPATH/.installed
+      local binary=$(grep -w "$ichoice:" $MODPATH/tmp | awk '{print $2}')
       local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]')
       eval local extras="$(grep -w $binary $file | awk '{print $4}')" 
       echo "Downloading $binary"
-      mkdir -p $MODDIR$insloc
+      mkdir -p $MODPATH$insloc
       install_binary -s
       echo -e " - $binary has been installed!\n"
     done
@@ -552,8 +576,8 @@ install_binary_menu() {
 backup_config() {
   rm -rf $bakloc
   mkdir -p $bakloc
-  cp -pf $MODDIR/.* $bakloc 2>/dev/null
-  cp -af $MODDIR/system $bakloc
+  cp -pf $MODPATH/.* $bakloc 2>/dev/null
+  cp -af $MODPATH/system $bakloc
   rm -f $bakloc/system/bin/ccbins
   echo -e "Current config backed up!\n"
   sleep 2
@@ -563,32 +587,32 @@ restore_config() {
   local newloc=/data/adb/modules_update/$ID
   rm -rf $newloc
   mkdir -p /data/adb/modules_update/$ID 2>/dev/null
-  cp -pf $MODDIR/* $newloc 2>/dev/null
+  cp -pf $MODPATH/* $newloc 2>/dev/null
   cp -af $bakloc/* $newloc 2>/dev/null
   cp -pf $bakloc/.* $newloc 2>/dev/null
-  cp -pf $MODDIR/system/bin/ccbins $newloc/system/bin/ccbins
-  touch $MODDIR/update
+  cp -pf $MODPATH/system/bin/ccbins $newloc/system/bin/ccbins
+  touch $MODPATH/update
   echo -e "Old config restored!\nReboot to apply it!\n"
   sleep 2
 }
 
 force_update() {
-  echo "$scriptver" > $MODDIR/.updated
-  download_file $MODDIR/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
-  download_file $MODDIR/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
-  for i in $MODDIR/mod-util.sh $MODDIR/system/bin/ccbins; do
+  echo "$scriptver" > $MODPATH/.updated
+  download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
+  download_file $MODPATH/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
+  for i in $MODPATH/mod-util.sh $MODPATH/system/bin/ccbins; do
     cp -f $i $i.bak
     download_file $i https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $i)
-    [ -f $MODDIR/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak
+    [ -f $MODPATH/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak
   done
   umount -l /system/bin/ccbins
-  mount -o bind $MODDIR/system/bin/ccbins /system/bin/ccbins
+  mount -o bind $MOUNTDIR/system/bin/ccbins /system/bin/ccbins
   ccbins && quit
 }
 
 hidden_menu() {
-  curl -o - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
-  sed -i "1i0: Keep current branch, go back to main menu" $MODDIR/tmp
+  curl -o - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODPATH/tmp
+  sed -i "1i0: Keep current branch, go back to main menu" $MODPATH/tmp
   while true; do
     clear
     echo "$div"
@@ -618,18 +642,18 @@ hidden_menu() {
          force_update
          ;;
       2) echo "Which branch?"
-         cat $MODDIR/tmp
+         cat $MODPATH/tmp
          while true; do
            read -r choice?'--> '
            echo " "
            case $choice in
              0) break 2;;
              q) quit;;
-             *) [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break || echo "Invalid option: $choice! Try again";;
+             *) [ "$(grep -w "$choice:" $MODPATH/tmp 2>/dev/null)" ] && break || echo "Invalid option: $choice! Try again";;
            esac
          done
-         branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
-         echo "$branch" > $MODDIR/.branch
+         branch=$(grep -w "$choice:" $MODPATH/tmp | awk '{print $2}')
+         echo "$branch" > $MODPATH/.branch
          echo "Switching branch to $branch"
          force_update
          ;;
@@ -638,47 +662,66 @@ hidden_menu() {
   clear
 }
 
-rm -f $MODDIR/tmp
+force_legacy() {
+  download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
+  for i in $MODPATH/module.prop $MODPATH/mod-util.sh $MODPATH/service.sh $MODPATH/system/bin/ccbins; do
+    cp -f $i $i.bak
+    download_file $i https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/legacy/$(basename $i)
+    [ -f $MODPATH/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak
+  done
+  umount -l /system/bin/ccbins
+  mount -o bind $MOUNTDIR/system/bin/ccbins /system/bin/ccbins
+  ccbins && quit
+}
+
+# Kick back to legacy if magisk < 26
+if [ $MAGISK_VER_CODE -lt 26000 ]; then
+  echo "Magisk <v26 detected! Installing CCbins Legacy"
+  force_legacy
+fi
+
+remount rw
+rm -f $MODPATH/tmp
 mod_head
 echo " "
-[ -f $MODDIR/.disable_autoupdate ] && autoupdate=false || autoupdate=true
+[ -f $MODPATH/.disable_autoupdate ] && autoupdate=false || autoupdate=true
 if [ "$1" == "-f" ]; then
   echo "Applying mod updates and restarting ccbins"
   force_update
-elif [ -f $MODDIR/.updated ]; then
+elif [ -f $MODPATH/.updated ]; then
   echo "CCBins succesfully updated!"
-  local oldver="$(cat $MODDIR/.updated)" newver="$scriptver"
-  local oldline=$(sed -n "/^$oldver/=" $MODDIR/.changelog) newline=$(sed -n "/^$newver/=" $MODDIR/.changelog)
+  local oldver="$(cat $MODPATH/.updated)" newver="$scriptver"
+  local oldline=$(sed -n "/^$oldver/=" $MODPATH/.changelog) newline=$(sed -n "/^$newver/=" $MODPATH/.changelog)
   if [ $oldver -lt $newver ]; then
-    echo "Changelog: $(sed -n "/^$newver/p" $MODDIR/.changelog)"
-    sed -n "$newline,$oldline p" $MODDIR/.changelog | sed -E '/^[0-9]|^$/d'
+    echo "Changelog: $(sed -n "/^$newver/p" $MODPATH/.changelog)"
+    sed -n "$newline,$oldline p" $MODPATH/.changelog | sed -E '/^[0-9]|^$/d'
     echo " "
   fi
-  [ -f $MODDIR/.updatedfiles ] && { echo "Updated mod files:"; cat $MODDIR/.updatedfiles; echo " "; }
+  [ -f $MODPATH/.updatedfiles ] && { echo "Updated mod files:"; cat $MODPATH/.updatedfiles; echo " "; }
   sleep 2
 fi
 if test_connection; then
   online=true
   echo -e "\nFetching available binaries"
-  rm -f $MODDIR/.binaries $MODDIR/.binaries-dynamic $MODDIR/.checksums
-  download_file $MODDIR/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
-  download_file $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt & e_spinner
-  [ -f $MODDIR/dlerror ] && { echo "Unable to download binary list!"; quit; }
-  download_file $MODDIR/.binaries-dynamic https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes-dynamic.txt & e_spinner
-  [ -f $MODDIR/dlerror ] && { echo "Unable to download binary list!"; quit; }
+  rm -f $MODPATH/.binaries $MODPATH/.binaries-dynamic $MODPATH/.checksums
+  download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
+  download_file $MODPATH/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt & e_spinner
+  [ -f $MODPATH/dlerror ] && { echo "Unable to download binary list!"; quit; }
+  download_file $MODPATH/.binaries-dynamic https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes-dynamic.txt & e_spinner
+  [ -f $MODPATH/dlerror ] && { echo "Unable to download binary list!"; quit; }
   echo " - Done"
   check_updates & e_spinner
-  [ -f $MODDIR/.updated ] && { echo -e " - Applying mod updates and restarting ccbins"; ccbins && quit; } || echo " - Ccbins is up to date"
+  [ -f $MODPATH/.updated ] && { echo -e " - Applying mod updates and restarting ccbins"; ccbins && quit; } || echo " - Ccbins is up to date"
   if $autoupdate; then
     check_bin_updates & e_spinner
-    [ -f $MODDIR/tmp ] && echo " - Done" || echo " - Binaries are up to date"
+    [ -f $MODPATH/tmp ] && echo " - Done" || echo " - Binaries are up to date"
   fi
 else
   online=false
   echo -e "No internet connection!\nOnline functionality disabled"
 fi
 find_conflicts & e_spinner
-[ -s $MODDIR/tmp ] && { echo -e " - The following conflicts were found:\n"; cat $MODDIR/tmp; sleep 3; } || echo " - No conflicting mods were found"
+[ -s $MODPATH/tmp ] && { echo -e " - The following conflicts were found:\n"; cat $MODPATH/tmp; sleep 3; } || echo " - No conflicting mods were found"
 echo " "
 
 while true; do
@@ -700,7 +743,7 @@ while true; do
   echo "5: Remove binary"
   $online && echo "6: Install binary"
   $online && [ $API -ge 21 ] && echo "7: Install dynamic linked binary"
-  [ -s $MODDIR/.installed ] && echo "8: Backup current config"
+  [ -s $MODPATH/.installed ] && echo "8: Backup current config"
   [ -d $bakloc ] && echo -e "9: Restore last config\n10: Erase backup config"
   echo "Type 'q' at any time to quit"
   while true; do
@@ -709,7 +752,7 @@ while true; do
     case $choice in
       0|1|2|3|4|5|99) break;;
       6|7) $online && break || echo "You're offline! Can't download any binaries";;
-      8) [ -s $MODDIR/.installed ] && break || echo "Nothing is installed! Nothing to backup";;
+      8) [ -s $MODPATH/.installed ] && break || echo "Nothing is installed! Nothing to backup";;
       9|10) [ -d $bakloc ] && break || echo "No backup found!";;
       q) quit;;
       *) echo "Invalid option! Try again";;
@@ -720,12 +763,12 @@ while true; do
     0) reset_mod; clear;;
     1) info; clear;;
     2) options_menu; clear;;
-    3) [ -s $MODDIR/.installed ] && { list_installed; clear; } || print_pause "No binaries installed!";;
+    3) [ -s $MODPATH/.installed ] && { list_installed; clear; } || print_pause "No binaries installed!";;
     4) clear
        echo "$div"
        title_div "Downloadable Binaries: "
        echo "$div"
-       echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}' | sed "s/-[0-9]* / /"; echo " "
+       echo "Static:"; cat $MODPATH/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODPATH/.binaries-dynamic | awk '{print $1 " " $2}' | sed "s/-[0-9]* / /"; echo " "
        echo -e "\nPress 0 to continue"
        while true; do
          read -r choice?'--> '
@@ -737,7 +780,7 @@ while true; do
          esac
        done
        clear;;
-    5) [ -s $MODDIR/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
+    5) [ -s $MODPATH/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
     6) install_binary_menu;;
     7) install_binary_menu -d;;
     8) backup_config;;

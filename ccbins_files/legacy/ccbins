@@ -1,0 +1,697 @@
+#!/system/bin/sh
+# Terminal Magisk Mod Template
+# by veez21 @ xda-developers
+
+# Setup kill switch
+trap "exit 0" 10
+proc="$$"
+
+# Magisk Module ID **
+ID="ccbins"
+
+# Detect root
+_name=$(basename $0)
+ls /data >/dev/null 2>&1 || { echo "$ID needs to run as root!"; echo "type 'su' then '$_name'"; exit 1; }
+
+# Magisk Version
+MAGISK_VER_CODE=$(magisk -V)
+[ $MAGISK_VER_CODE -ge 26000 ] && { echo -e "CCBins Legacy incompatible with Magisk 26+!\nInstall latest ccbins"; exit 1; }
+
+# Magisk Mod Directory
+[ -d "/sbin/.magisk" ] && MOUNTPATH="/sbin/.magisk/modules" || MOUNTPATH="$(find /dev -mindepth 2 -maxdepth 2 -type d -name ".magisk")/modules"
+MODDIR="$MOUNTPATH/$ID"
+[ ! -d $MODDIR ] && { echo "Module not detected!"; exit 1; }
+
+# Set path to your busybox if applicable
+_bb=$MODDIR/busybox
+
+# Load mod-util.sh
+. $MODDIR/mod-util.sh || exit $?
+
+# Set Log Files
+mount -o remount,rw /cache 2>/dev/null
+mount -o rw,remount /cache 2>/dev/null
+# > Logs should go in this file
+LOG=/data/local/tmp/$ID.log
+oldLOG=/data/local/tmp/$ID-old.log
+# > Verbose output goes here
+VERLOG=/data/local/tmp/$ID-verbose.log
+oldVERLOG=/data/local/tmp/$ID-verbose-old.log
+
+# Start Logging verbosely
+mv -f $VERLOG $oldVERLOG 2>/dev/null; mv -f $LOG $oldLOG 2>/dev/null
+set -x 2>$VERLOG
+
+# Main
+# > You can start your MOD here.
+# > You can add functions, variables & etc.
+# > Rather than editing the default vars above.
+quit() {
+  rm -f $MODDIR/tmp $MODDIR/dlerror
+  kill -10 $proc
+  exit 0
+}
+
+scriptver=24
+[ -f $MODDIR/.branch ] && branch="$(cat $MODDIR/.branch)" || branch=master
+# Doh workaround for dns poisoning, DNS servers must be specified for Android Oreo+ and/or if wireguard tunnel active - just specify all the time cause I'm lazy
+[ -f $MODDIR/doh ] && mv -f $MODDIR/doh $MODDIR/.doh
+if [ -f $MODDIR/.doh ]; then
+  flag=" --doh-url $(tail -n1 $MODDIR/.doh)"
+  doh="$(head -n1 $MODDIR/.doh)"
+  [ "$doh" == "Cloudflare" ] && dns="1.1.1.1,1.0.0.1" || dns="223.5.5.5,223.6.6.6"
+else
+  dns="1.1.1.1,1.0.0.1"
+fi
+# Curl uses boringssl - first appeared in Marshmallow - don't try using ssl in older android versions
+[ $API -lt 23 ] && alias curl="$MODDIR/curl -kLs --dns-servers $dns$flag" || alias curl="$MODDIR/curl -Ls --dns-servers $dns$flag"
+unset flag
+# Make sure curl binary is present
+[ -f $MODDIR/curl ] || { echo -e "Curl missing!\nReinstall ccbins or copy curl to root of ccbins module folder!"; quit; }
+dir=`pwd`; bakloc=/data/local/ccbinsbackup
+locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
+[ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)" || insloc=/system/bin
+
+# redefined with curl
+test_connection() {
+  (
+  for i in google baidu; do
+    if curl --connect-timeout 3 -I https://www.$i.com | grep -q 'HTTP/.* 200' || ping -q -c 1 -W 1 $i.com >/dev/null 2>&1; then
+      true; break
+    else
+      false
+    fi
+  done & e_spinner "Testing internet connection"
+  ) && echo " - OK" || { echo " - Error"; false; }
+}
+
+print_pause() {
+  echo -e "$1"
+  sleep 2
+}
+
+download_file() {
+  rm -f $MODDIR/dlerror
+  local file="$1" url="$2"
+  curl -o "$file" "$url"
+  if [ "$file" == "$MODDIR/.checksums" ]; then
+    if [ ! -f "$file" ]; then
+      echo "Checksums download failed!"
+      [ "$doh" ] && echo -e "Try deleting /data/adb/modules/ccbins/.doh\n    or disabling your vpn"
+      quit
+    elif [ "$(head -n1 "$file")" != "checksums.txt" ]; then
+      echo "Checksums download failed!"
+      quit
+    fi
+  else
+    [ -f "$file" ] && grep -Fwq "`md5sum "$file" | awk '{print $1}'`" $MODDIR/.checksums || { rm -f "$file"; touch $MODDIR/dlerror; echo "Download error for $file!"; }
+  fi
+}
+
+reset_mod() {
+  echo "Are you sure you want to refresh ccbins?"
+  echo "1: Yes"
+  echo "2: No"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      1) break;;
+      2) return 0;;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
+  local newloc=/data/adb/modules_update/$ID
+  rm -rf $newloc
+  mkdir -p /data/adb/modules_update/$ID/system/bin 2>/dev/null
+  cp -pf $MODDIR/system/bin/ccbins $newloc/system/bin/ccbins
+  cp -pf $MODDIR/* $newloc 2>/dev/null
+  touch $MODDIR/update
+  rm -f $newloc/update $newloc/tmp
+  echo -e "CCbins reset!\nReboot to apply it!\n"
+  sleep 2
+}
+
+find_conflicts() {
+  echo -e "\nChecking for conflicting modules"
+  rm -f $MODDIR/tmp
+  [ -s $MODDIR/.installed ] || return 0
+  local locs="$(awk '{print $3}' $MODDIR/.installed | xargs -n1 | sort -u)" binaries="$(awk '{print $1}' $MODDIR/.installed | xargs -n1 | sort -u)"
+  [ -z "$binaries" ] && return 0
+  for bin in $binaries; do
+    local bins="$(grep -w $bin $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g") $bins"
+  done
+  for loc in $locs; do
+    for bin in $bins; do
+      find $MOUNTPATH/*$loc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" -name $bin 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system|  \1: system|" >> $MODDIR/tmp
+    done
+  done
+}
+
+list_installed() {
+  clear
+  echo "$div"
+  title_div "Installed Binaries:"
+  echo "$div"
+  local curlocs
+  sort -k3 $MODDIR/.installed > $MODDIR/tmp
+  sed -i 's/dynamic/(dynamic)/g' $MODDIR/tmp
+  for i in $locs; do
+    [ "$(grep -w $i $MODDIR/.installed)" ] && curlocs="$i $curlocs"
+  done
+  curlocs="$(echo $curlocs | tr ' ' '\n' | tac | tr '\n' ' ')"
+  for i in $curlocs; do
+    echo "$div"
+    title_div "$i"
+    echo "$div"
+    grep -w $i $MODDIR/tmp | cut -d ' ' -f1-2,4
+  done
+  echo -e "\nPress 0 to continue"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      0) break;;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
+}
+
+info() {
+  clear
+  echo "$div"
+  title_div "General Information"
+  echo "$div"
+  echo "This mod enables the installation of various binaries cross-compiled for android."
+  echo "All are static linked meaning they should work with any version of android and won't require any extra libs/files."
+  echo "There is a separate section for dynamic linked binaries and will only show up if your device is running a recent enough version of android (5.0+)"
+  echo "The dynamic linked ones either have a greater feature set than or don't have a static linked counterpart"
+  echo "$div"
+  echo "Install location matters!"
+  echo "You'll want to install binaries to the lowest priority location unless you want to overwrite any existing ones"
+  echo "Running 'echo \$PATH' will show you the priority with highest being first"
+  echo "Vendor is typically lowest and product is typically highest (if present)"
+  echo -e "\nPress 0 to continue"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      0) break;;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
+}
+
+list_locs() {
+  rm -f $MODDIR/tmp
+  local num=0
+  echo "0: Go back to options menu"
+  for i in $locs; do
+    [ -d "$i" ] || continue
+    num=$((num+1))
+    echo "$num: $i" | tee -a $MODDIR/tmp;
+  done
+}
+
+change_loc() {
+  [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)"
+  while true; do
+    clear
+    echo "$div"
+    title_div "Current install location:"
+    title_div "$insloc"
+    echo "$div"
+    title_div "Change to which location?"
+    echo "$div"
+    list_locs
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break
+      case $choice in
+        0) break 2;;
+        q) quit;;
+        *) echo "Invalid option! Try again";;
+      esac
+    done
+    insloc="$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null | awk '{print $2}')"
+    mkdir $MODDIR$insloc 2>/dev/null
+    echo $insloc > $MODDIR/.loc
+    echo -e "Install location has been changed to $insloc\n"
+    break
+  done
+}
+
+binary_update_menu() {
+  clear
+  while true; do
+    echo "$div"
+    title_div "Binary Update Menu"
+    echo "$div"
+    echo "0: Go back to options menu"
+    if $autoupdate; then
+      echo "1: Disable automatic binary updates at launch"
+    else
+      echo "1: Enable automatic binary updates at launch (recommended)"
+      $online && echo "2: Check for binary updates"
+    fi
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      case $choice in
+        0|1|2) break;;
+        q) quit;;
+        *) echo "Invalid option! Try again";;
+      esac
+    done
+    case $choice in
+      0) break;;
+      1) $autoupdate && { touch $MODDIR/.disable_autoupdate; autoupdate=false; } || { rm -f $MODDIR/.disable_autoupdate; autoupdate=true; };;
+      2) if $autoupdate || ! $online; then
+           echo "Invalid option! Try again"
+         else
+           check_bin_updates & e_spinner
+           [ -f $MODDIR/tmp ] && echo -e " - Done\n" || echo -e " - Binaries are up to date\n"
+         fi;;
+    esac
+  done
+}
+
+options_menu() {
+  clear
+  while true; do
+    echo "$div"
+    title_div "Options Menu"
+    echo "$div"
+    [ "$doh" ] && echo "Current DOH Server: $doh" || echo "Current DOH Server: None"
+    [ -f $MODDIR/.doh ] && echo "Set DOH Server: $(head -n1 $MODDIR/.doh)" || echo "Set DOH Server: None"
+    echo "$div"
+    echo "0: Go back to main menu"
+    echo "1: Change install location"
+    echo "2: Binary Update Settings"
+    echo "3: DNS Poisoning Workaround (DOH)"
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      case $choice in
+        0|1|2|3) break;;
+        q) quit;;
+        *) echo "Invalid option! Try again";;
+      esac
+    done
+    case $choice in
+      0) break;;
+      1) change_loc; clear;;
+      2) binary_update_menu; clear;;
+      3) while true; do
+           echo -e "\nWhich doh server?"
+           echo -e "You will need to restart ccbins for changes to take effect\n"
+           echo "0: Go back to options menu"
+           echo "1: None"
+           echo "2: Cloudflare"
+           echo "3: Alibaba"
+           while true; do
+             read -r choice?'--> '
+             echo " "
+             case $choice in
+               0|1|2|3) break;;
+               q) quit;;
+               *) echo "Invalid option! Try again";;
+             esac
+           done
+           case $choice in
+             0) break;;
+             1) rm -f $MODDIR/.doh; break;;
+             2) echo -e "Cloudflare\nhttps://cloudflare-dns.com/dns-query" > $MODDIR/.doh; break;;
+             3) echo -e "Alibaba\nhttps://dns.alidns.com/dns-query" > $MODDIR/.doh; break;;
+           esac
+         done;;
+    esac
+  done
+}
+
+check_conflicts() {
+  find $MOUNTPATH/*$insloc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" \( -name $i \) 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system/.*|\1|" > $MODDIR/tmp2
+  [ -s $MODDIR/tmp2 ] && echo -e "  Conflict ($insloc/$i) found in: $(cat $MODDIR/tmp2)!"
+  rm -f $MODDIR/tmp2
+}
+
+remove_binary() {
+  [ "$1" == "-f" ] && local force=true || force=false
+  for i in $(grep -w $binary $MODDIR/.binaries | awk '{print $3}' | sed "s/,/ /g"); do
+    $force || umount -f $insloc/$i 2>/dev/null
+    rm -f $MODDIR$insloc/$i
+  done
+  if [ -f $MODDIR/.$ibinary ]; then
+    while read -r line; do
+      $force || umount -f /system/$line 2>/dev/null
+      rm -f $MODDIR/system/$line
+    done < $MODDIR/.$ibinary
+    rm -f $MODDIR/.$ibinary
+  fi
+}
+
+install_binary() {
+  [ "$1" == "-s" ] && local spin=true || spin=false
+  [ "$file" == "$MODDIR/.binaries" ] && local url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$ibinary" || local url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/$ibinary/dynamic"
+  for i in $(grep -w $binary $file | awk '{print $3}' | sed "s/,/ /g"); do
+    check_conflicts
+    $spin && { download_file $MODDIR$insloc/$i $url/$i-$ARCH & e_spinner; } || download_file $MODDIR$insloc/$i $url/$i-$ARCH
+    [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
+    set_perm $MODDIR$insloc/$i 0 2000 0755
+  done
+  if [ "$extras" ] && [ ! -f $MODDIR/.$ibinary ]; then
+    for i in $(echo $extras | sed "s|,| |g"); do
+      if curl -I --connect-timeout 3 $url/$i.zip | grep -q 'HTTP/.* 200'; then
+        $spin && { download_file $MODDIR/$i.zip $url/$i.zip & e_spinner; } || download_file $MODDIR/$i.zip $url/$i.zip
+        [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
+        unzip -qod $MODDIR/system $MODDIR/$i.zip
+        for j in $(unzip -l $MODDIR/$i.zip | awk '{print $4}' | sed -e '/^$/d' -e '/^Name$/d' -e '/^----$/d' -e '/\/$/d'); do
+          echo $j >> $MODDIR/.$ibinary
+          set_perm $MODDIR/system/$j 0 2000 0644
+        done
+        rm -f $MODDIR/$i.zip
+      else
+        cd $MODDIR$insloc
+        ln -sf $ibinary $i
+        echo "$(echo $insloc | cut -d / -f3-)/$i" >> $MODDIR/.$ibinary
+        cd $dir
+      fi
+    done
+  fi
+  if curl -I --connect-timeout 3 $url/install.sh | grep -q 'HTTP/.* 200'; then
+    $spin && { download_file $MODDIR/install.sh $url/install.sh & e_spinner; } || download_file $MODDIR/install.sh $url/install.sh
+    [ -f $MODDIR/dlerror ] && { sed -i "\|$binary.*$insloc|d" $MODDIR/.installed; remove_binary; return 1; }
+    . $MODDIR/install.sh
+    rm -f $MODDIR/install.sh
+  fi
+}
+
+install_ncursesw() {
+  [ "$1" == "-u" ] && local update=true || local update=false
+  $update && echo " - Updating NCursesw (`cat $MODDIR/.ncursesver` -> `cat $MODDIR/tmp`)" || echo " - Installing NCursesw v`cat $MODDIR/tmp`"
+  mv -f $MODDIR/tmp $MODDIR/.ncursesver
+  download_file $MODDIR/system/ncursesw.zip https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ncursesw/ncursesw-$ARCH.zip
+  if [ ! -f $MODDIR/dlerror ]; then
+    unzip -qod $MODDIR/system $MODDIR/system/ncursesw.zip
+    rm -f $MODDIR/system/ncursesw.zip
+    $update && echo " - NCursesw has been updated!" || echo " - NCursesw has been installed!"
+  else
+    rm -f $MODDIR/system/ncursesw.zip
+    $update && echo " - NCursesw update failed!" || echo " - NCursesw install failed!"
+  fi
+}
+
+check_bin_updates() {
+  echo -e "\nChecking for binary updates"
+  download_file $MODDIR/tmp https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ncursesw/version.txt
+  [ -f $MODDIR/dlerror ] && { echo "Binary update check failed!"; return 0; }
+  if [ ! -f $MODDIR/.ncursesver ]; then
+    install_ncursesw 
+  else
+    local insver="$(cat $MODDIR/.ncursesver | awk '{print substr($2, 3, length($2) - 3)}')" newver="$(cat $MODDIR/tmp | awk '{print substr($2, 3, length($2) - 3)}')"
+    # Add 0 before final number if single digit or compare won't work
+    for i in insver newver; do
+      local beg=$(echo $(eval echo \$$i) | sed -r "s/(.*)\..*/\1./")
+      local end=$(echo $(eval echo \$$i) | sed "s/.*\.//")
+      [ $(echo $end | wc -m) -eq 2 ] && local end=0$end
+      local dec$i=$beg$end
+    done
+    [ $(echo "$decnewver $decinsver" | awk '{printf "%d", ($1 > $2)}') -eq 1 ] && install_ncursesw -u
+  fi
+  [ -s $MODDIR/.installed ] || return 0
+  while read -r line; do
+    [ "$(echo "$line" | awk '{print $4}')" == "dynamic" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
+    local binloc="$(echo "$line" | awk '{print $3}')" binary="$(echo "$line" | awk '{print $1}')" insver="$(echo "$line" | awk '{print substr($2, 3, length($2) - 3)}')"
+    local insloc="$binloc" newver="$(grep -w $binary $file | awk '{print substr($2, 3, length($2) - 3)}')" ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $file | awk '{print $4}')"
+    [ "$insver" == "/a" ] && insver="0.0"
+    # Add 0 before final number if single digit or compare won't work
+    for i in insver newver; do
+      local beg=$(echo $(eval echo \$$i) | sed -r "s/(.*)\..*/\1./")
+      local end=$(echo $(eval echo \$$i) | sed "s/.*\.//")
+      [ $(echo $end | wc -m) -eq 2 ] && local end=0$end
+      local dec$i=$beg$end
+    done
+    [ $(echo "$decnewver $decinsver" | awk '{printf "%d", ($1 > $2)}') -eq 1 ] || continue
+    touch $MODDIR/tmp
+    echo " - Updating $binloc: $binary ($insver -> $newver)"
+    sed -i "\|$binary.*$binloc| s/$insver/$newver/" $MODDIR/.installed
+    remove_binary -f
+    install_binary
+    [ $? -eq 0 ] && echo " - $binary has been updated!" || echo " - $binary update failed!"
+  done < $MODDIR/.installed
+}
+
+remove_binary_menu() {
+  clear
+  while true; do
+    grep -w "$insloc" $MODDIR/.installed | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Remove all binaries listed below" $MODDIR/tmp || { print_pause "No binaries are installed to $insloc!\n"; break; }
+    echo "$div"
+    title_div "Remove which binary?"
+    echo "$div"
+    cat $MODDIR/tmp
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      for i in $choice; do
+        case $i in
+          0) break 3;;
+          1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"; break 2;;
+          q) quit;;
+          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+        esac
+      done
+    done
+    for ichoice in $choice; do
+      local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
+      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]') extras="$(grep -w $binary $MODDIR/.binaries | awk '{print $4}')"
+      sed -i "\|$binary.*$insloc|d" $MODDIR/.installed
+      is_mounted $insloc/$ibinary && local unmount=true || local unmount=false
+      remove_binary
+      toybox find $MODDIR/system -type d -empty -delete >/dev/null 2>&1
+      echo -e "$binary has been removed!\n"
+    done
+  done
+  clear
+}
+
+install_binary_menu() {
+[ "$1" == "-d" ] && local file=$MODDIR/.binaries-dynamic || local file=$MODDIR/.binaries
+  clear
+  while true; do
+    if [ -s $MODDIR/.installed ]; then
+      local curbins="$(grep -w "$insloc" $MODDIR/.installed | awk '{print $1}')"
+      curbins="$(echo $curbins | sed 's| |\||g')"
+    fi
+    if [ -z "$curbins" ] || [ ! -s $MODDIR/.installed ]; then
+      cat $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    else
+      grep -Ewv "$curbins" $file | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
+    fi
+    if [ "$file" == "$MODDIR/.binaries-dynamic" ]; then
+      while read -r line; do
+        local fapi="$(echo $line | awk '{print $2}' | sed 's/.*-//')"
+        [ "$fapi" ] || fapi=21
+        [ $API -lt $fapi ] && { sed -i "/$line/d" $MODDIR/tmp; continue; }
+        fapi="$(echo $line | awk '{print $2}' | sed 's/-.*//')"
+        [ "$fapi" ] && sed -i "s/$(echo $line | awk '{print $2}')/$fapi/" $MODDIR/tmp
+        unset fapi
+      done < $MODDIR/tmp
+    fi
+    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Install all binaries listed below" $MODDIR/tmp || { print_pause "All binaries are installed!\n"; break; }
+    echo "$div"
+    title_div "Install which binary?"
+    echo "$div"
+    title_div "Current install location:"
+    title_div "$insloc"
+    echo "$div"
+    cat $MODDIR/tmp
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      for i in $choice; do
+        case $i in
+          0) break 3;;
+          1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"
+             break 2;;
+          q) quit;;
+          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+        esac
+      done
+    done
+    for ichoice in $choice; do
+      echo "$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2 " " $3}' | sed "s| *$| $insloc|")$(basename "$file" | sed -e 's/.binaries-/ /' -e 's/.binaries//')" >> $MODDIR/.installed
+      local binary=$(grep -w "$ichoice:" $MODDIR/tmp | awk '{print $2}')
+      local ibinary=$(echo $binary | tr '[:upper:]' '[:lower:]')
+      eval local extras="$(grep -w $binary $file | awk '{print $4}')" 
+      echo "Downloading $binary"
+      mkdir -p $MODDIR$insloc
+      install_binary -s
+      echo -e " - $binary has been installed!\n"
+    done
+    echo -e "Reboot for changes to take effect\n"
+  done
+  clear
+}
+
+backup_config() {
+  rm -rf $bakloc
+  mkdir -p $bakloc
+  cp -pf $MODDIR/.* $bakloc 2>/dev/null
+  cp -af $MODDIR/system $bakloc
+  rm -f $bakloc/system/bin/ccbins
+  echo -e "Current config backed up!\n"
+  sleep 2
+}
+
+restore_config() {
+  local newloc=/data/adb/modules_update/$ID
+  rm -rf $newloc
+  mkdir -p /data/adb/modules_update/$ID 2>/dev/null
+  cp -pf $MODDIR/* $newloc 2>/dev/null
+  cp -af $bakloc/* $newloc 2>/dev/null
+  cp -pf $bakloc/.* $newloc 2>/dev/null
+  cp -pf $MODDIR/system/bin/ccbins $newloc/system/bin/ccbins
+  touch $MODDIR/update
+  echo -e "Old config restored!\nReboot to apply it!\n"
+  sleep 2
+}
+
+hidden_menu() {
+  curl -o - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
+  sed -i "1i0: Keep current branch, go back to main menu" $MODDIR/tmp
+  while true; do
+    clear
+    echo "$div"
+    title_div "Welcome to the dark side"
+    echo "$div"
+    $online || { echo -e "Internet is needed for this, going back to main menu\n"; return 0; }
+    title_div "Current branch:"
+    title_div "$branch"
+    echo "$div"
+    title_div "Choose option:"
+    echo "$div"
+    echo "0: Go back to main menu"
+    echo "1: Switch branch"
+    while true; do
+      read -r choice?'--> '
+      echo " "
+      case $choice in
+        0|1|2) break;;
+        q) quit;;
+        *) echo "Invalid option! Try again";;
+      esac
+    done
+    case $choice in
+      0) break;;
+      1) echo "Which branch?"
+         cat $MODDIR/tmp
+         while true; do
+           read -r choice?'--> '
+           echo " "
+           case $choice in
+             0) break 2;;
+             q) quit;;
+             *) [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break || echo "Invalid option: $choice! Try again";;
+           esac
+         done
+         branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
+         echo "$branch" > $MODDIR/.branch
+         echo "Switching branch to $branch"
+         ;;
+    esac
+  done
+  clear
+}
+
+rm -f $MODDIR/tmp
+mod_head
+echo " "
+[ -f $MODDIR/.disable_autoupdate ] && autoupdate=false || autoupdate=true
+if test_connection; then
+  online=true
+  echo -e "\nFetching available binaries"
+  rm -f $MODDIR/.binaries $MODDIR/.binaries-dynamic $MODDIR/.checksums
+  download_file $MODDIR/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
+  download_file $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt & e_spinner
+  [ -f $MODDIR/dlerror ] && { echo "Unable to download binary list!"; quit; }
+  download_file $MODDIR/.binaries-dynamic https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes-dynamic.txt & e_spinner
+  [ -f $MODDIR/dlerror ] && { echo "Unable to download binary list!"; quit; }
+  echo " - Done"
+else
+  online=false
+  echo -e "No internet connection!\nOnline functionality disabled"
+fi
+find_conflicts & e_spinner
+[ -s $MODDIR/tmp ] && { echo -e " - The following conflicts were found:\n"; cat $MODDIR/tmp; sleep 3; } || echo " - No conflicting mods were found"
+echo " "
+
+while true; do
+  echo "$div"
+  title_div "Binary Installer"
+  echo "$div"
+  echo "Current install location: $insloc"
+  $autoupdate && echo "Auto-update binaries at launch: Enabled (recommended)" || echo "Auto-update binaries at launch: Disabled"
+  [ "$doh" ] && echo "DOH Server: $doh" || echo "DOH Server: None"
+  echo "$div"
+  [ "$branch" == "master" ] || echo -e "Current branch: $branch\n$div"
+  title_div "Choose option"
+  echo "$div"
+  echo "0: Refresh CCbins (remove everything - start fresh)"
+  echo "1: General Information"
+  echo "2: Options/Settings"
+  echo "3: List all installed binaries"
+  echo "4: List all downloadable binaries"
+  echo "5: Remove binary"
+  $online && echo "6: Install binary"
+  $online && [ $API -ge 21 ] && echo "7: Install dynamic linked binary"
+  [ -s $MODDIR/.installed ] && echo "8: Backup current config"
+  [ -d $bakloc ] && echo -e "9: Restore last config\n10: Erase backup config"
+  echo "Type 'q' at any time to quit"
+  while true; do
+    read -r choice?'--> '
+    echo " "
+    case $choice in
+      0|1|2|3|4|5|99) break;;
+      6|7) $online && break || echo "You're offline! Can't download any binaries";;
+      8) [ -s $MODDIR/.installed ] && break || echo "Nothing is installed! Nothing to backup";;
+      9|10) [ -d $bakloc ] && break || echo "No backup found!";;
+      q) quit;;
+      *) echo "Invalid option! Try again";;
+    esac
+  done
+
+  case $choice in
+    0) reset_mod; clear;;
+    1) info; clear;;
+    2) options_menu; clear;;
+    3) [ -s $MODDIR/.installed ] && { list_installed; clear; } || print_pause "No binaries installed!";;
+    4) clear
+       echo "$div"
+       title_div "Downloadable Binaries: "
+       echo "$div"
+       echo "Static:"; cat $MODDIR/.binaries | awk '{print $1 " " $2}'; echo " "; echo "Dynamic:"; cat $MODDIR/.binaries-dynamic | awk '{print $1 " " $2}' | sed "s/-[0-9]* / /"; echo " "
+       echo -e "\nPress 0 to continue"
+       while true; do
+         read -r choice?'--> '
+         echo " "
+         case $choice in
+           0) break;;
+           q) quit;;
+           *) echo "Invalid option! Try again";;
+         esac
+       done
+       clear;;
+    5) [ -s $MODDIR/.installed ] && remove_binary_menu || print_pause "No binaries installed!\n";;
+    6) install_binary_menu;;
+    7) install_binary_menu -d;;
+    8) backup_config;;
+    9) restore_config;;
+    10) rm -rf $bakloc; print_pause "Backup config erased\n";;
+    99) hidden_menu;;
+  esac
+done
