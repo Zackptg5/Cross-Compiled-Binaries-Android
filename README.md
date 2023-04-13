@@ -50,7 +50,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Zstd (v1.5.2)
 
 ## Pulled from Offical Sources
-* RClone (v1.59.0)
+* RClone (v1.62.2)
 
 ## Deprecated:
 These are binaries that will be left "as is". I will not be updating them anymore

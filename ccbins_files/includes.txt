@@ -21,7 +21,7 @@ Nmap (v7.93) ncat,nmap,nping usr-$ARCH
 Openssl (v3.0.7.0) openssl
 Patch (v2.7.6) patch
 Patchelf (v0.16.1) patchelf
-RClone (v1.59.0) rclone
+RClone (v1.62.2) rclone
 Sed (v4.8) sed
 Strace (v6.0) strace
 Tar (v1.34) tar
