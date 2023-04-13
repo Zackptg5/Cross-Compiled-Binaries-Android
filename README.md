@@ -11,46 +11,46 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Aria2 (v1.36.0) - to use static linked without root, use `--async-dns --async-dns-server=<yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
-* Bash (v5.2.9)
+* Bash (v5.2.15)
 * Bc (v6.1.1) - Gavin Howard posix Bc with GNU extensions
 * Brotli (v1.0.9)
-* Coreutils (v9.1) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
+* Coreutils (v9.2) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
-* Curl (v7.86.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v8.0.1) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
-* Diffutils (v3.8)
-* Ed (v1.18)
+* Diffutils (v3.9)
+* Ed (v1.19)
 * Exa (v0.10.1) - dynamic only
 * Findutils (v4.9.0)
-* Gawk (Awk) (v5.2.0)
-* Grep (v3.8)
+* Gawk (Awk) (v5.2.1)
+* Grep (v3.10)
 * Gzip (v1.12)
-* Htop (v3.2.1)
+* Htop (v3.2.2)
 * Iw (v5.9)
 * Keycheck
-* Nano (v6.4)
+* Nano (v7.2)
 * Nethogs (v0.8.6)
-* Ncursesw (v6.3) - only terminfo files - needed for some binaries such as htop
+* Ncursesw (v6.4) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.93) - dynamic only
-* Openssl (v3.0.7)
+* Openssl (v3.1.0)
 * Patch (v2.7.6)
-* Patchelf (v0.16.1)
-* Sed (v4.8)
-* Sqlite3 (v3.39.4) - dynamic only
-* Strace (v6.0)
+* Patchelf (v0.17.2)
+* Sed (v4.9)
+* Sqlite3 (v3.41.2) - dynamic only
+* Strace (v6.2)
 * Tar (v1.34)
-* Tcpdump (v4.99.1)
-* Vim (v9.0.0835)
+* Tcpdump (v4.99.4)
+* Vim (v9.0.1447)
 * Wget2 (v2.0.1) - dynamic only
 * Xmlstarlet
 * Xxd (v1.10)
 * Zip (v3.0)
 * Zsh (v5.9)
-* Zstd (v1.5.2)
+* Zstd (v1.5.5)
 
 ## Pulled from Offical Sources
-* RClone (v1.59.0)
+* RClone (v1.62.2)
 
 ## Deprecated:
 These are binaries that will be left "as is". I will not be updating them anymore

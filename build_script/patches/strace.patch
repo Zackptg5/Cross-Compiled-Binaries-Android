@@ -3,14 +3,14 @@
 @@ -84,7 +84,9 @@
  };
  #endif
-
+ 
 -#if __UAPI_DEF_IN_ADDR
 +#ifdef __ANDROID__
 +#include <bits/in_addr.h>
 +#elif __UAPI_DEF_IN_ADDR
  /* Internet address. */
  struct in_addr {
-        __be32  s_addr;
+ 	__be32	s_addr;
 
 --- bundled/linux/include/uapi/linux/fs.h
 +++ bundled/linux/include/uapi/linux/fs.h
@@ -28,19 +28,20 @@
 
 --- src/defs.h
 +++ src/defs.h
-@@ -849,8 +849,6 @@
+@@ -892,9 +892,6 @@
   * part.
   */
  # define QUOTE_HEXSTR_MASK			(0x3 << QUOTE_HEXSTR_SHIFT)
 -static_assert((NUM_HEXSTR_OPTS - 1) <= (QUOTE_HEXSTR_MASK >> QUOTE_HEXSTR_SHIFT),
 -	      "xflag options do not fit into QUOTE_HEXSTR_MASK");
- 
+-
  # define QUOTE_HEXSTR_NONE			(HEXSTR_NONE << QUOTE_HEXSTR_SHIFT)
  # define QUOTE_HEXSTR_ALL			(HEXSTR_ALL << QUOTE_HEXSTR_SHIFT)
+ # define QUOTE_HEXSTR_NON_ASCII			(HEXSTR_NON_ASCII << QUOTE_HEXSTR_SHIFT)
 
 --- src/sigreturn.c
 +++ src/sigreturn.c
-@@ -14,15 +14,17 @@
+@@ -15,6 +15,7 @@
  # include <asm/sigcontext.h>
  #endif
  
@@ -48,10 +49,8 @@
  /* The following function might be unused, hence the inline qualifier.  */
  static inline void
  print_sigmask_addr_size(const void *const addr, const unsigned int size)
- {
- 	tprint_struct_begin();
- 	tprints_field_name("mask");
- 	tprints(sprintsigmask_n("", addr, size));
+@@ -24,6 +25,7 @@
+ 	tprints_string(sprintsigmask_n("", addr, size));
  	tprint_struct_end();
  }
 +#endif
