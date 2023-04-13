@@ -533,7 +533,7 @@ build_bin() {
         ac_cv_lib_ncursesw6_addnwstr=yes #45
       $static && sed -i "/rdynamic/d" Makefile.am #9
       sed -i 's/ ffsl/ __builtin_ffsl/' linux/LinuxProcessList.c #31
-      sed -i 's|/.config|/system/etc|g' Settings.c #38
+      sed -i 's|/.config|/data/local|g' Settings.c #38
       ;;
     "iftop")
       build_bin libpcap

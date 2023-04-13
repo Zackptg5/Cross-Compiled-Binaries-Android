@@ -189,10 +189,10 @@ b2d7159602bf4037745876e218e72c85  gzip/zdiff-x86
 82f9a805e027f3bb9a6e3fd7b0ba5fba  gzip/znew-arm64
 82f9a805e027f3bb9a6e3fd7b0ba5fba  gzip/znew-x64
 82f9a805e027f3bb9a6e3fd7b0ba5fba  gzip/znew-x86
-fe37e39201e86b52b113c3dc875a0c9d  htop/htop-arm
-7510ee2a156cf273d4c44d24b7de20b9  htop/htop-arm64
-8db3f56b1bc8dafbb1c143422cbe9f6a  htop/htop-x64
-825854ecc5a8dbb7a4f57e1c557459d8  htop/htop-x86
+12a2cb55577adaced774e8902edcc2ef  htop/htop-arm
+d57a341dd701a6a53b12cbe35cf3f07d  htop/htop-arm64
+74d3bd4c9603551f8f74eba5311fd240  htop/htop-x64
+438150ef45f27915e5b8e8d163effd03  htop/htop-x86
 7e2a578bc30c75b34caa82469c479c1f  htop/install.sh
 fea2fe1fac42f83bad10022df45a48ce  iftop/dynamic/iftop-arm
 0aae97be45c28cb8a527ebf0dfe52d70  iftop/dynamic/iftop-arm64
