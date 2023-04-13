@@ -146,7 +146,7 @@ build_bin() {
     "coreutils") ext=xz; ver="9.2"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-7_86_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-8_0_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.9"; url="gnu";;
     "ed") ext=lz; ver="1.19"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
