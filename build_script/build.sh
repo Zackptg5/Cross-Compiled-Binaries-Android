@@ -45,6 +45,7 @@
 # 42) Use ndk strtoimax, remove bash's strtoimax - ndk r25b+
 # 43) Fix for syntax error
 # 44) Remove duplicate definition, needed in ndk r25b+
+# 45) ldl needs manually specified
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -63,7 +64,7 @@ usage () {
   echogreen "arch=     (Default: all) (all, arm, arm64, x86, x64)"
   echo "          Don't type this or set it to all to compile for all arches"
   echogreen "static=   (Default: true) (true, false)"
-  echogreen "api=      (Default: 21 for dynamic, 30 for static) (21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33)"
+  echogreen "api=      (Default: 21 for dynamic, 33 for static) (21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33)"
   echo " "
   echored "Coreutils Specific Options:"
   echogreen "sep=      (Default: false) (true, false) - Determines if coreutils builds as a single busybox-like binary or as separate binaries"
@@ -142,20 +143,20 @@ build_bin() {
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
     "c-ares") ver="cares-1_18_1"; url="https://github.com/c-ares/c-ares";;
-    "coreutils") ext=xz; ver="9.1"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
+    "coreutils") ext=xz; ver="9.2"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
     "curl") ver="curl-7_86_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
-    "diffutils") ext=xz; ver="3.8"; url="gnu";;
-    "ed") ext=lz; ver="1.18"; url="gnu";;
+    "diffutils") ext=xz; ver="3.9"; url="gnu";;
+    "ed") ext=lz; ver="1.19"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "gawk") ext=xz; ver="5.2.0"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
+    "gawk") ext=xz; ver="5.2.1"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
-    "grep") ext=xz; ver="3.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "grep") ext=xz; ver="3.10"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.12"; url="gnu";;
-    "htop") ver="3.2.1"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
+    "htop") ver="3.2.2"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
     "jq") ver="jq-1.6"; url="https://github.com/stedolan/jq";;
     "ldns") ext=gz; ver="1.8.3"; url="https://www.nlnetlabs.nl/downloads/ldns/ldns-$ver.tar.$ext";;
@@ -164,36 +165,36 @@ build_bin() {
     "libhsts") ver="libhsts-0.1.0"; url="https://gitlab.com/rockdaboot/libhsts";;
     "libiconv") ext=gz; ver="1.17"; url="gnu";;
     "libidn2") ext=gz; ver="2.3.4"; url="https://ftp.gnu.org/gnu/libidn/libidn2-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "libmagic") ext=gz; ver="5.43"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
+    "libmagic") ext=gz; ver="5.44"; url="ftp://ftp.astron.com/pub/file/file-$ver.tar.$ext";;
     "libnl") ext=gz; ver="3.2.25"; url="https://www.infradead.org/~tgr/libnl/files/libnl-$ver.tar.$ext"; [ $lapi -lt 26 ] && lapi=26;;
-    "libpcap"|"libpcapnl") ver="1.10.1"; ver="2e03192"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
-    "libpsl") ver="0.21.1"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
+    "libpcap"|"libpcapnl") ver="1.10.3"; ver="a4ad1f2"; url="https://android.googlesource.com/platform/external/libpcap"; [ $lapi -lt 23 ] && lapi=23; [ "$bin" == "libpcapnl" ] && { bin=libpcap; alt=true; };;
+    "libpsl") ver="0.21.2"; url="https://github.com/rockdaboot/libpsl"; [ $lapi -lt 26 ] && lapi=26;;
     "libssh2"|"libssh2-alt") ver="libssh2-1.10.0"; url="https://github.com/libssh2/libssh2"; [ "$bin" == "libssh2-alt" ] && { bin=libssh2; alt=true; };;
     "libunistring") ext=gz; ver="1.1"; url="gnu";;
-    "nano") ext=xz; ver="6.4"; url="gnu";;
-    "ncurses"|"ncursesw") ext=gz; ver="6.3"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
+    "nano") ext=xz; ver="7.2"; url="gnu";;
+    "ncurses"|"ncursesw") ext=gz; ver="6.4"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.50.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.52.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="openssl-3.0.7"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="openssl-3.1.0"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
-    "patchelf") ver="0.16.1"; url="https://github.com/NixOS/patchelf";;
+    "patchelf") ver="0.17.2"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
-    "pcre2") ver="pcre2-10.40"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.16.0"; url="https://github.com/cloudflare/quiche";;
+    "pcre2") ver="pcre2-10.42"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
+    "quiche") ver="0.17.1"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.2"; url="gnu";;
-    "sed") ext=xz; ver="4.8"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
-    "selinux") ver="3.4"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3390400"; url="https://sqlite.org/2022/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v6.0"; url="https://github.com/strace/strace";;
+    "sed") ext=xz; ver="4.9"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "selinux") ver="3.5"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
+    "sqlite") ext=gz; ver="3410200"; url="https://sqlite.org/2023/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v6.2"; url="https://github.com/strace/strace";;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
-    "tcpdump") ver="tcpdump-4.99.1"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
+    "tcpdump") ver="tcpdump-4.99.4"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "wget2") ver="v2.0.1"; url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
     "zlib") ver="v1.2.13"; url="https://github.com/madler/zlib";;
     "zsh") ext=xz; ver="5.9"; url="https://sourceforge.net/projects/zsh/files/zsh/$ver/zsh-$ver.tar.$ext/download";;
-    "zstd") ver="v1.5.2"; url="https://github.com/facebook/zstd";;
+    "zstd") ver="v1.5.5"; url="https://github.com/facebook/zstd";;
     *) echored "Invalid binary specified!"; usage;;
   esac
 
@@ -325,10 +326,10 @@ build_bin() {
       ;;
     "boringssl")
       cd src
-      wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz #23
-      tar -xf release-1.10.0.tar.gz
-      cp -rf googletest-release-1.10.0/googletest third_party
-      rm -rf release-1.10.0.tar.gz googletest-release-1.10.0
+      wget https://github.com/google/googletest/archive/release-1.12.1.tar.gz #23
+      tar -xf release-1.12.1.tar.gz
+      cp -rf googletest-release-1.12.1/googletest third_party
+      rm -rf release-1.12.1.tar.gz googletest-release-1.12.1
       $static && flags="-DCMAKE_EXE_LINKER_FLAGS='-static' "
       mkdir -p build
       cd build
@@ -525,11 +526,11 @@ build_bin() {
       cd $dir/$bin
       ./autogen.sh
       $static && flags="--enable-static $flags"
-      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" LIBS="-ldl" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --enable-unicode \
-        ac_cv_lib_ncursesw6_addnwstr=yes
+        ac_cv_lib_ncursesw6_addnwstr=yes #45
       $static && sed -i "/rdynamic/d" Makefile.am #9
       sed -i 's/ ffsl/ __builtin_ffsl/' linux/LinuxProcessList.c #31
       sed -i 's|/.config|/system/etc|g' Settings.c #38
@@ -1089,7 +1090,7 @@ textreset=$(tput sgr0)
 textgreen=$(tput setaf 2)
 textred=$(tput setaf 1)
 dir=$PWD
-ndk=r25b #LTS
+ndk=r25c #LTS
 static=true
 sep=false
 OIFS=$IFS; IFS=\|;
@@ -1106,7 +1107,7 @@ IFS=$OIFS
 
 case $api in
   21|22|23|24|26|27|28|29|30|31|32|33) ;;
-  *) $static && api=32 || api=21
+  *) $static && api=33 || api=21
      echogreen "Setting api to $api";;
 esac
 
