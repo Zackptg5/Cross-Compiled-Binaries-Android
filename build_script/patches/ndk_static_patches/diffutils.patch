@@ -1,6 +1,6 @@
---- lib/time_rz.c	2019-01-04 11:18:35.000000000 -0500
-+++ lib/time_rz.c-2	2019-06-08 18:01:37.586438400 -0400
-@@ -89,28 +89,6 @@
+--- lib/time_rz.c	2023-04-12 23:17:01.615155500 -0400
++++ lib/time_rz.c-2	2023-04-12 23:18:20.259520000 -0400
+@@ -59,28 +59,6 @@
    abbrs[abbr_size] = '\0';
  }
  
@@ -15,7 +15,7 @@
 -  if (tz)
 -    {
 -      tz->next = NULL;
--#if HAVE_TZNAME && !HAVE_TM_ZONE
+-#if HAVE_TZNAME && !HAVE_STRUCT_TM_TM_ZONE
 -      tz->tzname_copy[0] = tz->tzname_copy[1] = NULL;
 -#endif
 -      tz->tz_is_set = !!name;
@@ -27,9 +27,9 @@
 -}
 -
  /* Save into TZ any nontrivial time zone abbreviation used by TM, and
-    update *TM (if HAVE_TM_ZONE) or *TZ (if !HAVE_TM_ZONE &&
-    HAVE_TZNAME) if they use the abbreviation.  Return true if
-@@ -191,19 +169,6 @@
+    update *TM (if HAVE_STRUCT_TM_TM_ZONE) or *TZ (if
+    !HAVE_STRUCT_TM_TM_ZONE && HAVE_TZNAME) if they use the abbreviation.
+@@ -155,19 +133,6 @@
    return true;
  }
  
@@ -49,7 +49,7 @@
  /* Get and set the TZ environment variable.  These functions can be
     overridden by programs like Emacs that manage their own environment.  */
  
-@@ -281,64 +246,3 @@
+@@ -245,72 +210,3 @@
        return ok;
      }
  }
@@ -99,17 +99,25 @@
 -      timezone_t old_tz = set_tz (tz);
 -      if (old_tz)
 -        {
--          time_t t = mktime (tm);
--#if HAVE_TM_ZONE || HAVE_TZNAME
--          time_t badtime = -1;
 -          struct tm tm_1;
--          if ((t != badtime
--               || (localtime_r (&t, &tm_1) && equal_tm (tm, &tm_1)))
--              && !save_abbr (tz, tm))
--            t = badtime;
+-          tm_1.tm_sec = tm->tm_sec;
+-          tm_1.tm_min = tm->tm_min;
+-          tm_1.tm_hour = tm->tm_hour;
+-          tm_1.tm_mday = tm->tm_mday;
+-          tm_1.tm_mon = tm->tm_mon;
+-          tm_1.tm_year = tm->tm_year;
+-          tm_1.tm_yday = -1;
+-          tm_1.tm_isdst = tm->tm_isdst;
+-          time_t t = mktime (&tm_1);
+-          bool ok = 0 <= tm_1.tm_yday;
+-#if HAVE_STRUCT_TM_TM_ZONE || HAVE_TZNAME
+-          ok = ok && save_abbr (tz, &tm_1);
 -#endif
--          if (revert_tz (old_tz))
--            return t;
+-          if (revert_tz (old_tz) && ok)
+-            {
+-              *tm = tm_1;
+-              return t;
+-            }
 -        }
 -      return -1;
 -    }
