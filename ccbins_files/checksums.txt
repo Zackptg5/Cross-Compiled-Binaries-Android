@@ -109,6 +109,10 @@ e39c9db5fb7117c6adf2b463a5e5ed9b  findutils/updatedb-x86
 a6ea98350d1aae067928949f01647a71  findutils/xargs-arm64
 8817ecc93c5fd6e6c173d1b66f48c519  findutils/xargs-x64
 c29e3dd5aadad8100bb15ab7d4bd770e  findutils/xargs-x86
+d121c7e4f170b204bc001fa5f4e69011  freedup/freedup-arm
+ea629347d8b772f99b8b01478ec67f7c  freedup/freedup-arm64
+a764239ab133222714c184456ddd0959  freedup/freedup-x64
+fa06eb13c424268823525a35b359808a  freedup/freedup-x86
 01c833beab8a72848dbe6c0a542f8361  gawk/gawk-arm
 10d3894f1c96a42bec98fe9b3f7b109a  gawk/gawk-arm64
 d58ecb96a4d7aad082d53b6009bcc440  gawk/gawk-x64

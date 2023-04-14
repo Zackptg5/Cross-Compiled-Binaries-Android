@@ -8,6 +8,7 @@ Curl (v8.00.1) curl
 Diffutils (v3.9) cmp,diff3,diff,sdiff
 Ed (v1.19) ed,red
 Findutils (v4.9.0) find,frcode,locate,updatedb,xargs
+Freedup (v1.6.3) freedup
 Gawk (v5.2.1) gawk,grcat,pwcat
 Grep (v3.10) egrep,fgrep,grep
 Gzip (v1.12) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew

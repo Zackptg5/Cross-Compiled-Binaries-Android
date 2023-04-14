@@ -23,6 +23,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Ed (v1.19)
 * Exa (v0.10.1) - dynamic only
 * Findutils (v4.9.0)
+* Freedup (v1.6-3)
 * Gawk (Awk) (v5.2.1)
 * Grep (v3.10)
 * Gzip (v1.12)
