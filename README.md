@@ -1,6 +1,9 @@
 # Cross Compiled Binaries for Android
 This repo contains a variety of binaries cross compiled for android with Android NDK. All are static linked unless in a dynamic folder. Feel free to use them for whatever. Also contains some files for ccbins mod
 
+## Disclaimer
+I am not responsible for anything that happens to your device as a result of these binaries. If you don't know what a binary does, read up on its documentation first. If you're install gets borked because of a bad command, that's on you
+
 ## CCBins
 Looking for ccbins? CCBins is the official magisk module terminal script that pulls these binaries and installs them. You can download it from my website here: https://zackptg5.com/android.php#ccbins
 
@@ -23,6 +26,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Ed (v1.19)
 * Exa (v0.10.1) - dynamic only
 * Findutils (v4.9.0)
+* Freedup (v1.6-3)
 * Gawk (Awk) (v5.2.1)
 * Grep (v3.10)
 * Gzip (v1.12)

@@ -48,6 +48,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **ed**           | Yes       | |
 | **exa**          | *Dynamic* | |
 | **findutils**    | Yes       | Also includes find, locate, updatedb, xargs |
+| **freedup**      | Yes       | |
 | **gawk**         | Yes       | GNU awk, also includes grcat and pwcat |
 | **gdbm**         | Yes       | |
 | **gmp**          | Yes       | |

@@ -56,7 +56,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, freedup, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -151,6 +151,7 @@ build_bin() {
     "ed") ext=lz; ver="1.19"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "freedup") ext=tgz; ver="1.6-3"; url="http://freedup.org/freedup_$ver-src.$ext";;
     "gawk") ext=xz; ver="5.2.1"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
@@ -246,7 +247,7 @@ build_bin() {
     [ "$prefix" ] || local prefix=$dir/build-dynamic/$bin/$arch
   fi
 
-  # $first && { [ -d "$prefix" ] && { echogreen "$bin already built! Skipping !"; return 0; }; } || first=false
+  $first && { [ -d "$prefix" ] && { echogreen "$bin already built! Skipping !"; return 0; }; } || first=false
 
   echogreen "Compiling $bin version $ver for $arch api $lapi"
   case $bin in
@@ -480,6 +481,9 @@ build_bin() {
         --datarootdir=/system/usr/share \
         --localstatedir=/data/local/tmp || { echored "Configure failed!"; exit 1; }
       $static || sed -i -e "/#ifndef HAVE_ENDGRENT/,/#endif/d" -e "/#ifndef HAVE_ENDPWENT/,/#endif/d" -e "/endpwent/d" -e "/endgrent/d" find/parser.c
+      ;;
+    "freedup")
+      # no configure needed
       ;;
     "gawk")
       build_bin readline
@@ -1029,6 +1033,10 @@ build_bin() {
                     rm -rf $prefix/sdcard $prefix/system
                     sed -i -e "s|/usr/.*bin|/system/bin|g" -e 's|SHELL=".*"|SHELL="/system/bin/sh"|' $prefix/bin/updatedb
                     ;;
+      "freedup") make freedup -j$JOBS PREFIX=$prefix LDFLAGS=$LDFLAGS
+                [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
+                 install -D freedup $prefix/bin/freedup
+                ;;
       "libnl") make install # Using multiple cores causes weird font glitch in terminal
                [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
                ;;
