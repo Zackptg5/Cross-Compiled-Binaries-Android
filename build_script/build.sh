@@ -56,7 +56,7 @@ echogreen () {
 usage () {
   echo " "
   echored "USAGE:"
-  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, freedup, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, freedup, gawk, gdbm, gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, rsync, sed, selinux, sqlite, strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -184,6 +184,7 @@ build_bin() {
     "pcre2") ver="pcre2-10.42"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
     "quiche") ver="0.17.1"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.2"; url="gnu";;
+    "rsync") ext=gz; ver="3.2.7"; url="https://download.samba.org/pub/rsync/src/rsync-$ver.tar.$ext";;
     "sed") ext=xz; ver="4.9"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.5"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
     "sqlite") ext=gz; ver="3410200"; url="https://sqlite.org/2023/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
@@ -834,6 +835,16 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --with-curses
+      ;;
+    "rsync")
+      build_bin zstd
+      build_bin openssl
+      cd $dir/$bin
+      ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
+        --host=$target_host --target=$target_host \
+        $flags--prefix=$prefix \
+        --disable-xxhash \
+        --disable-lz4
       ;;
     "sed")
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/cdefs.h; sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
