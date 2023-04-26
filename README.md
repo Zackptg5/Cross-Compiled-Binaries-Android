@@ -40,6 +40,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Openssl (v3.1.0)
 * Patch (v2.7.6)
 * Patchelf (v0.17.2)
+* Rsync (v3.2.7)
 * Sed (v4.9)
 * Sqlite3 (v3.41.2) - dynamic only
 * Strace (v6.2)
@@ -79,6 +80,7 @@ These are binaries that will be left "as is". I will not be updating them anymor
 * [OhMyZsh](https://ohmyz.sh)
 * [Partcyborg](https://github.com/Magisk-Modules-Repo/zsh_arm64)
 * [RClone](https://rclone.org)
+* [RSync](https://rsync.samba.org)
 * [Sqlite3](https://sqlite.org/index.html)
 * [Strace](https://github.com/strace/strace)
 * [Tcpdump](https://www.tcpdump.org)

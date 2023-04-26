@@ -33,7 +33,7 @@ d220af23f7b9f5390f3b4b5ac6030ea5  ccbins_files/legacy/ccbins
 afe64aeda1fea8b83787670fe7ddf4d0  ccbins_files/ccbins
 46ce41ac9325fc94a127568a5be4e0f5  ccbins_files/changelog.txt
 5518d1061369a7ab2c8682b1f40592f8  ccbins_files/includes-dynamic.txt
-748c9127185291b703d9f16778f3a9e5  ccbins_files/includes.txt
+e94527592b762733664afa597ae499eb  ccbins_files/includes.txt
 a3d2f390ea5a6cc2cbe8bd9962e58f78  ccbins_files/module.prop
 13543f227560908f303f59f0bc575df3  ccbins_files/mod-util.sh
 590c7d0fefe61d8b4c26249b810449e7  ccbins_files/service.sh
@@ -267,6 +267,14 @@ cb6dd19d526ee7d0a49a0a500beaa28d  patchelf/patchelf-x86
 b54a7ee67614734cff4561e032e249a7  rclone/rclone-arm64
 581d7212ff8b3a8df9aa4fef5ea3607e  rclone/rclone-x64
 30d4a23cfcec37419d7634a4299ccf12  rclone/rclone-x86
+c117134cd2d6d7e34ca2de48c1cdb457  rsync/rsync-arm
+8fa07e0216bd2664af75c558eeb622c5  rsync/rsync-arm64
+ec85f398f7b20ec7667a2218c737e8b3  rsync/rsync-ssl-arm
+ec85f398f7b20ec7667a2218c737e8b3  rsync/rsync-ssl-arm64
+ec85f398f7b20ec7667a2218c737e8b3  rsync/rsync-ssl-x64
+ec85f398f7b20ec7667a2218c737e8b3  rsync/rsync-ssl-x86
+9209591938e020fef319c5df4f45bfcf  rsync/rsync-x64
+c7945dce418bd1a353e544eb765a06c2  rsync/rsync-x86
 107ad5eba3d9ee82c7b481356fc6e154  sed/sed-arm
 257da1cba6993afbafb1a8b62b8ae4a6  sed/sed-arm64
 6068b89598379e535e07cffa6cdadcf1  sed/sed-x64

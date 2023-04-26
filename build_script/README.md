@@ -80,6 +80,7 @@ The below table notes if the binary is compatible with android ndk. If static or
 | **pcre2**        | Yes       | |
 | **quiche**       | Yes       | |
 | **readline**     | Yes       | |
+| **rsync**        | Yes       | |
 | **sed**          | Yes       | |
 | **selinux**      | Yes       | |
 | **sqlite**       | *Dynamic* | |
