@@ -1,6 +1,9 @@
 # Cross Compiled Binaries for Android
 This repo contains a variety of binaries cross compiled for android with Android NDK. All are static linked unless in a dynamic folder. Feel free to use them for whatever. Also contains some files for ccbins mod
 
+## Note
+I currently won't be accepting any binary addition requests at this time. I barely have the time to maintain the current list let alone add anymore to the mix. Hopefully this changes at some point in the future
+
 ## Disclaimer
 I am not responsible for anything that happens to your device as a result of these binaries. If you don't know what a binary does, read up on its documentation first. If you're install gets borked because of a bad command, that's on you
 
