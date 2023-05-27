@@ -21,7 +21,7 @@ Nethogs (v0.8.7) nethogs
 Nmap (v7.93) ncat,nmap,nping usr-$ARCH
 Openssl (v3.1.0.0) openssl
 Patch (v2.7.6) patch
-Patchelf (v0.17.2) patchelf
+Patchelf (v0.18.0) patchelf
 RClone (v1.62.2) rclone
 RSync (v3.2.7) rsync,rsync-ssl
 Sed (v4.9) sed

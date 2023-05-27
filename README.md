@@ -42,7 +42,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Nmap (v7.93) - dynamic only
 * Openssl (v3.1.0)
 * Patch (v2.7.6)
-* Patchelf (v0.17.2)
+* Patchelf (v0.18)
 * Rsync (v3.2.7)
 * Sed (v4.9)
 * Sqlite3 (v3.41.2) - dynamic only

@@ -183,7 +183,7 @@ build_bin() {
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     "openssl") ver="openssl-3.1.0"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
-    "patchelf") ver="0.17.2"; url="https://github.com/NixOS/patchelf";;
+    "patchelf") ver="0.18"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ver="pcre2-10.42"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
     "quiche") ver="0.17.1"; url="https://github.com/cloudflare/quiche";;
