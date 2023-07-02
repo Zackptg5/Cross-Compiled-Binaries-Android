@@ -1,5 +1,5 @@
 --- src/ls.c	2023-03-13 14:08:10.000000000 -0400
-+++ src/ls.c	2023-04-12 23:59:41.194269000 -0400
++++ src/ls.c	2023-07-02 16:10:41.947444700 -0400
 @@ -2279,18 +2279,11 @@
        if (linelen < 0)
          {
@@ -19,9 +19,8 @@
          }
  #endif
        if (linelen < 0)
-
---- src/copy.c	2023-03-13 14:08:10.000000000 -0400
-+++ src/copy.c	2023-04-13 00:04:58.273820400 -0400
+--- src/copy.c	2023-04-17 16:43:34.000000000 -0400
++++ src/copy.c	2023-07-02 16:25:44.187962600 -0400
 @@ -121,6 +121,133 @@
    dev_t dev;
  };
@@ -156,7 +155,7 @@
  /* Initial size of the cp.dest_info hash table.  */
  #define DEST_INFO_INITIAL_CAPACITY 61
  
-@@ -302,14 +429,23 @@
+@@ -317,14 +444,23 @@
     bytes read.  */
  static bool
  sparse_copy (int src_fd, int dest_fd, char **abuf, size_t buf_size,
@@ -181,8 +180,8 @@
 +
    if (copy_debug.sparse_detection == COPY_DEBUG_UNKNOWN)
      copy_debug.sparse_detection = hole_size ? COPY_DEBUG_YES : COPY_DEBUG_NO;
- 
-@@ -322,6 +458,102 @@
+   else if (hole_size && copy_debug.sparse_detection == COPY_DEBUG_EXTERNAL)
+@@ -339,6 +475,102 @@
             (SSIZE_MAX, SIZE_MAX) truncated to a value that is
             surely aligned well.  */
          ssize_t copy_max = MIN (SSIZE_MAX, SIZE_MAX) >> 30 << 30;
@@ -285,7 +284,7 @@
          ssize_t n_copied = copy_file_range (src_fd, NULL, dest_fd, NULL,
                                              MIN (max_n_read, copy_max), 0);
          if (n_copied == 0)
-@@ -367,6 +599,14 @@
+@@ -382,6 +614,14 @@
          copy_debug.offload = COPY_DEBUG_YES;
          max_n_read -= n_copied;
          *total_n_read += n_copied;
@@ -300,7 +299,7 @@
        }
    else
      copy_debug.offload = COPY_DEBUG_AVOIDED;
-@@ -377,6 +617,103 @@
+@@ -392,6 +632,103 @@
  
    while (max_n_read)
      {
@@ -404,7 +403,7 @@
        if (!*abuf)
          *abuf = xalignalloc (getpagesize (), buf_size);
        char *buf = *abuf;
-@@ -464,6 +801,14 @@
+@@ -479,6 +816,14 @@
           certain files in /proc or /sys with linux kernels.  */
      }
  
@@ -419,7 +418,7 @@
    /* Ensure a trailing hole is created, so that subsequent
       calls of sparse_copy() start at the correct offset.  */
    if (make_hole && ! create_hole (dest_fd, dst_name, punch_holes, psize))
-@@ -535,9 +880,11 @@
+@@ -550,9 +895,11 @@
  static bool
  lseek_copy (int src_fd, int dest_fd, char **abuf, size_t buf_size,
              size_t hole_size, off_t ext_start, off_t src_total_size,
@@ -433,7 +432,7 @@
  {
    off_t last_ext_start = 0;
    off_t last_ext_len = 0;
-@@ -611,10 +958,16 @@
+@@ -626,10 +973,16 @@
           is conservative and may miss some holes.  */
        off_t n_read;
        bool read_hole;
@@ -452,7 +451,7 @@
          return false;
  
        dest_pos = ext_start + n_read;
-@@ -1580,8 +1933,80 @@
+@@ -1592,8 +1945,80 @@
              buf_size = blcm;
          }
  
@@ -533,7 +532,7 @@
        if (! (
  #ifdef SEEK_HOLE
               scantype == LSEEK_SCANTYPE
-@@ -1589,15 +2014,17 @@
+@@ -1601,15 +2026,17 @@
                             scan_inference.ext_start, src_open_sb.st_size,
                             make_holes ? x->sparse_mode : SPARSE_NEVER,
                             x->reflink_mode != REFLINK_NEVER,
@@ -554,7 +553,7 @@
          {
            return_val = false;
            goto close_src_and_dst_desc;
-@@ -1608,6 +2035,14 @@
+@@ -1620,6 +2047,14 @@
            return_val = false;
            goto close_src_and_dst_desc;
          }
@@ -569,10 +568,9 @@
      }
  
    if (x->preserve_timestamps)
-
---- src/copy.h	2023-03-13 14:08:10.000000000 -0400
-+++ src/copy.h	2023-04-13 00:06:20.526888800 -0400
-@@ -235,6 +235,9 @@
+--- src/copy.h	2023-04-10 06:14:08.000000000 -0400
++++ src/copy.h	2023-07-02 16:15:50.875580500 -0400
+@@ -249,6 +249,9 @@
       Create destination directories as usual. */
    bool symbolic_link;
  
@@ -582,7 +580,7 @@
    /* If true, do not copy a nondirectory that has an existing destination
       with the same or newer modification time. */
    bool update;
-@@ -315,4 +318,22 @@
+@@ -329,4 +332,22 @@
    _GL_ATTRIBUTE_NONNULL () _GL_ATTRIBUTE_PURE;
  mode_t cached_umask (void);
  
@@ -605,18 +603,17 @@
 +/* END progress mod */
 +
  #endif
-
---- src/cp.c	2023-03-13 14:08:10.000000000 -0400
-+++ src/cp.c	2023-04-13 00:13:46.730055300 -0400
-@@ -130,6 +130,7 @@
+--- src/cp.cg	2023-04-10 06:14:08.000000000 -0400
++++ src/cp.c	2023-07-02 16:26:48.895801600 -0400
+@@ -140,6 +140,7 @@
    {"symbolic-link", no_argument, NULL, 's'},
    {"target-directory", required_argument, NULL, 't'},
-   {"update", no_argument, NULL, 'u'},
+   {"update", optional_argument, NULL, 'u'},
 +  {"progress-bar", no_argument, NULL, 'g'},
    {"verbose", no_argument, NULL, 'v'},
    {GETOPT_SELINUX_CONTEXT_OPTION_DECL},
    {GETOPT_HELP_OPTION_DECL},
-@@ -172,6 +173,9 @@
+@@ -182,6 +183,9 @@
    -f, --force                  if an existing destination file cannot be\n\
                                   opened, remove it and try again (this option\n\
                                   is ignored when the -n option is also used)\n\
@@ -626,7 +623,7 @@
    -i, --interactive            prompt before overwrite (overrides a previous -n\
  \n\
                                    option)\n\
-@@ -649,6 +653,82 @@
+@@ -666,6 +670,82 @@
          }
      }
  
@@ -709,7 +706,7 @@
    if (target_directory)
      {
        /* cp file1...filen edir
-@@ -788,6 +868,56 @@
+@@ -805,6 +885,56 @@
        ok = copy (source, dest, AT_FDCWD, dest, -new_dst, x, &unused, NULL);
      }
  
@@ -766,17 +763,15 @@
    return ok;
  }
  
-@@ -823,6 +953,9 @@
+@@ -840,6 +970,7 @@
    x->recursive = false;
    x->sparse_mode = SPARSE_AUTO;
    x->symbolic_link = false;
-+
 +  x->progress_bar = false;
-+
    x->set_mode = false;
    x->mode = 0;
  
-@@ -961,7 +1094,8 @@
+@@ -978,7 +1109,8 @@
    selinux_enabled = (0 < is_selinux_enabled ());
    cp_option_init (&x);
  
@@ -786,7 +781,7 @@
                             long_opts, NULL))
           != -1)
      {
-@@ -1022,6 +1156,10 @@
+@@ -1039,6 +1171,10 @@
            x.unlink_dest_after_failed_open = true;
            break;
  
@@ -797,7 +792,7 @@
          case 'H':
            x.dereference = DEREF_COMMAND_LINE_ARGUMENTS;
            break;
-@@ -1172,6 +1310,9 @@
+@@ -1212,6 +1348,9 @@
        usage (EXIT_FAILURE);
      }
  
@@ -807,18 +802,17 @@
    x.backup_type = (make_backups
                     ? xget_version (_("backup type"),
                                     version_control_string)
-
---- src/mv.c	2023-03-13 14:08:10.000000000 -0400
-+++ src/mv.c	2023-04-13 00:10:38.965952500 -0400
-@@ -68,6 +68,7 @@
+--- src/mv.c	2023-04-10 06:14:08.000000000 -0400
++++ src/mv.c	2023-07-02 16:19:42.433714100 -0400
+@@ -79,6 +79,7 @@
    {"target-directory", required_argument, NULL, 't'},
-   {"update", no_argument, NULL, 'u'},
+   {"update", optional_argument, NULL, 'u'},
    {"verbose", no_argument, NULL, 'v'},
 +  {"progress-bar", no_argument, NULL, 'g'},
    {GETOPT_HELP_OPTION_DECL},
    {GETOPT_VERSION_OPTION_DECL},
    {NULL, 0, NULL, 0}
-@@ -159,9 +160,130 @@
+@@ -170,9 +171,130 @@
  {
    bool copy_into_self;
    bool rename_succeeded;
@@ -891,7 +885,7 @@
 +    g_iTotalSize += iTotalSize;
 +  }
 +  /* END progress mod */
-+
++  
    bool ok = copy (source, dest, dest_dirfd, dest_relname, 0, x,
                    &copy_into_self, &rename_succeeded);
  
@@ -949,7 +943,7 @@
    if (ok)
      {
        char const *dir_to_remove;
-@@ -264,6 +386,7 @@
+@@ -275,6 +397,7 @@
  "), stdout);
        fputs (_("\
    -f, --force                  do not prompt before overwriting\n\
@@ -957,7 +951,7 @@
    -i, --interactive            prompt before overwrite\n\
    -n, --no-clobber             do not overwrite an existing file\n\
  If you specify more than one of -i, -f, -n, only the final one takes effect.\n\
-@@ -321,7 +444,7 @@
+@@ -337,7 +460,7 @@
    /* Try to disable the ability to unlink a directory.  */
    priv_set_remove_linkdir ();
  
@@ -966,13 +960,13 @@
           != -1)
      {
        switch (c)
-@@ -363,6 +486,9 @@
-         case 'v':
-           x.verbose = true;
+@@ -350,6 +473,9 @@
+         case 'f':
+           x.interactive = I_ALWAYS_YES;
            break;
 +        case 'g': 
 +          progress = true; 
 +          break;
-         case 'S':
-           make_backups = true;
-           backup_suffix = optarg;
+         case 'i':
+           x.interactive = I_ASK_USER;
+           break;

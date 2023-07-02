@@ -18,20 +18,20 @@ You can find the build script for these in the [build_scripts folder](build_scri
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Bash (v5.2.15)
-* Bc (v6.1.1) - Gavin Howard posix Bc with GNU extensions
+* Bc (v6.6.0) - Gavin Howard posix Bc with GNU extensions
 * Brotli (v1.0.9)
-* Coreutils (v9.2) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
+* Coreutils (v9.3) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
-* Curl (v8.0.1) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v8.1.2) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
-* Diffutils (v3.9)
+* Diffutils (v3.10)
 * Ed (v1.19)
 * Exa (v0.10.1) - dynamic only
 * Findutils (v4.9.0)
 * Freedup (v1.6-3)
-* Gawk (Awk) (v5.2.1)
-* Grep (v3.10)
+* Gawk (Awk) (v5.2.2)
+* Grep (v3.11)
 * Gzip (v1.12)
 * Htop (v3.2.2)
 * Iw (v5.9)
@@ -45,11 +45,11 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Patchelf (v0.18)
 * Rsync (v3.2.7)
 * Sed (v4.9)
-* Sqlite3 (v3.41.2) - dynamic only
-* Strace (v6.2)
+* Sqlite3 (v3.42.0) - dynamic only
+* Strace (v6.4)
 * Tar (v1.34)
 * Tcpdump (v4.99.4)
-* Vim (v9.0.1447)
+* Vim (v9.0.1672)
 * Wget2 (v2.0.1) - dynamic only
 * Xmlstarlet
 * Xxd (v1.10)
@@ -58,7 +58,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Zstd (v1.5.5)
 
 ## Pulled from Offical Sources
-* RClone (v1.62.2)
+* RClone (v1.63.0)
 
 ## Deprecated:
 These are binaries that will be left "as is". I will not be updating them anymore
