@@ -142,24 +142,24 @@ build_bin() {
     "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.2"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
-    "bc-gh") ver="6.1.1"; url="https://github.com/gavinhoward/bc bc-gh";;
+    "bc-gh") ver="6.6.0"; url="https://github.com/gavinhoward/bc bc-gh";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
-    "c-ares") ver="cares-1_18_1"; url="https://github.com/c-ares/c-ares";;
-    "coreutils") ext=xz; ver="9.2"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
+    "c-ares") ver="cares-1_19_1"; url="https://github.com/c-ares/c-ares";;
+    "coreutils") ext=xz; ver="9.3"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-8_0_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
-    "diffutils") ext=xz; ver="3.9"; url="gnu";;
+    "curl") ver="curl-8_1_2"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "diffutils") ext=xz; ver="3.10"; url="gnu";;
     "ed") ext=lz; ver="1.19"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "freedup") ext=tgz; ver="1.6-3"; url="http://freedup.org/freedup_$ver-src.$ext";;
-    "gawk") ext=xz; ver="5.2.1"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
+    "gawk") ext=xz; ver="5.2.2"; url="gnu"; $static || { [ $lapi -lt 26 ] && lapi=26; };;
     "gdbm") ext=gz; ver="1.23" url="gnu";;
     "gmp") ext=xz; ver="6.2.1"; url="https://mirrors.kernel.org/gnu/gmp/gmp-$ver.tar.$ext";;
-    "grep") ext=xz; ver="3.10"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
+    "grep") ext=xz; ver="3.11"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "gzip") ext=xz; ver="1.12"; url="gnu";;
     "htop") ver="3.2.2"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
@@ -179,20 +179,20 @@ build_bin() {
     "nano") ext=xz; ver="7.2"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.4"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.52.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.54.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="openssl-3.1.0"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="openssl-3.1.1"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.18"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
     "pcre2") ver="pcre2-10.42"; url="https://github.com/PhilipHazel/pcre2"; [ $lapi -lt 26 ] && lapi=26;;
-    "quiche") ver="0.17.1"; url="https://github.com/cloudflare/quiche";;
+    "quiche") ver="0.17.2"; url="https://github.com/cloudflare/quiche";;
     "readline") ext=gz; ver="8.2"; url="gnu";;
     "rsync") ext=gz; ver="3.2.7"; url="https://download.samba.org/pub/rsync/src/rsync-$ver.tar.$ext";;
     "sed") ext=xz; ver="4.9"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "selinux") ver="3.5"; url="https://github.com/SELinuxProject/selinux.git"; [ $lapi -lt 28 ] && lapi=28;;
-    "sqlite") ext=gz; ver="3410200"; url="https://sqlite.org/2023/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
-    "strace") ver="v6.2"; url="https://github.com/strace/strace";;
+    "sqlite") ext=gz; ver="3420000"; url="https://sqlite.org/2023/sqlite-autoconf-$ver.tar.$ext"; $static && [ $lapi -lt 26 ] && lapi=26;;
+    "strace") ver="v6.4"; url="https://github.com/strace/strace";;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
     "tcpdump") ver="tcpdump-4.99.4"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "vim") url="https://github.com/vim/vim";;
@@ -387,14 +387,14 @@ build_bin() {
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/cdefs.h #3
       sed -i "s/USE_FORTIFY_LEVEL/BIONIC_FORTIFY/g" lib/stdio.in.h #3
       sed -i -e '/if (!num && negative)/d' -e "/return minus_zero/d" -e "/DOUBLE minus_zero = -0.0/d" lib/strtod.c #2
-      [ "$arch" == "i686" ] && flags="--disable-year2038 $flags" #32
       ./configure CFLAGS="$CFLAGS -I$prefix/include" LDFLAGS="$LDFLAGS -L$prefix/lib" \
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix \
         --disable-nls \
         --with-openssl=yes \
         --with-linux-crypto \
-        --enable-no-install-program=stdbuf || { echored "Configure failed!"; exit 1; }
+        --enable-no-install-program=stdbuf \
+        ac_year2038_required=no || { echored "Configure failed!"; exit 1; } #32
       sed -i "1iLDFLAGS += -Wl,--unresolved-symbols=ignore-in-object-files" src/local.mk #5
       sed -i "/## begin gnulib module copy-file-range/,/## end   gnulib module copy-file-range/d" lib/gnulib.mk #44
       ;;
