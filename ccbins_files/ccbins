@@ -53,7 +53,7 @@ quit() {
   exit 0
 }
 
-scriptver=24
+scriptver=25
 [ -f $MODPATH/.branch ] && branch="$(cat $MODPATH/.branch)" || branch=master
 # Doh workaround for dns poisoning, DNS servers must be specified for Android Oreo+ and/or if wireguard tunnel active - just specify all the time cause I'm lazy
 [ -f $MODPATH/doh ] && mv -f $MODPATH/doh $MODPATH/.doh
@@ -72,6 +72,8 @@ unset flag
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin"
 [ -f $MODPATH/.loc ] && insloc="$(cat $MODPATH/.loc)" || insloc=/system/bin
+# Remove old files
+rm -f $MODPATH/service.sh
 
 # redefined with curl
 test_connection() {
@@ -138,7 +140,7 @@ check_updates() {
   echo -e "\nChecking for mod updates"
   rm -f $MODPATH/.updated $MODPATH/.updatedfiles
   download_file $MODPATH/.changelog https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/changelog.txt
-  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver service.sh,filever module.prop,versionCode; do
+  for i in mod-util.sh,MODUTILVCODE system/bin/ccbins,scriptver post-fs-data.sh,filever module.prop,versionCode; do
     local file="$(echo $i | cut -d , -f1)" value="$(echo $i | cut -d , -f2)"
     if [ `curl -o - https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file) | grep "^$value=" | cut -d = -f2` -gt `grep "^$value=" $MODPATH/$file | cut -d = -f2` ]; then
       echo "$scriptver" > $MODPATH/.updated
@@ -663,7 +665,7 @@ hidden_menu() {
 
 force_legacy() {
   download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
-  for i in $MODPATH/module.prop $MODPATH/mod-util.sh $MODPATH/service.sh $MODPATH/system/bin/ccbins; do
+  for i in $MODPATH/module.prop $MODPATH/mod-util.sh $MODPATH/post-fs-data.sh $MODPATH/system/bin/ccbins; do
     cp -f $i $i.bak
     download_file $i https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/legacy/$(basename $i)
     [ -f $MODPATH/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak

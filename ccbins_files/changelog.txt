@@ -1,3 +1,6 @@
+25 - 8.xx.2023
+* Remove terminal mods dependency - change service to post-fs-data script
+
 24 - 4.11.2023
 * Overhaul mounting for magisk v26 - can now mount on the fly without need for reboot for magisk 26+ installs
 * Split upgrade path - Users with magisk < v26 can use ccbins legacy - essentially v23.

@@ -47,6 +47,7 @@
 # 44) Remove duplicate definition, needed in ndk r25b+
 # 45) ldl needs manually specified
 # 46) x64 won't compile with simd-checksum
+# 47) signed/unsigned int error fix
 
 echored () {
 	echo "${textred}$1${textreset}"
@@ -60,7 +61,7 @@ usage () {
   echogreen "bin=      (aria2, bash, bc, bc-gh, boringssl, brotli, bzip2, c-ares, coreutils, cpio, cunit, curl, diffutils, ed, exa, findutils, freedup, gawk, gdbm, \
   gmp, grep, gzip, htop, iftop, jq, ldns, libedit, libexpat, libhsts, libiconv, libidn2, libmagic, libnl, libpcap, libpcapnl (libpcap w/ libnl), libpsl, libssh2, libssh2-alt, \
   libunistring, nano, ncurses, ncursesw, nethogs, nghttp2 (lib only), nmap, openssl, patch, patchelf, pcre, pcre2, quiche, rclone, readline, rsync, sed, selinux, sqlite, \
-  strace, tar, tcpdump, vim, wavemon, wget2, zlib, zsh, zstd)"
+  strace, tar, tcpdump, tinyalsa, vim, wavemon, wget2, zlib, zsh, zstd)"
   echo "           For aria, curl, nmap, and wget2 dynamic link - all non-android libs are statically linked to make it much more portable"
   echo "           libssh2-alt = libssh2 with boringssl rather than openssl"
   echo "           Note that you can put as many of these as you want together as long as they're comma separated"
@@ -150,7 +151,7 @@ build_bin() {
     "coreutils") ext=xz; ver="9.3"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-8_1_2"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-8_2_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.10"; url="gnu";;
     "ed") ext=lz; ver="1.19"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -179,7 +180,7 @@ build_bin() {
     "nano") ext=xz; ver="7.2"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.4"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.55.0"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.55.1"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     "openssl") ver="openssl-3.1.1"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
@@ -195,6 +196,7 @@ build_bin() {
     "strace") ver="v6.4"; url="https://github.com/strace/strace";;
     "tar") ext=xz; ver="1.34"; url="gnu"; ! $static && [ $lapi -lt 28 ] && lapi=28;;
     "tcpdump") ver="tcpdump-4.99.4"; url="https://github.com/the-tcpdump-group/tcpdump"; $static || [ $lapi -ge 26 ] || lapi=26;;
+    "tinyalsa") ver="v2.0.0"; url="https://github.com/tinyalsa/tinyalsa";;
     "vim") url="https://github.com/vim/vim";;
     "wavemon") ver="v0.9.3"; url="https://github.com/uoaerg/wavemon"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "wget2") ver="v2.0.1"; url="https://gitlab.com/gnuwget/wget2"; [ $lapi -lt 28 ] && lapi=28;;
@@ -901,6 +903,20 @@ build_bin() {
         --host=$target_host --target=$target_host \
         $flags--prefix=$prefix #28
       ;;
+    "tinyalsa")
+      $static && flags="-DCMAKE_EXE_LINKER_FLAGS='-static' -DBUILD_SHARED_LIBS=0 "
+      mkdir -p build
+      cd build
+      sed -i 's/ i < num_read/ (unsigned)i < num_read/g' ../utils/tinywavinfo.c #47
+      cmake -DANDROID_ABI=$barch \
+            -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
+            -DANDROID_NATIVE_API_LEVEL=$lapi \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX:PATH=$prefix \
+            -DTINYALSA_BUILD_EXAMPLES=OFF \
+            $flags-GNinja ..
+      ninja
+      ;;
     "vim")
       build_bin ncursesw
       cd $dir/$bin
@@ -1041,7 +1057,7 @@ build_bin() {
       "c-ares") ninja install
                 $static || cp $prefix/lib/libcares_static.a $prefix/lib/libcares.a
                 ;;
-      "cunit") ninja install
+      "cunit"|"tinyalsa") ninja install
                ;;
       "findutils") make install -j$jobs DESTDIR=$prefix
                     [ $? -eq 0 ] || { echored "Build failed!"; exit 1; }
