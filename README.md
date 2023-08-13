@@ -40,7 +40,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Nethogs (v0.8.6)
 * Ncursesw (v6.4) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.93) - dynamic only
-* Openssl (v3.1.0)
+* Openssl (v3.1.2)
 * Patch (v2.7.6)
 * Patchelf (v0.18)
 * Rsync (v3.2.7)
