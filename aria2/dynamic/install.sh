@@ -1,4 +1,5 @@
 [ -z "$MODDIR" ] && MODDIR=$MODPATH #legacy variable
+[ $scriptver -lt 25 ] && aliasfile=/storage/emulated/0/.aliases || aliasfile=$MODDIR/system/etc/ccbins-aliases # legacy terminalmods
 # Generates ca-certificate.crt file from .0 files present on device
 mkdir -p $MODDIR/system/etc/security
 if [ -f "$(dirname $MOUNTPATH)/mirror/system/etc/security/ca-certificates.crt" ]; then
@@ -10,4 +11,4 @@ else
 fi
 echo "etc/security/ca-certificates-aria2.crt" >> $MODDIR/.$ibinary
 # dns server fix not needed
-sed -i '/^alias aria2c=/d' /storage/emulated/0/.aliases
+sed -i '/^alias aria2c=/d' $aliasfile
