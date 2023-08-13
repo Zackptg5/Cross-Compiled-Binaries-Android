@@ -1,5 +1,5 @@
-25 - 8.xx.2023
-* Remove terminal mods dependency - change service to post-fs-data script
+25 - 8.13.2023
+* Remove terminal mods dependency
 * Add KSU support
 
 24 - 4.11.2023

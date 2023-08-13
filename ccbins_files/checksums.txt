@@ -3,7 +3,7 @@ cab3c0fd0f1b3ce4be90f255937c7581  aria2/dynamic/aria2c-arm
 35293cb8f3d60de82344ffbd2e6514cf  aria2/dynamic/aria2c-arm64
 ddefa55590a234d56433b091ac9b9a47  aria2/dynamic/aria2c-x64
 95c8440b7b0736fbe388691740b8bce8  aria2/dynamic/aria2c-x86
-8c62c3362d9dc725de0237802724a039  aria2/dynamic/install.sh
+f2002932572998c0fc2521fe11c29d5a  aria2/dynamic/install.sh
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-arm
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-arm64
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-x64
@@ -12,7 +12,7 @@ de1c527e21cabbb1f2eadd3577736b02  aria2/aria2c.bin-arm
 eed8b8cd034366c4099e38569d4e6e7b  aria2/aria2c.bin-arm64
 549398aebb203833f9d93cb26a5c6d47  aria2/aria2c.bin-x64
 34726cbcb3b9d245b348c43aa5afcabf  aria2/aria2c.bin-x86
-80799f517d198d8d04487e4a834a4035  aria2/install.sh
+1c164ce967a6b88b7575bf5515808410  aria2/install.sh
 c4d3f0841475898a93f4fcc6b0a500dd  bash/bash-arm
 2d427c0e53709b024fb28cf054c5b8a9  bash/bash-arm64
 d74c72771dfe8251517c80c79ab63638  bash/bash-x64
@@ -30,8 +30,8 @@ d220af23f7b9f5390f3b4b5ac6030ea5  ccbins_files/legacy/ccbins
 9b0a2892ba064b6ee05d8bcbb85e61fb  ccbins_files/legacy/module.prop
 963b505462234b1966ab972143fc3899  ccbins_files/legacy/mod-util.sh
 590c7d0fefe61d8b4c26249b810449e7  ccbins_files/legacy/service.sh
-afe64aeda1fea8b83787670fe7ddf4d0  ccbins_files/ccbins
-46ce41ac9325fc94a127568a5be4e0f5  ccbins_files/changelog.txt
+5843cf3eb0d2fd2ea995992811091666  ccbins_files/ccbins
+f44c2e81eb62f6363d151fac79fffc6d  ccbins_files/changelog.txt
 a3196554b3f8a0af3f4d2a458204d53f  ccbins_files/includes-dynamic.txt
 ff4dce7e1b0646864509dcafba83b441  ccbins_files/includes.txt
 c60666fbff04cbb96e278100df673e37  ccbins_files/module.prop
@@ -50,12 +50,12 @@ bbb4d7d79879137d93a3c5ef22f86022  cpio/cpio-x64
 54faf5906958a9c910a37e51ef692ff0  curl/dynamic/curl-arm64
 0996c94e4b4ddfe8b427026c7d4f1c9c  curl/dynamic/curl-x64
 12a0bff5ab76f5153d57fd0d5f67d930  curl/dynamic/curl-x86
-a8ee1790afb22f04898f5afdd7f371cd  curl/dynamic/install.sh
+770b7034435c778e374349cbbc9d9454  curl/dynamic/install.sh
 28548cf447731f7f8161575aa29c3c87  curl/curl-arm
 b61eac976f75aa8c75775c1dab983327  curl/curl-arm64
 822e6f403956df955862a5e461442778  curl/curl-x64
 bbdd87f541a1769741c5c83bd5bd5c9c  curl/curl-x86
-3e749651ff62fdc3191f6279ea1b2a08  curl/install.sh
+ef28b733d30406e1a3196756b9de44f9  curl/install.sh
 20304dd6995f7879c202e2c120a96a2f  diffutils/cmp-arm
 ad5345d2dfe678350c7dc38725bed909  diffutils/cmp-arm64
 e149b6ae2cdd0883974798dbdfd190d1  diffutils/cmp-x64
@@ -234,7 +234,7 @@ ded681fc154529ebbc7562fb0c73ba47  ncursesw/version.txt
 417c3be3bca2b93fc7bc11e5bd9af6e5  nethogs/nethogs-arm64
 dd08e3ac0f87aaf4425c1cddaa902310  nethogs/nethogs-x64
 1f53ca7a042b4accd1a83836968de16e  nethogs/nethogs-x86
-8edcf0450941f49e3e25d69992a737b7  nmap/install.sh
+3d56601300734e6fe68824c801cafc11  nmap/install.sh
 18afa2f8c558a0359910bb8327716991  nmap/ncat-arm
 4cc37a76ec5cffce756da77373a65836  nmap/ncat-arm64
 ecef7d5b54b596844c8d649d62bd9c70  nmap/ncat-x64

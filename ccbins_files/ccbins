@@ -13,12 +13,18 @@ ID="ccbins"
 _name=$(basename $0)
 ls /data >/dev/null 2>&1 || { echo "$ID needs to run as root!"; echo "type 'su' then '$_name'"; exit 1; }
 
-# Magisk Version
-MAGISK_VER_CODE=$(magisk -V)
+# Detect magisk vs kernelsu
+which ksud >/dev/null && KSU=true || KSU=false
+if $KSU; then
+  KSU_VER_CODE=$(ksud debug version | awk '{print $3}')
+  [ $KSU_VER_CODE -lt 11184 ] && require_new_ksu
+else
+  MAGISK_VER_CODE=$(magisk -V)
+fi
 
 # Magisk Mod Directories
 MODPATH=/data/adb/modules/$ID
-MOUNTPATH="$(magisk --path)/.magisk/modules"
+$KSU && MOUNTPATH=$(dirname $MODPATH) || MOUNTPATH="$(magisk --path)/.magisk/modules"
 MOUNTDIR="$MOUNTPATH/$ID"
 [ ! -d $MOUNTDIR ] && { echo "Module not detected!"; exit 1; }
 
@@ -47,7 +53,7 @@ set -x 2>$VERLOG
 # > You can add functions, variables & etc.
 # > Rather than editing the default vars above.
 quit() {
-  remount ro
+  remount_as ro
   rm -f $MODPATH/tmp $MODPATH/dlerror
   kill -10 $proc
   exit 0
@@ -70,7 +76,7 @@ unset flag
 # Make sure curl binary is present
 [ -f $MODPATH/curl ] || { echo -e "Curl missing!\nReinstall ccbins or copy curl to root of ccbins module folder!"; quit; }
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
-locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin"
+$KSU && locs="/system/bin /system/xbin /vendor/bin /vendor/xbin" || locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin"
 [ -f $MODPATH/.loc ] && insloc="$(cat $MODPATH/.loc)" || insloc=/system/bin
 # Remove old files
 rm -f $MODPATH/service.sh
@@ -146,7 +152,9 @@ check_updates() {
       echo "$scriptver" > $MODPATH/.updated
       echo "$(basename $file)" >> $MODPATH/.updatedfiles
       download_file $MODPATH/$file https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $file)
-      [ "$file" == "system/bin/ccbins" ] && { umount -l /$file; mount -o bind $MOUNTDIR/$file /$file; }
+      if [ "$file" == "system/bin/ccbins" ]; then
+        $KSU && mount -o remount /system || { umount -l /$file; mount -o bind $MOUNTDIR/$file /$file; }
+      fi
     fi
   done
 }
@@ -357,7 +365,8 @@ check_conflicts() {
   rm -f $MODPATH/tmp2
 }
 
-remount() {
+remount_as() {
+  $KSU && return 0
   local arg="$1"
   $IS64BIT && local libloc="/system/lib64" || local libloc="/system/lib"
   for i in /system/bin /system/etc /system/usr /system/usr/share $libloc; do
@@ -367,11 +376,12 @@ remount() {
 
 remove_file() {
   local file="$1"
-  umount -f $file 2>/dev/null
+  $KSU || umount -f $file 2>/dev/null
   rm -f $file $MODPATH$file 2>/dev/null
 }
 
 add_file() {
+  $KSU && return 0
   local file="$1"
   mktouch $file 2>/dev/null
   mount -o bind $MOUNTDIR$file $file
@@ -387,6 +397,7 @@ remove_binary() {
     done < $MODPATH/.$ibinary
     rm -f $MODPATH/.$ibinary
   fi
+  $KSU && mount -o remount /system /vendor
 }
 
 install_binary() {
@@ -426,6 +437,7 @@ install_binary() {
     . $MODPATH/install.sh
     rm -f $MODPATH/install.sh
   fi
+  $KSU && mount -o remount /system /vendor
 }
 
 install_ncursesw() {
@@ -606,8 +618,7 @@ force_update() {
     download_file $i https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/$(basename $i)
     [ -f $MODPATH/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak
   done
-  umount -l /system/bin/ccbins
-  mount -o bind $MOUNTDIR/system/bin/ccbins /system/bin/ccbins
+  $KSU && mount -o remount /system || { umount -l /system/bin/ccbins; mount -o bind $MOUNTDIR/system/bin/ccbins /system/bin/ccbins; }
   ccbins && quit
 }
 
@@ -665,13 +676,13 @@ hidden_menu() {
 
 force_legacy() {
   download_file $MODPATH/.checksums https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/checksums.txt & e_spinner
-  for i in $MODPATH/module.prop $MODPATH/mod-util.sh $MODPATH/post-fs-data.sh $MODPATH/system/bin/ccbins; do
+  rm -f $MODPATH/post-fs-data.sh
+  for i in $MODPATH/module.prop $MODPATH/mod-util.sh $MODPATH/service.sh $MODPATH/system/bin/ccbins; do
     cp -f $i $i.bak
     download_file $i https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/legacy/$(basename $i)
     [ -f $MODPATH/dlerror ] && { cp -f $i.bak $i; echo "Unable to $(basename $i)!"; quit; } || rm -f $i.bak
   done
-  umount -l /system/bin/ccbins
-  mount -o bind $MOUNTDIR/system/bin/ccbins /system/bin/ccbins
+  $KSU && mount -o remount /system || { umount -l /system/bin/ccbins; mount -o bind $MOUNTDIR/system/bin/ccbins /system/bin/ccbins; }
   ccbins && quit
 }
 
@@ -681,7 +692,7 @@ if [ $MAGISK_VER_CODE -lt 26000 ]; then
   force_legacy
 fi
 
-remount rw
+remount_as rw
 rm -f $MODPATH/tmp
 mod_head
 echo " "
