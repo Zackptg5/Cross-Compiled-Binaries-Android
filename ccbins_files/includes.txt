@@ -25,7 +25,7 @@ Patchelf (v0.18.0) patchelf
 RClone (v1.63.0) rclone
 RSync (v3.2.7) rsync,rsync-ssl
 Sed (v4.9) sed
-Strace (v6.4) strace
+Strace (v6.5) strace
 Tar (v1.34) tar
 Tcpdump (v4.99.4) tcpdump
 Tinyalsa (v2.0.0) tinycap,tinymix,tinypcminfo,tinyplay,tinywavinfo

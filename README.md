@@ -46,7 +46,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Rsync (v3.2.7)
 * Sed (v4.9)
 * Sqlite3 (v3.42.0) - dynamic only
-* Strace (v6.4)
+* Strace (v6.5)
 * Tar (v1.34)
 * Tcpdump (v4.99.4)
 * Tinyalsa (v2.0.0)
