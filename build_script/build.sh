@@ -180,7 +180,7 @@ build_bin() {
     "nano") ext=xz; ver="7.2"; url="gnu";;
     "ncurses"|"ncursesw") ext=gz; ver="6.4"; url="gnu"; [ "$bin" == "ncursesw" ] && { bin=ncurses; alt=true; };;
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
-    "nghttp2") ver="v1.55.1"; url="https://github.com/nghttp2/nghttp2";;
+    "nghttp2") ver="v1.56.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
     "openssl") ver="openssl-3.1.2"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
