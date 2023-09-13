@@ -4,7 +4,7 @@ Bc (v6.6.0) bc dc
 Brotli (v1.0.9) brotli
 Coreutils (v9.3) coreutils
 Cpio (v2.12) cpio
-Curl (v8.02.1) curl
+Curl (v8.03.0) curl
 Diffutils (v3.10) cmp,diff3,diff,sdiff
 Ed (v1.19) ed,red
 Findutils (v4.9.0) find,frcode,locate,updatedb,xargs
@@ -14,7 +14,7 @@ Grep (v3.11) egrep,fgrep,grep
 Gzip (v1.12) gunzip,gzexe,gzip,uncompress,zcat,zcmp,zdiff,zegrep,zfgrep,zforce,zgrep,zless,zmore,znew
 Htop (v3.2.2) htop
 Iw (v5.9) iw
-Jq (v1.6) jq
+Jq (v1.7) jq
 Keycheck (v1.0) keycheck
 Nano (v7.2.0) nano etc,usr,rnano
 Nethogs (v0.8.7) nethogs

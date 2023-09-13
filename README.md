@@ -22,7 +22,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Brotli (v1.0.9)
 * Coreutils (v9.3) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
-* Curl (v8.2.1) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v8.3.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Diffutils (v3.10)
@@ -35,6 +35,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Gzip (v1.12)
 * Htop (v3.2.2)
 * Iw (v5.9)
+* Jq (v1.7)
 * Keycheck
 * Nano (v7.2)
 * Nethogs (v0.8.6)
