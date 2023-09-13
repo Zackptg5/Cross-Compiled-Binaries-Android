@@ -151,7 +151,7 @@ build_bin() {
     "coreutils") ext=xz; ver="9.3"; url="gnu"; [ $lapi -lt 28 ] && lapi=28;;
     "cpio") ext=gz; ver="2.12"; url="gnu";;
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
-    "curl") ver="curl-8_2_1"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
+    "curl") ver="curl-8_3_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.10"; url="gnu";;
     "ed") ext=lz; ver="1.19"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
@@ -164,7 +164,7 @@ build_bin() {
     "gzip") ext=xz; ver="1.12"; url="gnu";;
     "htop") ver="3.2.2"; url="https://github.com/htop-dev/htop"; [ $lapi -lt 25 ] && { $static || lapi=25; };;
     "iftop") ext=gz; ver="1.0pre4"; url="http://www.ex-parrot.com/pdw/iftop/download/iftop-$ver.tar.$ext"; [ $lapi -lt 28 ] && lapi=28;;
-    "jq") ver="jq-1.6"; url="https://github.com/jqlang/jq";;
+    "jq") ver="jq-1.7"; url="https://github.com/jqlang/jq";;
     "ldns") ext=gz; ver="1.8.3"; url="https://www.nlnetlabs.nl/downloads/ldns/ldns-$ver.tar.$ext";;
     "libedit") ext=gz; ver="20221030-3.1"; url="https://thrysoee.dk/editline/libedit-$ver.tar.$ext";;
     "libexpat") ver="R_2_5_0"; url="https://github.com/libexpat/libexpat";;
