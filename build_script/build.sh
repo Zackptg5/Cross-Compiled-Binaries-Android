@@ -143,7 +143,7 @@ build_bin() {
     "aria2") ver="release-1.36.0"; url="https://github.com/aria2/aria2"; [ $lapi -lt 26 ] && lapi=26;;
     "bash") ext=gz; ver="5.2"; url="gnu";;
     "bc") ext=gz; ver="1.07.1"; url="gnu";;
-    "bc-gh") ver="6.6.0"; url="https://github.com/gavinhoward/bc bc-gh";;
+    "bc-gh") ver="6.6.1"; url="https://github.com/gavinhoward/bc bc-gh";;
     "bzip2") ext=gz; ver="1.0.8"; url="https://www.sourceware.org/pub/bzip2/bzip2-$ver.tar.$ext";;
     "boringssl") ver="f1c75347d"; url="https://github.com/google/boringssl";; # Keep consistent with quiche boringssl
     "brotli") ver="v1.0.9"; url="https://github.com/google/brotli";;
@@ -182,7 +182,7 @@ build_bin() {
     "nethogs") ver="v0.8.7"; url="https://github.com/raboof/nethogs"; $static || [ $lapi -ge 26 ] || lapi=26;;
     "nghttp2") ver="v1.56.0"; url="https://github.com/nghttp2/nghttp2";;
     "nmap") ext="tgz"; ver="7.93"; url="https://nmap.org/dist/nmap-$ver.$ext";;
-    "openssl") ver="openssl-3.1.2"; url="https://github.com/openssl/openssl";;
+    "openssl") ver="openssl-3.1.3"; url="https://github.com/openssl/openssl";;
     "patch") ext=xz; ver="2.7.6"; url="gnu";;
     "patchelf") ver="0.18"; url="https://github.com/NixOS/patchelf";;
     "pcre") ext=gz; ver="8.45"; url="https://sourceforge.net/projects/pcre/files/pcre/$ver/pcre-$ver.tar.$ext/download"; [ $lapi -lt 26 ] && lapi=26;;
