@@ -18,7 +18,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Bash (v5.2.15)
-* Bc (v6.6.0) - Gavin Howard posix Bc with GNU extensions
+* Bc (v6.6.1) - Gavin Howard posix Bc with GNU extensions
 * Brotli (v1.0.9)
 * Coreutils (v9.3) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
@@ -41,7 +41,7 @@ You can find the build script for these in the [build_scripts folder](build_scri
 * Nethogs (v0.8.6)
 * Ncursesw (v6.4) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.93) - dynamic only
-* Openssl (v3.1.2)
+* Openssl (v3.1.3)
 * Patch (v2.7.6)
 * Patchelf (v0.18)
 * Rsync (v3.2.7)
