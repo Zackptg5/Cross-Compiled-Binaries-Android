@@ -14,44 +14,44 @@ Looking for ccbins? CCBins is the official magisk module terminal script that pu
 You can find the build script for these in the [build_scripts folder](build_script).
 
 ## Actively Maintained:
-* Aria2 (v1.36.0) - to use static linked without root, use `--async-dns --async-dns-server=<yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Aria2 (v1.37.0) - to use static linked without root, use `--async-dns --async-dns-server=<yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
-* Bash (v5.2.15)
-* Bc (v6.6.1) - Gavin Howard posix Bc with GNU extensions
-* Brotli (v1.0.9)
-* Coreutils (v9.3) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
+* Bash (v5.2.21)
+* Bc (v6.7.5) - Gavin Howard posix Bc with GNU extensions
+* Brotli (v1.1.0)
+* Coreutils (v9.4) - has selinux support, openssl support, and includes patches for advanced cp/mv (adds progress bar functionality)
 * Cpio (v2.12) - v2.13 is bugged so staying with this version
-* Curl (v8.3.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
+* Curl (v8.6.0) - boringssl support and more - working ssl, to use static linked without root, use `--dns-servers <yourdnserver,yourotherdnsserver>` (not needed for dynamic linked)
   * For use in an installer zip - use static linked
   * For use on a device - use dynamic linked if on Oreo (API 26) or newer
 * Diffutils (v3.10)
-* Ed (v1.19)
+* Ed (v1.20.1)
 * Exa (v0.10.1) - dynamic only
 * Findutils (v4.9.0)
 * Freedup (v1.6-3)
-* Gawk (Awk) (v5.2.2)
+* Gawk (Awk) (v5.3.0)
 * Grep (v3.11)
-* Gzip (v1.12)
-* Htop (v3.2.2)
+* Gzip (v1.13)
+* Htop (v3.3.0)
 * Iw (v5.9)
-* Jq (v1.7)
+* Jq (v1.7.1)
 * Keycheck
 * Nano (v7.2)
 * Nethogs (v0.8.6)
 * Ncursesw (v6.4) - only terminfo files - needed for some binaries such as htop
 * Nmap (v7.93) - dynamic only
-* Openssl (v3.1.3)
+* Openssl (v3.2.1)
 * Patch (v2.7.6)
 * Patchelf (v0.18)
 * Rsync (v3.2.7)
 * Sed (v4.9)
-* Sqlite3 (v3.42.0) - dynamic only
-* Strace (v6.5)
-* Tar (v1.34)
+* Sqlite3 (v3.45.1) - dynamic only
+* Strace (v6.7)
+* Tar (v1.35)
 * Tcpdump (v4.99.4)
 * Tinyalsa (v2.0.0)
-* Vim (v9.0.1672)
+* Vim (v9.1.0143)
 * Wget2 (v2.0.1) - dynamic only
 * Xmlstarlet
 * Xxd (v1.10)
