@@ -290,7 +290,7 @@ build_bin() {
         --with-libexpat \
         --with-libz \
         --with-libssh2 \
-        --with-ca-bundle='/system/etc/security/ca-certificates.crt'
+        --with-ca-bundle='/system/etc/security/ca-certificates-aria2.crt'
       ;;
     "bash")
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9
