@@ -72,10 +72,10 @@ fdead214b90064763ba5ef2c2be0d3c6  diffutils/diff-arm64
 c27495f36075ed3963db55a3807c6d93  diffutils/sdiff-arm64
 d45fd1a6289d6876ef6eedd0da540f79  diffutils/sdiff-x64
 5cc4b4f2ea65b0f38136849e35e4e358  diffutils/sdiff-x86
-4cbe4f9efdf918efdd7c22a46f3010c5  ed/ed-arm
-0b9b243a9496c16fcbf26519a82147e1  ed/ed-arm64
-189ce73783517a67965e9c5b8c227c84  ed/ed-x64
-2ba88ac4692cbfb7df789f69bd0c52d8  ed/ed-x86
+c03c1a3d7bb99a963653245c3a40351d  ed/ed-arm
+367bd888d15623fff1eeddb1ec2b9ef7  ed/ed-arm64
+812d451ba16962c5b7dc9cdf64cc07b6  ed/ed-x64
+3b0a188d1b49f850f5e3b407c8869bce  ed/ed-x86
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-arm
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-arm64
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-x64
