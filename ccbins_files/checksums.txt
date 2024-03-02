@@ -1,17 +1,17 @@
 checksums.txt
-3ea25ee3eb117b911c81fb3f832e53ae  aria2/dynamic/aria2c-arm
-492fdf583ebac3d2a971a6643156d31e  aria2/dynamic/aria2c-arm64
-cd14258708c5cdbf9a926e05a17d6239  aria2/dynamic/aria2c-x64
-65f7191a5c800887b3bb30e0f75f7c4e  aria2/dynamic/aria2c-x86
+686a8501e5b29d83d4370d017a536d71  aria2/dynamic/aria2c-arm
+23de797691ea18af1a57a283df02ae6a  aria2/dynamic/aria2c-arm64
+67333d80d6574ec10fdc9411641b3c4f  aria2/dynamic/aria2c-x64
+0d52e7c9083f56aef3677f7c013e1bc2  aria2/dynamic/aria2c-x86
 f2002932572998c0fc2521fe11c29d5a  aria2/dynamic/install.sh
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-arm
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-arm64
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-x64
 eb6179d3d44d802e20dab50a7c749d3d  aria2/aria2c-x86
-e88f9e7919e7f341546859ae6f628c0c  aria2/aria2c.bin-arm
-c8a32087a0309f2f59bbbb1e28fae11c  aria2/aria2c.bin-arm64
-c5096aa75f91352613580ec931c336a3  aria2/aria2c.bin-x64
-931ed687fbe184f93d4065464bfd0bc4  aria2/aria2c.bin-x86
+8ec1ada3fc941b4aebd915d0aa752259  aria2/aria2c.bin-arm
+00ad3e21694ae5c2a9854312dee6bae7  aria2/aria2c.bin-arm64
+e3ddea9500b95317202bb9164b55191a  aria2/aria2c.bin-x64
+34f9fe87df29e57380b6e421850fc41b  aria2/aria2c.bin-x86
 1c164ce967a6b88b7575bf5515808410  aria2/install.sh
 779312a421f0b59b1f8553d164af1db4  bash/bash-arm
 6b036c3195676da211144aeed03fac34  bash/bash-arm64
