@@ -153,7 +153,7 @@ build_bin() {
     "cunit") ver="3.2.7"; url="https://gitlab.com/cunity/cunit";;
     "curl") ver="curl-8_3_0"; url="https://github.com/curl/curl"; [ $lapi -lt 26 ] && lapi=26;;
     "diffutils") ext=xz; ver="3.10"; url="gnu";;
-    "ed") ext=lz; ver="1.19"; url="gnu";;
+    "ed") ext=lz; ver="1.20.1"; url="gnu";;
     "exa") ver="v0.10.1"; url="https://github.com/ogham/exa"; [ $lapi -lt 24 ] && lapi=24;;
     "findutils") ext=xz; ver="4.9.0"; url="gnu"; [ $lapi -lt 23 ] && lapi=23;;
     "freedup") ext=tgz; ver="1.6-3"; url="http://freedup.org/freedup_$ver-src.$ext";;
@@ -290,7 +290,7 @@ build_bin() {
         --with-libexpat \
         --with-libz \
         --with-libssh2 \
-        --with-ca-bundle='/system/etc/security/ca-certificates.crt'
+        --with-ca-bundle='/system/etc/security/ca-certificates-aria2.crt'
       ;;
     "bash")
       $static && { flags="$flags--enable-static-link "; sed -i 's/-rdynamic//g' configure.ac; } #9

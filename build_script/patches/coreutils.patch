@@ -281,7 +281,7 @@
 +        }
 +        /* END progress mod */
 +
-         ssize_t n_copied = copy_file_range (src_fd, NULL, dest_fd, NULL,
+         ssize_t n_copied = copy_file_range (src_fd, nullptr, dest_fd, nullptr,
                                              MIN (max_n_read, copy_max), 0);
          if (n_copied == 0)
 @@ -382,6 +614,14 @@
@@ -606,11 +606,11 @@
 --- src/cp.cg	2023-04-10 06:14:08.000000000 -0400
 +++ src/cp.c	2023-07-02 16:26:48.895801600 -0400
 @@ -140,6 +140,7 @@
-   {"symbolic-link", no_argument, NULL, 's'},
-   {"target-directory", required_argument, NULL, 't'},
-   {"update", optional_argument, NULL, 'u'},
-+  {"progress-bar", no_argument, NULL, 'g'},
-   {"verbose", no_argument, NULL, 'v'},
+   {"symbolic-link", no_argument, nullptr, 's'},
+   {"target-directory", required_argument, nullptr, 't'},
+   {"update", optional_argument, nullptr, 'u'},
++  {"progress-bar", no_argument, nullptr, 'g'},
+   {"verbose", no_argument, nullptr, 'v'},
    {GETOPT_SELINUX_CONTEXT_OPTION_DECL},
    {GETOPT_HELP_OPTION_DECL},
 @@ -182,6 +183,9 @@
@@ -778,7 +778,7 @@
 -  while ((c = getopt_long (argc, argv, "abdfHilLnprst:uvxPRS:TZ",
 +  /* BEGIN and END progress mod - remove the g in the next line!*/
 +  while ((c = getopt_long (argc, argv, "abdfgHilLnprst:uvxPRS:TZ",
-                            long_opts, NULL))
+                            long_opts, nullptr))
           != -1)
      {
 @@ -1039,6 +1171,10 @@
@@ -805,10 +805,10 @@
 --- src/mv.c	2023-04-10 06:14:08.000000000 -0400
 +++ src/mv.c	2023-07-02 16:19:42.433714100 -0400
 @@ -79,6 +79,7 @@
-   {"target-directory", required_argument, NULL, 't'},
-   {"update", optional_argument, NULL, 'u'},
-   {"verbose", no_argument, NULL, 'v'},
-+  {"progress-bar", no_argument, NULL, 'g'},
+   {"target-directory", required_argument, nullptr, 't'},
+   {"update", optional_argument, nullptr, 'u'},
+   {"verbose", no_argument, nullptr, 'v'},
++  {"progress-bar", no_argument, nullptr, 'g'},
    {GETOPT_HELP_OPTION_DECL},
    {GETOPT_VERSION_OPTION_DECL},
    {NULL, 0, NULL, 0}
@@ -955,8 +955,8 @@
    /* Try to disable the ability to unlink a directory.  */
    priv_set_remove_linkdir ();
  
--  while ((c = getopt_long (argc, argv, "bfint:uvS:TZ", long_options, NULL))
-+  while ((c = getopt_long (argc, argv, "bfint:uvgS:TZ", long_options, NULL))
+-  while ((c = getopt_long (argc, argv, "bfint:uvS:TZ", long_options, nullptr))
++  while ((c = getopt_long (argc, argv, "bfint:uvgS:TZ", long_options, nullptr))
           != -1)
      {
        switch (c)
