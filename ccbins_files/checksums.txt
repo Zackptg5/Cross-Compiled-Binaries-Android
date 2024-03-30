@@ -80,7 +80,7 @@ c03c1a3d7bb99a963653245c3a40351d  ed/ed-arm
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-arm64
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-x64
 7ee1c42c8afd7a5fb6cccc6fa45c08de  ed/red-x86
-47934fe92553d410176ca64c6c53f539  exa/dynamic/install.sh
+02ef4945501feca7d6304da7ff04479f  exa/dynamic/install.sh
 0b6f910dcccad4ed261f5e1736da08b2  exa/dynamic/exa-arm
 939a99e4882333ab1242d676d9d13883  exa/dynamic/exa-arm64
 8c6704934a91309d5d48549ee68e21c7  exa/dynamic/exa-x64
@@ -279,7 +279,7 @@ c7945dce418bd1a353e544eb765a06c2  rsync/rsync-x86
 257da1cba6993afbafb1a8b62b8ae4a6  sed/sed-arm64
 6068b89598379e535e07cffa6cdadcf1  sed/sed-x64
 2d2480cdf2b3404df752f59ca1479eb9  sed/sed-x86
-47934fe92553d410176ca64c6c53f539  sqlite3/dynamic/install.sh
+02ef4945501feca7d6304da7ff04479f  sqlite3/dynamic/install.sh
 1e0f46f93714c4cdcdd129855824ff4b  sqlite3/dynamic/lib-arm64.zip
 82559fbb653e507fbdca9cddfc5e8ad2  sqlite3/dynamic/lib-arm.zip
 9fcbf3fb590d253f27d90dccb23ccad9  sqlite3/dynamic/lib-x64.zip
