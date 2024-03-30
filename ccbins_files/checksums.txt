@@ -34,7 +34,7 @@ d220af23f7b9f5390f3b4b5ac6030ea5  ccbins_files/legacy/ccbins
 f44c2e81eb62f6363d151fac79fffc6d  ccbins_files/changelog.txt
 4feb8bc41ec85736f19fa25c1fb4be40  ccbins_files/includes-dynamic.txt
 0d5814bf402a8b68fe9f1c23c6f31545  ccbins_files/includes.txt
-c60666fbff04cbb96e278100df673e37  ccbins_files/module.prop
+926d6e488b44abcff0af8519fa7073f7  ccbins_files/module.prop
 13543f227560908f303f59f0bc575df3  ccbins_files/mod-util.sh
 25d5cd89e0b48287984a623375130540  ccbins_files/post-fs-data.sh
 b26023f40d4d02038a124280a5d9e093  coreutils/coreutils-arm
